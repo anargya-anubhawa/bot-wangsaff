@@ -1,0 +1,25 @@
+# dependencies
+node_modules/
+
+# runtime data (do not commit)
+storage/
+database/main/
+database/lid-cache.json
+
+#session
+session/
+storage/session/
+
+# env
+.env
+
+# logs & temp
+*.log
+tmp/
+temp/
+
+# test artifacts
+smoke-report.json
+pipeline-report.json
+altheora-report.json
+features-report.json

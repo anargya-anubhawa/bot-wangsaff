@@ -1,0 +1,55 @@
+{
+  "628000000003": {
+    "name": "Tester",
+    "jid": "628000000003",
+    "number": "628000000003",
+    "isPremium": false,
+    "isBanned": false,
+    "exp": 0,
+    "level": 1,
+    "energi": 50,
+    "koin": 0,
+    "saldo": 0,
+    "isRegistered": false,
+    "rpg": {},
+    "inventory": {},
+    "cooldowns": {
+      "filters": 1790946039425
+    },
+    "lastSeen": "2026-10-02T13:00:36.425Z"
+  },
+  "628000000004": {
+    "name": "Tester",
+    "jid": "628000000004",
+    "number": "628000000004",
+    "isPremium": false,
+    "isBanned": false,
+    "exp": 0,
+    "level": 1,
+    "energi": 50,
+    "koin": 0,
+    "saldo": 0,
+    "isRegistered": false,
+    "rpg": {},
+    "inventory": {},
+    "cooldowns": {},
+    "lastSeen": "2026-10-02T13:00:36.422Z"
+  },
+  "628000000001": {
+    "name": "Tester",
+    "jid": "628000000001",
+    "number": "628000000001",
+    "isPremium": false,
+    "isBanned": false,
+    "exp": 0,
+    "level": 1,
+    "energi": 50,
+    "koin": 0,
+    "saldo": 0,
+    "isRegistered": false,
+    "rpg": {},
+    "inventory": {},
+    "cooldowns": {},
+    "lastSeen": "2026-10-02T13:00:36.423Z"
+  }
+}
