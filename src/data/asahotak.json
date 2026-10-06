@@ -1138,5 +1138,870 @@
         "index": 227,
         "soal": "Pelukis ekspresionis ini dikenal sebagai maestro seni lukis Indonesia?",
         "jawaban": "Affandi"
-    }
+    },
+    {
+    "index": 228,
+    "soal": "Siapakah pencipta lagu Indonesia Raya?",
+    "jawaban": "W.R. Supratman"
+},
+{
+    "index": 229,
+    "soal": "Siapakah presiden pertama Republik Indonesia?",
+    "jawaban": "Soekarno"
+},
+{
+    "index": 230,
+    "soal": "Siapakah wakil presiden pertama Republik Indonesia?",
+    "jawaban": "Mohammad Hatta"
+},
+{
+    "index": 231,
+    "soal": "Apa nama rumah adat Sumatera Barat?",
+    "jawaban": "Rumah Gadang"
+},
+{
+    "index": 232,
+    "soal": "Alat musik tradisional Jawa Barat yang terbuat dari bambu?",
+    "jawaban": "Angklung"
+},
+{
+    "index": 233,
+    "soal": "Pulau terbesar di Indonesia yang seluruh wilayahnya berada di Indonesia?",
+    "jawaban": "Sumatera"
+},
+{
+    "index": 234,
+    "soal": "Gunung tertinggi di Indonesia?",
+    "jawaban": "Puncak Jaya"
+},
+{
+    "index": 235,
+    "soal": "Danau vulkanik terbesar di Indonesia?",
+    "jawaban": "Danau Toba"
+},
+{
+    "index": 236,
+    "soal": "Selat yang memisahkan Pulau Jawa dan Pulau Sumatera?",
+    "jawaban": "Selat Sunda"
+},
+{
+    "index": 237,
+    "soal": "Laut yang berada di antara Pulau Jawa dan Pulau Kalimantan?",
+    "jawaban": "Laut Jawa"
+},
+{
+    "index": 238,
+    "soal": "Candi Buddha terbesar di dunia yang berada di Jawa Tengah?",
+    "jawaban": "Borobudur"
+},
+{
+    "index": 239,
+    "soal": "Candi Hindu terbesar di Indonesia?",
+    "jawaban": "Prambanan"
+},
+{
+    "index": 240,
+    "soal": "Kota yang dikenal sebagai Kota Gudeg?",
+    "jawaban": "Yogyakarta"
+},
+{
+    "index": 241,
+    "soal": "Makanan khas Palembang yang terbuat dari ikan dan tepung tapioka?",
+    "jawaban": "Pempek"
+},
+{
+    "index": 242,
+    "soal": "Makanan khas Yogyakarta yang berbahan dasar nangka muda?",
+    "jawaban": "Gudeg"
+},
+{
+    "index": 243,
+    "soal": "Makanan khas Sumatera Barat yang mendunia?",
+    "jawaban": "Rendang"
+},
+{
+    "index": 244,
+    "soal": "Suku yang terkenal dengan rumah tongkonan?",
+    "jawaban": "Toraja"
+},
+{
+    "index": 245,
+    "soal": "Tari tradisional Bali yang menggunakan gerakan mata khas?",
+    "jawaban": "Tari Pendet"
+},
+{
+    "index": 246,
+    "soal": "Tari tradisional Aceh yang dilakukan secara berkelompok dengan gerakan serempak?",
+    "jawaban": "Tari Saman"
+},
+{
+    "index": 247,
+    "soal": "Senjata tradisional masyarakat Jawa yang berbentuk bilah berlekuk?",
+    "jawaban": "Keris"
+},
+{
+    "index": 248,
+    "soal": "Pakaian adat khas Jawa yang biasanya dikenakan oleh pria?",
+    "jawaban": "Beskap"
+},
+{
+    "index": 249,
+    "soal": "Bunga nasional Indonesia yang dikenal sebagai puspa bangsa?",
+    "jawaban": "Melati"
+},
+{
+    "index": 250,
+    "soal": "Bunga nasional Indonesia yang dikenal sebagai puspa pesona?",
+    "jawaban": "Anggrek bulan"
+},
+{
+    "index": 251,
+    "soal": "Hewan yang menjadi lambang negara Indonesia?",
+    "jawaban": "Garuda"
+},
+{
+    "index": 252,
+    "soal": "Semboyan yang terdapat pada pita yang dicengkeram Garuda Pancasila?",
+    "jawaban": "Bhinneka Tunggal Ika"
+},
+{
+    "index": 253,
+    "soal": "Berapa jumlah sila dalam Pancasila?",
+    "jawaban": "Lima"
+},
+{
+    "index": 254,
+    "soal": "Sila pertama Pancasila berbunyi?",
+    "jawaban": "Ketuhanan Yang Maha Esa"
+},
+{
+    "index": 255,
+    "soal": "Tanggal diperingatinya Hari Kemerdekaan Indonesia?",
+    "jawaban": "17 Agustus"
+},
+{
+    "index": 256,
+    "soal": "Di kota mana Proklamasi Kemerdekaan Indonesia dibacakan?",
+    "jawaban": "Jakarta"
+},
+{
+    "index": 257,
+    "soal": "Siapakah yang mengetik naskah Proklamasi Kemerdekaan Indonesia?",
+    "jawaban": "Sayuti Melik"
+},
+{
+    "index": 258,
+    "soal": "Siapakah yang menjahit Bendera Pusaka Merah Putih?",
+    "jawaban": "Fatmawati"
+},
+{
+    "index": 259,
+    "soal": "Di rumah siapa naskah Proklamasi dirumuskan?",
+    "jawaban": "Laksamana Tadashi Maeda"
+},
+{
+    "index": 260,
+    "soal": "Organisasi yang didirikan oleh Dr. Soetomo pada tahun 1908?",
+    "jawaban": "Budi Utomo"
+},
+{
+    "index": 261,
+    "soal": "Organisasi yang didirikan oleh Ki Hajar Dewantara, Douwes Dekker, dan Cipto Mangunkusumo?",
+    "jawaban": "Indische Partij"
+},
+{
+    "index": 262,
+    "soal": "Tokoh yang dikenal sebagai Bapak Pendidikan Nasional?",
+    "jawaban": "Ki Hajar Dewantara"
+},
+{
+    "index": 263,
+    "soal": "Semboyan pendidikan yang terkenal dari Ki Hajar Dewantara?",
+    "jawaban": "Tut Wuri Handayani"
+},
+{
+    "index": 264,
+    "soal": "Organisasi pergerakan nasional yang didirikan oleh H.O.S. Tjokroaminoto?",
+    "jawaban": "Sarekat Islam"
+},
+{
+    "index": 265,
+    "soal": "Organisasi Muhammadiyah didirikan oleh siapa?",
+    "jawaban": "KH Ahmad Dahlan"
+},
+{
+    "index": 266,
+    "soal": "Muhammadiyah didirikan pada tahun berapa?",
+    "jawaban": "1912"
+},
+{
+    "index": 267,
+    "soal": "Nahdlatul Ulama didirikan pada tahun berapa?",
+    "jawaban": "1926"
+},
+{
+    "index": 268,
+    "soal": "Siapakah pendiri Nahdlatul Ulama?",
+    "jawaban": "KH Hasyim Asy'ari"
+},
+{
+    "index": 269,
+    "soal": "Kongres yang menghasilkan ikrar Sumpah Pemuda berlangsung pada tahun?",
+    "jawaban": "1928"
+},
+{
+    "index": 270,
+    "soal": "Tanggal diperingatinya Hari Sumpah Pemuda?",
+    "jawaban": "28 Oktober"
+},
+{
+    "index": 271,
+    "soal": "Lagu yang pertama kali diperdengarkan pada Kongres Pemuda II?",
+    "jawaban": "Indonesia Raya"
+},
+{
+    "index": 272,
+    "soal": "Siapakah pencipta lagu Bagimu Negeri?",
+    "jawaban": "Kusbini"
+},
+{
+    "index": 273,
+    "soal": "Siapakah pencipta lagu Hari Merdeka?",
+    "jawaban": "Husein Mutahar"
+},
+{
+    "index": 274,
+    "soal": "Siapakah pencipta lagu Halo-Halo Bandung?",
+    "jawaban": "Ismail Marzuki"
+},
+{
+    "index": 275,
+    "soal": "Siapakah pencipta lagu Rayuan Pulau Kelapa?",
+    "jawaban": "Ismail Marzuki"
+},
+{
+    "index": 276,
+    "soal": "Alat musik tradisional Jawa Tengah yang dimainkan dengan cara dipukul?",
+    "jawaban": "Gamelan"
+},
+{
+    "index": 277,
+    "soal": "Alat musik tradisional Nusa Tenggara Timur yang terkenal berbentuk tabung bambu?",
+    "jawaban": "Sasando"
+},
+{
+    "index": 278,
+    "soal": "Alat musik tradisional Sumatera Utara yang dimainkan dengan cara ditiup?",
+    "jawaban": "Sarune"
+},
+{
+    "index": 279,
+    "soal": "Rumah adat masyarakat Papua yang berbentuk bulat dan beratap jerami?",
+    "jawaban": "Honai"
+},
+{
+    "index": 280,
+    "soal": "Rumah adat Sumatera Selatan yang terkenal berbentuk panggung?",
+    "jawaban": "Rumah Limas"
+},
+{
+    "index": 281,
+    "soal": "Rumah adat Kalimantan Timur yang dikenal sebagai rumah panjang?",
+    "jawaban": "Rumah Lamin"
+},
+{
+    "index": 282,
+    "soal": "Apa nama kain tradisional Indonesia yang dibuat dengan teknik perintang warna menggunakan malam?",
+    "jawaban": "Batik"
+},
+{
+    "index": 283,
+    "soal": "Kota yang terkenal sebagai pusat industri batik di Jawa Tengah?",
+    "jawaban": "Pekalongan"
+},
+{
+    "index": 284,
+    "soal": "Kota yang dikenal sebagai Kota Batik dan berada di Jawa Tengah?",
+    "jawaban": "Pekalongan"
+},
+{
+    "index": 285,
+    "soal": "Tari tradisional Jawa Tengah yang menggambarkan prajurit?",
+    "jawaban": "Tari Wirayudha"
+},
+{
+    "index": 286,
+    "soal": "Tari tradisional Jawa Barat yang menggunakan properti berupa topeng?",
+    "jawaban": "Tari Topeng"
+},
+{
+    "index": 287,
+    "soal": "Tari tradisional Sumatera Barat yang menggunakan piring sebagai properti?",
+    "jawaban": "Tari Piring"
+},
+{
+    "index": 288,
+    "soal": "Tari tradisional Kalimantan yang terkenal dengan gerakan menyerupai burung?",
+    "jawaban": "Tari Burung Enggang"
+},
+{
+    "index": 289,
+    "soal": "Apa nama kain tradisional khas Palembang?",
+    "jawaban": "Songket"
+},
+{
+    "index": 290,
+    "soal": "Pulau yang terkenal dengan sebutan Pulau Dewata?",
+    "jawaban": "Bali"
+},
+{
+    "index": 291,
+    "soal": "Provinsi paling timur di Indonesia?",
+    "jawaban": "Papua"
+},
+{
+    "index": 292,
+    "soal": "Ibu kota Provinsi Jawa Tengah?",
+    "jawaban": "Semarang"
+},
+{
+    "index": 293,
+    "soal": "Ibu kota Provinsi Jawa Barat?",
+    "jawaban": "Bandung"
+},
+{
+    "index": 294,
+    "soal": "Ibu kota Provinsi Jawa Timur?",
+    "jawaban": "Surabaya"
+},
+{
+    "index": 295,
+    "soal": "Ibu kota Provinsi Sumatera Utara?",
+    "jawaban": "Medan"
+},
+{
+    "index": 296,
+    "soal": "Ibu kota Provinsi Sulawesi Selatan?",
+    "jawaban": "Makassar"
+},
+{
+    "index": 297,
+    "soal": "Ibu kota Provinsi Kalimantan Timur?",
+    "jawaban": "Samarinda"
+},
+{
+    "index": 298,
+    "soal": "Ibu kota Provinsi Bali?",
+    "jawaban": "Denpasar"
+},
+{
+    "index": 299,
+    "soal": "Sungai terpanjang di Indonesia?",
+    "jawaban": "Sungai Kapuas"
+},
+{
+    "index": 300,
+    "soal": "Sungai terpanjang di Pulau Jawa?",
+    "jawaban": "Bengawan Solo"
+},
+{
+    "index": 301,
+    "soal": "Gunung tertinggi di Pulau Jawa?",
+    "jawaban": "Semeru"
+},
+{
+    "index": 302,
+    "soal": "Gunung yang terkenal dengan kawah Ijen?",
+    "jawaban": "Gunung Ijen"
+},
+{
+    "index": 303,
+    "soal": "Gunung yang terletak di antara Kabupaten Magelang dan Kabupaten Temanggung?",
+    "jawaban": "Gunung Sumbing"
+},
+{
+    "index": 304,
+    "soal": "Gunung yang terkenal dengan jalur pendakian via Sembalun?",
+    "jawaban": "Gunung Rinjani"
+},
+{
+    "index": 305,
+    "soal": "Taman nasional yang terkenal sebagai habitat komodo?",
+    "jawaban": "Taman Nasional Komodo"
+},
+{
+    "index": 306,
+    "soal": "Hewan endemik Indonesia yang hanya ditemukan di Pulau Komodo, Rinca, dan sekitarnya?",
+    "jawaban": "Komodo"
+},
+{
+    "index": 307,
+    "soal": "Hewan endemik Sulawesi yang memiliki empat taring panjang?",
+    "jawaban": "Babirusa"
+},
+{
+    "index": 308,
+    "soal": "Primata endemik Sulawesi yang memiliki mata sangat besar?",
+    "jawaban": "Tarsius"
+},
+{
+    "index": 309,
+    "soal": "Burung endemik Papua yang terkenal karena bulunya yang indah?",
+    "jawaban": "Cenderawasih"
+},
+{
+    "index": 310,
+    "soal": "Bunga yang menjadi simbol Kota Bandung?",
+    "jawaban": "Kembang Sepatu"
+},
+{
+    "index": 311,
+    "soal": "Planet yang dikenal sebagai Planet Merah?",
+    "jawaban": "Mars"
+},
+{
+    "index": 312,
+    "soal": "Planet terbesar dalam tata surya?",
+    "jawaban": "Jupiter"
+},
+{
+    "index": 313,
+    "soal": "Planet yang paling dekat dengan Matahari?",
+    "jawaban": "Merkurius"
+},
+{
+    "index": 314,
+    "soal": "Planet yang memiliki cincin paling jelas terlihat?",
+    "jawaban": "Saturnus"
+},
+{
+    "index": 315,
+    "soal": "Satelit alami Bumi?",
+    "jawaban": "Bulan"
+},
+{
+    "index": 316,
+    "soal": "Bintang yang menjadi pusat tata surya?",
+    "jawaban": "Matahari"
+},
+{
+    "index": 317,
+    "soal": "Galaksi tempat tata surya berada?",
+    "jawaban": "Bima Sakti"
+},
+{
+    "index": 318,
+    "soal": "Ilmuwan yang merumuskan hukum gravitasi universal?",
+    "jawaban": "Isaac Newton"
+},
+{
+    "index": 319,
+    "soal": "Ilmuwan yang mengembangkan teori relativitas?",
+    "jawaban": "Albert Einstein"
+},
+{
+    "index": 320,
+    "soal": "Ilmuwan yang terkenal dengan penemuan penisilin?",
+    "jawaban": "Alexander Fleming"
+},
+{
+    "index": 321,
+    "soal": "Ilmuwan yang dikenal sebagai bapak ilmu genetika?",
+    "jawaban": "Gregor Mendel"
+},
+{
+    "index": 322,
+    "soal": "Ilmuwan yang mengemukakan teori evolusi melalui seleksi alam?",
+    "jawaban": "Charles Darwin"
+},
+{
+    "index": 323,
+    "soal": "Ilmuwan yang menemukan hukum gerak planet?",
+    "jawaban": "Johannes Kepler"
+},
+{
+    "index": 324,
+    "soal": "Ilmuwan yang dikenal dengan hukum tekanan gas?",
+    "jawaban": "Robert Boyle"
+},
+{
+    "index": 325,
+    "soal": "Unsur kimia dengan simbol O?",
+    "jawaban": "Oksigen"
+},
+{
+    "index": 326,
+    "soal": "Unsur kimia dengan simbol Au?",
+    "jawaban": "Emas"
+},
+{
+    "index": 327,
+    "soal": "Unsur kimia dengan simbol Ag?",
+    "jawaban": "Perak"
+},
+{
+    "index": 328,
+    "soal": "Unsur kimia dengan simbol Fe?",
+    "jawaban": "Besi"
+},
+{
+    "index": 329,
+    "soal": "Unsur kimia dengan simbol Na?",
+    "jawaban": "Natrium"
+},
+{
+    "index": 330,
+    "soal": "Rumus kimia air?",
+    "jawaban": "H2O"
+},
+{
+    "index": 331,
+    "soal": "Rumus kimia karbon dioksida?",
+    "jawaban": "CO2"
+},
+{
+    "index": 332,
+    "soal": "Gas yang paling banyak terdapat di atmosfer Bumi?",
+    "jawaban": "Nitrogen"
+},
+{
+    "index": 333,
+    "soal": "Proses tumbuhan membuat makanan dengan bantuan cahaya matahari?",
+    "jawaban": "Fotosintesis"
+},
+{
+    "index": 334,
+    "soal": "Organ utama manusia yang berfungsi memompa darah?",
+    "jawaban": "Jantung"
+},
+{
+    "index": 335,
+    "soal": "Organ manusia yang berfungsi sebagai tempat pertukaran gas?",
+    "jawaban": "Paru-paru"
+},
+{
+    "index": 336,
+    "soal": "Organ terbesar pada tubuh manusia?",
+    "jawaban": "Kulit"
+},
+{
+    "index": 337,
+    "soal": "Tulang terpanjang pada tubuh manusia?",
+    "jawaban": "Femur"
+},
+{
+    "index": 338,
+    "soal": "Tulang terkecil pada tubuh manusia?",
+    "jawaban": "Stapes"
+},
+{
+    "index": 339,
+    "soal": "Bagian mata yang mengatur banyaknya cahaya yang masuk?",
+    "jawaban": "Iris"
+},
+{
+    "index": 340,
+    "soal": "Bagian mata tempat terbentuknya bayangan?",
+    "jawaban": "Retina"
+},
+{
+    "index": 341,
+    "soal": "Bagian darah yang berfungsi mengangkut oksigen?",
+    "jawaban": "Sel darah merah"
+},
+{
+    "index": 342,
+    "soal": "Bagian darah yang berperan dalam pembekuan darah?",
+    "jawaban": "Trombosit"
+},
+{
+    "index": 343,
+    "soal": "Sel darah yang berfungsi melawan infeksi?",
+    "jawaban": "Sel darah putih"
+},
+{
+    "index": 344,
+    "soal": "Vitamin yang banyak dihasilkan tubuh dengan bantuan sinar matahari?",
+    "jawaban": "Vitamin D"
+},
+{
+    "index": 345,
+    "soal": "Vitamin yang berperan penting dalam proses pembekuan darah?",
+    "jawaban": "Vitamin K"
+},
+{
+    "index": 346,
+    "soal": "Mineral utama yang penting untuk pembentukan tulang dan gigi?",
+    "jawaban": "Kalsium"
+},
+{
+    "index": 347,
+    "soal": "Hormon yang menurunkan kadar gula darah?",
+    "jawaban": "Insulin"
+},
+{
+    "index": 348,
+    "soal": "Organ yang menghasilkan insulin?",
+    "jawaban": "Pankreas"
+},
+{
+    "index": 349,
+    "soal": "Organ yang berfungsi menyaring darah dan menghasilkan urine?",
+    "jawaban": "Ginjal"
+},
+{
+    "index": 350,
+    "soal": "Bagian sistem pencernaan tempat sebagian besar penyerapan zat makanan terjadi?",
+    "jawaban": "Usus halus"
+},
+{
+    "index": 351,
+    "soal": "Hewan yang dikenal sebagai mamalia terbesar di dunia?",
+    "jawaban": "Paus biru"
+},
+{
+    "index": 352,
+    "soal": "Hewan darat tercepat di dunia?",
+    "jawaban": "Cheetah"
+},
+{
+    "index": 353,
+    "soal": "Burung tercepat di dunia ketika menukik?",
+    "jawaban": "Elang peregrine"
+},
+{
+    "index": 354,
+    "soal": "Hewan yang dikenal sebagai raja hutan?",
+    "jawaban": "Singa"
+},
+{
+    "index": 355,
+    "soal": "Hewan yang dapat mengubah warna tubuhnya untuk berkamuflase?",
+    "jawaban": "Bunglon"
+},
+{
+    "index": 356,
+    "soal": "Serangga yang mengalami metamorfosis sempurna?",
+    "jawaban": "Kupu-kupu"
+},
+{
+    "index": 357,
+    "soal": "Hewan yang memiliki kemampuan regenerasi sangat tinggi dan termasuk kelompok echinodermata?",
+    "jawaban": "Bintang laut"
+},
+{
+    "index": 358,
+    "soal": "Hewan yang terkenal dapat hidup tanpa kepala selama beberapa waktu?",
+    "jawaban": "Kecoa"
+},
+{
+    "index": 359,
+    "soal": "Mamalia yang dapat terbang secara aktif?",
+    "jawaban": "Kelelawar"
+},
+{
+    "index": 360,
+    "soal": "Hewan yang memiliki tiga jantung?",
+    "jawaban": "Gurita"
+},
+{
+    "index": 361,
+    "soal": "Negara terluas di dunia?",
+    "jawaban": "Rusia"
+},
+{
+    "index": 362,
+    "soal": "Negara dengan jumlah penduduk terbanyak di dunia?",
+    "jawaban": "India"
+},
+{
+    "index": 363,
+    "soal": "Negara yang dikenal sebagai Negeri Matahari Terbit?",
+    "jawaban": "Jepang"
+},
+{
+    "index": 364,
+    "soal": "Negara yang dikenal sebagai Negeri Tirai Bambu?",
+    "jawaban": "Tiongkok"
+},
+{
+    "index": 365,
+    "soal": "Ibu kota Jepang?",
+    "jawaban": "Tokyo"
+},
+{
+    "index": 366,
+    "soal": "Ibu kota Korea Selatan?",
+    "jawaban": "Seoul"
+},
+{
+    "index": 367,
+    "soal": "Ibu kota Thailand?",
+    "jawaban": "Bangkok"
+},
+{
+    "index": 368,
+    "soal": "Ibu kota Australia?",
+    "jawaban": "Canberra"
+},
+{
+    "index": 369,
+    "soal": "Ibu kota Mesir?",
+    "jawaban": "Kairo"
+},
+{
+    "index": 370,
+    "soal": "Ibu kota Inggris?",
+    "jawaban": "London"
+},
+{
+    "index": 371,
+    "soal": "Ibu kota Prancis?",
+    "jawaban": "Paris"
+},
+{
+    "index": 372,
+    "soal": "Ibu kota Italia?",
+    "jawaban": "Roma"
+},
+{
+    "index": 373,
+    "soal": "Ibu kota Jerman?",
+    "jawaban": "Berlin"
+},
+{
+    "index": 374,
+    "soal": "Ibu kota Belanda?",
+    "jawaban": "Amsterdam"
+},
+{
+    "index": 375,
+    "soal": "Benua terluas di dunia?",
+    "jawaban": "Asia"
+},
+{
+    "index": 376,
+    "soal": "Benua terkecil di dunia?",
+    "jawaban": "Australia"
+},
+{
+    "index": 377,
+    "soal": "Samudra terluas di dunia?",
+    "jawaban": "Samudra Pasifik"
+},
+{
+    "index": 378,
+    "soal": "Gurun panas terbesar di dunia?",
+    "jawaban": "Gurun Sahara"
+},
+{
+    "index": 379,
+    "soal": "Gunung tertinggi di dunia?",
+    "jawaban": "Everest"
+},
+{
+    "index": 380,
+    "soal": "Sungai terpanjang di dunia menurut pengukuran yang umum digunakan?",
+    "jawaban": "Sungai Nil"
+},
+{
+    "index": 381,
+    "soal": "Menara terkenal di Paris yang menjadi ikon Prancis?",
+    "jawaban": "Menara Eiffel"
+},
+{
+    "index": 382,
+    "soal": "Bangunan terkenal di India yang dibangun oleh Shah Jahan sebagai mausoleum untuk Mumtaz Mahal?",
+    "jawaban": "Taj Mahal"
+},
+{
+    "index": 383,
+    "soal": "Patung terkenal di New York yang menjadi simbol kebebasan?",
+    "jawaban": "Patung Liberty"
+},
+{
+    "index": 384,
+    "soal": "Tembok pertahanan terkenal yang membentang di wilayah Tiongkok?",
+    "jawaban": "Tembok Besar Tiongkok"
+},
+{
+    "index": 385,
+    "soal": "Bahasa yang paling banyak digunakan sebagai bahasa ibu di dunia?",
+    "jawaban": "Mandarin"
+},
+{
+    "index": 386,
+    "soal": "Mata uang resmi Jepang?",
+    "jawaban": "Yen"
+},
+{
+    "index": 387,
+    "soal": "Mata uang resmi Inggris?",
+    "jawaban": "Pound sterling"
+},
+{
+    "index": 388,
+    "soal": "Mata uang resmi Amerika Serikat?",
+    "jawaban": "Dolar"
+},
+{
+    "index": 389,
+    "soal": "Mata uang resmi negara-negara yang tergabung dalam zona euro?",
+    "jawaban": "Euro"
+},
+{
+    "index": 390,
+    "soal": "Olahraga yang menggunakan raket dan kok?",
+    "jawaban": "Bulu tangkis"
+},
+{
+    "index": 391,
+    "soal": "Jumlah pemain dalam satu tim sepak bola yang berada di lapangan?",
+    "jawaban": "11"
+},
+{
+    "index": 392,
+    "soal": "Olahraga yang dikenal sebagai olahraga paling populer di dunia?",
+    "jawaban": "Sepak bola"
+},
+{
+    "index": 393,
+    "soal": "Negara yang dikenal sebagai asal olahraga sumo?",
+    "jawaban": "Jepang"
+},
+{
+    "index": 394,
+    "soal": "Ajang olahraga internasional yang diselenggarakan setiap empat tahun?",
+    "jawaban": "Olimpiade"
+},
+{
+    "index": 395,
+    "soal": "Pemain sepak bola yang dikenal dengan julukan CR7?",
+    "jawaban": "Cristiano Ronaldo"
+},
+{
+    "index": 396,
+    "soal": "Pemain sepak bola Argentina yang memenangkan Piala Dunia 2022 dan dikenal dengan nomor 10?",
+    "jawaban": "Lionel Messi"
+},
+{
+    "index": 397,
+    "soal": "Piala dunia sepak bola pertama kali diselenggarakan di negara mana?",
+    "jawaban": "Uruguay"
+},
+{
+    "index": 398,
+    "soal": "Dalam catur, bidak yang dapat bergerak membentuk huruf L disebut?",
+    "jawaban": "Kuda"
+},
+{
+    "index": 399,
+    "soal": "Dalam permainan sepak bola, pemain yang bertugas menjaga gawang disebut?",
+    "jawaban": "Kiper"
+},
+{
+    "index": 400,
+    "soal": "Cabang olahraga yang menggunakan papan, ombak, dan dilakukan di laut?",
+    "jawaban": "Selancar"
+}
 ]
