@@ -16,6 +16,7 @@ chess game.
 - [Authentication](#authentication)
 - [Run the Bot](#run-the-bot)
 - [Minecraft bridge (XMPP)](#minecraft-bridge-xmpp)
+- [Document → PDF (`/pdf`)](#document--pdf-pdf)
 - [Plugin System](#plugin-system)
 - [Creating a Plugin](#creating-a-plugin)
 - [Commands](#commands)
@@ -34,7 +35,7 @@ chess game.
 | **Notes** | `addnote`, `notes`, `delnote`, `#name` (lookup) |
 | **Sticker** | `sticker`/`s`, `toimage` |
 | **Media** | `tomp3` |
-| **Utility** | `tts`, `translate`, `qr`, `calculator`, `shorten` |
+| **Utility** | `tts`, `translate`, `qr`, `calculator`, `shorten`, `pdf` |
 | **Search / Info** | `search`, `ping`, `botinfo`, `owner`, `gempa` (BMKG) |
 | **Game** | `catur`/`chess` (inline) |
 | **Owner** | `mode`, `prefix`, `ban`, `unban` |
@@ -100,9 +101,56 @@ Key environment variables:
 | `DATABASE_PATH` | `./database/main` | Database directory |
 | `SESSION_FOLDER` | `session` | Session folder under `./storage` |
 | `NODE_ENV` | `production` | `development` enables extra debug logging |
+| `APIKEY_*` | — | Third-party API keys (see below) |
+| `TELEGRAM_BOT_TOKEN` | — | Telegram bot token (`.telestick`) |
 
 Missing menu/thumbnail assets fall back to a generated placeholder, so the UI
 never breaks even with no media supplied.
+
+### API keys
+
+Third-party credentials live in `.env` only — nothing is committed. Only the
+keys the code actually uses are read; every one is optional and an empty value
+disables just the feature that depends on it:
+
+| Variable | Used by |
+| --- | --- |
+| `APIKEY_LOLHUMAN` | legacy `.API()` helper (`api.lolhuman.xyz`) |
+| `APIKEY_NEOXR` | sticker `attp` + `smeme-animated` |
+| `APIKEY_FGSI` | FGSI API provider |
+| `APIKEY_COVENANT` | Covenant API provider |
+| `APIKEY_CUKI` | Cuki API provider |
+| `APIKEY_TERMAICDN` | image uploader key |
+| `TERMAI_CDN_BASE` | image uploader host (default `https://c.termai.cc`) |
+| `TELEGRAM_BOT_TOKEN` | `.telestick` (Telegram sticker download) |
+
+Unused keys that shipped with the original GX-ID core (`google`, `betabotz`,
+`onlym`, `obscura`, `firefly`, `xterm`, plus the `vercel` / `aquaApi` / `alight`
+blocks) were removed from the code; their values are preserved, commented out,
+in `.env.example` for reference.
+
+### Feedback messages
+
+The notices the bot sends when it *refuses* or *cannot* run a command
+(owner-only, group-only, admin-only, cooldown, ban, unregistered group, …) live
+in `config.messages` and are controlled by a master switch:
+
+```js
+messages: {
+  enabled: true,      // true  → send the configured text
+                      // false → suppress it, follow `onDisabled`
+  onDisabled: "silent", // "silent" → send nothing
+                        // "react"  → react to the triggering message
+  react: "🔒",        // emoji used when onDisabled is "react"
+  // …
+}
+```
+
+Setting `enabled: false` silences **every** permission/gate notice at once;
+`onDisabled: "react"` replaces them with a single emoji reaction instead of a
+reply. Functional output (`wait`, `success`, `error`, `genericError`) and
+non-gate notices (unknown-command hint, usage cards) are **never** silenced, so
+the bot still tells users when something actually ran or failed.
 
 ---
 
@@ -243,6 +291,36 @@ Minecraft → WhatsApp is never throttled.
 
 The bridge is a self-contained module (`lib/xmpp/`); if the `@xmpp/client`
 dependency is missing or XMPP is unreachable, WhatsApp still runs normally.
+
+---
+
+## Document → PDF (`/pdf`)
+
+Reply to a document or image with `.pdf` (aliases `topdf`, `convertpdf`,
+`jadipdf`) and the bot converts it **locally on the host** and sends the PDF
+back to the chat. Nothing is uploaded anywhere.
+
+| Input | Engine | Notes |
+| --- | --- | --- |
+| Office: `docx` `pptx` `xlsx` `odt` `rtf` `html` … | LibreOffice (headless) | Requires LibreOffice installed on the host |
+| Images: `jpg` `png` `webp` `gif` `tiff` … | Built-in writer | No external dependency |
+| Text: `txt` `md` `csv` `json` `log` … | Built-in writer | No external dependency |
+| `pdf` | passthrough | Re-sent unchanged |
+
+**LibreOffice is auto-detected, never installed.** The bot looks for `soffice`
+on `PATH` and in the usual install locations. If it is missing, Office files are
+rejected with an actionable message while images and text still convert. Point
+the bot at a specific binary with `LIBREOFFICE_PATH`.
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `LIBREOFFICE_PATH` | *(auto)* | Explicit path to the `soffice` binary |
+| `PDF_MAX_SIZE_MB` | `25` | Maximum accepted input size |
+| `PDF_TIMEOUT_MS` | `90000` | Conversion timeout |
+
+Limits are read live from `.env` (so they hot-reload) and mirrored in
+`config.pdf`. The engine lives in `lib/pdf-convert.js`; the dependency-free PDF
+writer (text layout + embedded JPEG) lives in `lib/pdf-writer.js`.
 
 ---
 
@@ -414,6 +492,7 @@ All group commands require the bot to be an admin where noted.
 - `qr <text>` — generate a QR code.
 - `calculator <expr>` — evaluate a math expression.
 - `shorten <url>` — shorten a URL.
+- `pdf` / `topdf` / `convertpdf` — convert a replied document/image to PDF.
 
 ### Search / Info
 
@@ -529,6 +608,7 @@ GX-ID/
 │   ├── lid.js               # LID ↔ JID mapping
 │   ├── time.js              # Asia/Jakarta time helpers
 │   ├── error.js             # user-facing error template
+│   ├── messages.js          # feedback-message master switch (enabled/onDisabled)
 │   ├── control-server.js    # in-bot control socket (for the console)
 │   ├── control-client.js    # interactive console UI (separate process)
 │   ├── control-utils.js     # shared console helpers
@@ -537,6 +617,8 @@ GX-ID/
 │   │   ├── client.js        # persistent XMPP connection + backoff reconnect
 │   │   ├── bridge.js        # text-only relay, filtering, loop & rate guards
 │   │   └── manager.js       # singleton lifecycle + database-backed state
+│   ├── pdf-convert.js       # document/image → PDF engine (LibreOffice + built-in)
+│   ├── pdf-writer.js        # dependency-free PDF builder (text + embedded JPEG)
 │   └── env.js               # .env loader
 ├── plugins/
 │   ├── main/                # menu, allmenu
@@ -545,7 +627,7 @@ GX-ID/
 │   ├── notes/               # notes
 │   ├── sticker/             # sticker, toimage
 │   ├── media/               # tomp3
-│   ├── utility/             # tts, translate, qr, calculator, shorten
+│   ├── utility/             # tts, translate, qr, calculator, shorten, pdf
 │   ├── search/              # search
 │   ├── info/                # ping, botinfo, owner, gempa
 │   ├── game/                # catur

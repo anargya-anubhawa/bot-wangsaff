@@ -35,6 +35,10 @@ const configModule = (await import("../config.js")).default;
    legitimate test traffic, so turn it off for the run only. */
 if (configModule.features) configModule.features.antiSpam = false;
 
+/* These assertions check the gate notices themselves, so pin the feedback
+   switch on regardless of the operator's `config.messages.enabled` setting. */
+if (configModule.messages) configModule.messages.enabled = true;
+
 const OWNER = "628000000001@s.whatsapp.net";
 const WHITELIST = "628000000002@s.whatsapp.net";
 const ADMIN = "628000000003@s.whatsapp.net";

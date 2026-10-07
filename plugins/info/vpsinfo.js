@@ -17,7 +17,7 @@ import { collectSystemInfo, renderSystemInfo } from "../../lib/system-info.js";
 
 const pluginConfig = {
   name: "vpsinfo",
-  alias: ["server", "vps", "hostinfo", "neofetch", "fastfetch", "machineinfo"],
+  alias: ["server", "serverinfo", "vps", "hostinfo", "neofetch", "fastfetch", "machineinfo"],
   category: "info",
   description: "Tampilkan informasi lengkap server/VPS bot (neofetch-style)",
   usage: ".vpsinfo",

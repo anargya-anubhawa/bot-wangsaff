@@ -21,6 +21,11 @@ await loadPlugins(path.join(process.cwd(), "plugins"));
 const { messageHandler } = await import("../core/message.js");
 const { extendSocket } = await import("../lib/socket.js");
 
+/* Gate notices are asserted below, so pin the feedback switch on regardless of
+   the operator's `config.messages.enabled` setting. */
+const configModule = (await import("../config.js")).default;
+if (configModule.messages) configModule.messages.enabled = true;
+
 function makeSock() {
   const sent = [];
   const sock = {

@@ -119,6 +119,27 @@ const config = {
   },
 
   messages: {
+    /**
+     * Master switch for the feedback messages below — the notices the bot
+     * sends when it *refuses* or *cannot* run a command (owner-only,
+     * group-only, admin-only, cooldown, ban, unregistered group, …).
+     *
+     *   enabled: true   → send the configured text (normal behaviour)
+     *   enabled: false  → suppress it and follow `onDisabled` instead
+     *
+     * Functional command output (`wait`, `success`, `error`) is NOT affected —
+     * silencing those would break the commands that rely on them.
+     */
+    enabled: false,
+    /**
+     * Second switch — what to do while `enabled` is `false`:
+     *   "silent" → send nothing at all
+     *   "react"  → react to the triggering message with `react` below
+     */
+    onDisabled: "silent",
+    /** Emoji used when `onDisabled` is "react". */
+    react: "🔒",
+
     wait: "🕕 *Processing…* please wait a moment.",
     success: "✅ *Done!*",
     error: "❌ *Something went wrong.* Please try again later.",
@@ -174,6 +195,17 @@ const config = {
    */
   xmpp: xmppConfig,
 
+  /**
+   * Local document → PDF converter (the `/pdf` command). Runtime limits are
+   * also read directly from `.env` by `lib/pdf-convert.js` (so they hot-reload);
+   * they are mirrored here for discoverability.
+   */
+  pdf: {
+    maxSizeMb: Number(env("PDF_MAX_SIZE_MB", "25")),
+    timeoutMs: Number(env("PDF_TIMEOUT_MS", "90000")),
+    libreOfficePath: env("LIBREOFFICE_PATH", ""),
+  },
+
   /* ───────────────── GX-ID compatibility layer ─────────────────
    * The game subsystem copied from GX-ID (src/lib/GX-*.js, plugins/game)
    * reads a handful of extra config fields. They are mapped onto GX.js and
@@ -185,9 +217,24 @@ const config = {
   energi: structuredClone(GX_CORE_CONFIG.energi),
   payment: structuredClone(GX_CORE_CONFIG.payment),
   donasi: structuredClone(GX_CORE_CONFIG.donasi),
-  APIkey: structuredClone(GX_CORE_CONFIG.APIkey),
-  aquaApi: structuredClone(GX_CORE_CONFIG.aquaApi),
-  apiBase: structuredClone(GX_CORE_CONFIG.apiBase),
+
+  /* Third-party API credentials. Only the keys actually referenced by the code
+   * live here; each is read from `.env` so no secret is committed. Unused keys
+   * that shipped with GX-ID are kept, commented out, in `.env.example`. */
+  APIkey: {
+    lolhuman: env("APIKEY_LOLHUMAN", ""),
+    neoxr: env("APIKEY_NEOXR", ""),
+    fgsi: env("APIKEY_FGSI", ""),
+    covenant: env("APIKEY_COVENANT", ""),
+    cuki: env("APIKEY_CUKI", ""),
+    termaiCdn: env("APIKEY_TERMAICDN", ""),
+  },
+  apiBase: {
+    termaiCdn: env("TERMAI_CDN_BASE", "https://c.termai.cc"),
+  },
+  telegram: {
+    botToken: env("TELEGRAM_BOT_TOKEN", ""),
+  },
   pterodactyl: {
     server1: { domain: "", apikey: "", capikey: "", egg: "15", nestid: "5", location: "1" },
     server2: { domain: "", apikey: "", capikey: "", egg: "15", nestid: "5", location: "1" },

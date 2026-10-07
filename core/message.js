@@ -27,6 +27,7 @@ import { getEffectiveNote } from "../lib/group-scope.js";
 import { shouldShowUsage, renderCommandUsage } from "../lib/command-usage.js";
 import { publishIncoming } from "../lib/console-bus.js";
 import { relayWhatsAppToMinecraft } from "../lib/xmpp/manager.js";
+import { sendFeedback } from "../lib/messages.js";
 import config from "../config.js";
 import te from "../lib/error.js";
 
@@ -212,7 +213,7 @@ export async function runCommand(m, sock, db, legacyConn, prefix) {
 
   /* ban gate */
   if (m.isBanned) {
-    await m.reply(config.messages?.banned || "🚫 You are banned.").catch(() => {});
+    await sendFeedback(m, config.messages?.banned || "🚫 You are banned.");
     return true;
   }
 
@@ -261,14 +262,14 @@ export async function runCommand(m, sock, db, legacyConn, prefix) {
   /* per-command enable/disable gate (.enablecmd / .disablecmd) */
   const enabled = checkCommandEnabled(m, plugin.config);
   if (!enabled.allowed) {
-    await m.reply(enabled.reason).catch(() => {});
+    await sendFeedback(m, enabled.reason);
     return true;
   }
 
   /* permission gate */
   const perm = checkPermission(m, plugin.config);
   if (!perm.allowed) {
-    await m.reply(perm.reason).catch(() => {});
+    await sendFeedback(m, perm.reason);
     return true;
   }
 
@@ -289,7 +290,7 @@ export async function runCommand(m, sock, db, legacyConn, prefix) {
     const remaining = db.checkCooldown(m.sender, cooldownKey, cooldown);
     if (remaining) {
       const tpl = config.messages?.cooldown || "🕕 Cooldown: wait %time% more second(s).";
-      await m.reply(tpl.replace("%time%", remaining)).catch(() => {});
+      await sendFeedback(m, tpl.replace("%time%", remaining));
       return true;
     }
   }
@@ -299,7 +300,7 @@ export async function runCommand(m, sock, db, legacyConn, prefix) {
       const check = checkGroupCooldown(m.chat, m.sender, cooldownKey, groupCooldown);
       if (!check.allowed) {
         const tpl = config.messages?.cooldown || "🕕 Cooldown: wait %time% more second(s).";
-        await m.reply(tpl.replace("%time%", check.remainingSeconds)).catch(() => {});
+        await sendFeedback(m, tpl.replace("%time%", check.remainingSeconds));
         return true;
       }
     }
