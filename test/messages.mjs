@@ -24,7 +24,13 @@ await loadPlugins(path.join(process.cwd(), "plugins"));
 const { messageHandler } = await import("../core/message.js");
 const { extendSocket } = await import("../lib/socket.js");
 const config = (await import("../config.js")).default;
-const { sendFeedback, sendFeedbackTo, feedbackEnabled, disabledMode } = await import("../lib/messages.js");
+const { sendFeedback, sendFeedbackTo, feedbackEnabled, disabledMode, silentEnabled, setSilentMode } = await import(
+  "../lib/messages.js"
+);
+
+/* This suite drives many messages from a few senders in quick succession;
+   GX-ID's anti-spam gate would otherwise swallow legitimate test traffic. */
+if (config.features) config.features.antiSpam = false;
 
 const results = [];
 async function test(name, fn) {
@@ -38,6 +44,7 @@ async function test(name, fn) {
 
 const BOT = "628000000099@s.whatsapp.net";
 const USER = "628000000004@s.whatsapp.net";
+const OWNER = "628000000001@s.whatsapp.net";
 
 function makeSock() {
   const sent = [];
@@ -79,26 +86,52 @@ function rawMsg(body, { group = null, sender = USER } = {}) {
 const textsOf = (sent) => sent.filter((s) => s.content?.text).map((s) => s.content.text);
 const reactionsOf = (sent) => sent.filter((s) => s.content?.react).map((s) => s.content.react.text);
 
-/* Save/restore the switch around each test so order never matters. */
-const saved = { enabled: config.messages.enabled, onDisabled: config.messages.onDisabled, react: config.messages.react };
-function setSwitch({ enabled, onDisabled, react }) {
+/* Save/restore the switch around each test so order never matters. The DB
+   override (`silentMode`) is cleared before each set so the config default is
+   the source of truth unless a test explicitly sets the override. */
+const saved = { silent: config.messages.silent, onDisabled: config.messages.onDisabled, react: config.messages.react };
+function setSwitch({ silent, enabled, onDisabled, react, override }) {
+  setSilentMode(undefined);
+  if (silent !== undefined) config.messages.silent = silent;
   if (enabled !== undefined) config.messages.enabled = enabled;
   if (onDisabled !== undefined) config.messages.onDisabled = onDisabled;
   if (react !== undefined) config.messages.react = react;
+  if (override !== undefined) setSilentMode(override);
 }
 
 /* ═══════════════════════════ helpers ═══════════════════════════ */
 
-await test("feedbackEnabled defaults to true", () => {
-  setSwitch({ enabled: true });
-  assert.equal(feedbackEnabled(), true);
+await test("silentEnabled defaults to the config default", () => {
+  setSwitch({ silent: false });
+  assert.equal(silentEnabled(), false);
+  setSwitch({ silent: true });
+  assert.equal(silentEnabled(), true);
 });
 
-await test("feedbackEnabled is false only when explicitly disabled", () => {
-  setSwitch({ enabled: false });
-  assert.equal(feedbackEnabled(), false);
+await test("legacy `enabled: false` still means silent", () => {
+  setSwitch({ silent: undefined, enabled: false });
+  delete config.messages.silent;
+  assert.equal(silentEnabled(), true);
   setSwitch({ enabled: true });
+  delete config.messages.silent;
+  assert.equal(silentEnabled(), false);
+  config.messages.silent = saved.silent;
+});
+
+await test("the runtime DB override wins over the config default", () => {
+  setSwitch({ silent: false, override: true });
+  assert.equal(silentEnabled(), true);
+  setSwitch({ silent: true, override: false });
+  assert.equal(silentEnabled(), false);
+  setSwitch({ silent: false });
+});
+
+await test("feedbackEnabled is the inverse of silentEnabled", () => {
+  setSwitch({ silent: false });
   assert.equal(feedbackEnabled(), true);
+  setSwitch({ silent: true });
+  assert.equal(feedbackEnabled(), false);
+  setSwitch({ silent: false });
 });
 
 await test("disabledMode maps unknown values to silent", () => {
@@ -110,24 +143,24 @@ await test("disabledMode maps unknown values to silent", () => {
   assert.equal(disabledMode(), "silent");
 });
 
-await test("sendFeedback sends the text while enabled", async () => {
-  setSwitch({ enabled: true });
+await test("sendFeedback sends the text while not silent", async () => {
+  setSwitch({ silent: false });
   const replies = [];
   const m = { reply: async (t) => replies.push(t), react: async () => {} };
   assert.equal(await sendFeedback(m, "hello"), true);
   assert.deepEqual(replies, ["hello"]);
 });
 
-await test("sendFeedback does nothing for empty text while enabled", async () => {
-  setSwitch({ enabled: true });
+await test("sendFeedback does nothing for empty text while not silent", async () => {
+  setSwitch({ silent: false });
   const replies = [];
   const m = { reply: async (t) => replies.push(t), react: async () => {} };
   assert.equal(await sendFeedback(m, ""), false);
   assert.equal(replies.length, 0);
 });
 
-await test("sendFeedback goes silent when disabled + silent", async () => {
-  setSwitch({ enabled: false, onDisabled: "silent" });
+await test("sendFeedback goes silent when silent + silent", async () => {
+  setSwitch({ silent: true, onDisabled: "silent" });
   const replies = [];
   const reactions = [];
   const m = { reply: async (t) => replies.push(t), react: async (e) => reactions.push(e) };
@@ -136,8 +169,8 @@ await test("sendFeedback goes silent when disabled + silent", async () => {
   assert.equal(reactions.length, 0);
 });
 
-await test("sendFeedback reacts when disabled + react", async () => {
-  setSwitch({ enabled: false, onDisabled: "react", react: "🔒" });
+await test("sendFeedback reacts when silent + react", async () => {
+  setSwitch({ silent: true, onDisabled: "react", react: "🔒" });
   const replies = [];
   const reactions = [];
   const m = { reply: async (t) => replies.push(t), react: async (e) => reactions.push(e) };
@@ -146,73 +179,131 @@ await test("sendFeedback reacts when disabled + react", async () => {
   assert.deepEqual(reactions, ["🔒"]);
 });
 
-await test("sendFeedbackTo suppresses direct socket notices when disabled", async () => {
+await test("sendFeedbackTo suppresses direct socket notices when silent", async () => {
   const sent = [];
   const sock = { sendMessage: async (jid, content) => sent.push({ jid, content }) };
-  setSwitch({ enabled: false });
+  setSwitch({ silent: true });
   assert.equal(await sendFeedbackTo(sock, "x@s.whatsapp.net", "hi"), false);
   assert.equal(sent.length, 0);
 
-  setSwitch({ enabled: true });
+  setSwitch({ silent: false });
   assert.equal(await sendFeedbackTo(sock, "x@s.whatsapp.net", "hi"), true);
   assert.deepEqual(sent, [{ jid: "x@s.whatsapp.net", content: { text: "hi" } }]);
 });
 
+/* ═══════════════════════════ .silent command ═══════════════════════════ */
+
+await test(".silent on enables silent mode and persists it", async () => {
+  setSwitch({ silent: false });
+  const { sock, sent } = makeSock();
+  await messageHandler(rawMsg(".silent on", { sender: OWNER }), sock);
+  assert.ok(textsOf(sent).some((t) => /silent mode on/i.test(t)), `got: ${JSON.stringify(textsOf(sent))}`);
+  assert.equal(silentEnabled(), true);
+  assert.equal(db.setting("silentMode"), true);
+});
+
+await test(".silent off disables silent mode and persists it", async () => {
+  setSwitch({ silent: true });
+  const { sock, sent } = makeSock();
+  await messageHandler(rawMsg(".silent off", { sender: OWNER }), sock);
+  assert.ok(textsOf(sent).some((t) => /silent mode off/i.test(t)), `got: ${JSON.stringify(textsOf(sent))}`);
+  assert.equal(silentEnabled(), false);
+  assert.equal(db.setting("silentMode"), false);
+});
+
+await test(".silent with no argument reports the state", async () => {
+  setSwitch({ silent: true });
+  const { sock, sent } = makeSock();
+  await messageHandler(rawMsg(".silent", { sender: OWNER }), sock);
+  assert.ok(textsOf(sent).some((t) => /status/i.test(t) && /on/i.test(t)), `got: ${JSON.stringify(textsOf(sent))}`);
+});
+
+await test(".silent is owner-only", async () => {
+  setSwitch({ silent: false });
+  const { sock, sent } = makeSock();
+  await messageHandler(rawMsg(".silent on", { sender: USER }), sock);
+  assert.ok(!db.setting("silentMode"), "a plain user must not change silent mode");
+  assert.ok(textsOf(sent).some((t) => /owner/i.test(t)), `expected owner denial: ${JSON.stringify(textsOf(sent))}`);
+});
+
 /* ═══════════════════════════ through the pipeline ═══════════════════════════ */
 
-await test("enabled: an owner-only denial replies with the configured text", async () => {
-  setSwitch({ enabled: true });
+await test("not silent: an owner-only denial replies with the configured text", async () => {
+  setSwitch({ silent: false });
   const { sock, sent } = makeSock();
   await messageHandler(rawMsg(".mode self"), sock);
   const texts = textsOf(sent);
   assert.ok(texts.some((t) => /owner/i.test(t)), `got: ${JSON.stringify(texts)}`);
 });
 
-await test("disabled + silent: a denied command sends nothing at all", async () => {
-  setSwitch({ enabled: false, onDisabled: "silent" });
+await test("silent + silent: a denied command sends nothing at all", async () => {
+  setSwitch({ silent: true, onDisabled: "silent" });
   const { sock, sent } = makeSock();
   await messageHandler(rawMsg(".mode self"), sock);
   assert.equal(sent.length, 0, `expected no output, got ${JSON.stringify(textsOf(sent))}`);
 });
 
-await test("disabled + react: a denied command reacts and sends no text", async () => {
-  setSwitch({ enabled: false, onDisabled: "react", react: "🔒" });
+await test("silent + react: a denied command reacts and sends no text", async () => {
+  setSwitch({ silent: true, onDisabled: "react", react: "🔒" });
   const { sock, sent } = makeSock();
   await messageHandler(rawMsg(".mode self"), sock);
   assert.equal(textsOf(sent).length, 0, "no text may be sent");
   assert.deepEqual(reactionsOf(sent), ["🔒"]);
 });
 
-await test("disabled + react: a group-only denial also reacts", async () => {
-  setSwitch({ enabled: false, onDisabled: "react", react: "🚫" });
+await test("silent + react: a group-only denial also reacts", async () => {
+  setSwitch({ silent: true, onDisabled: "react", react: "🚫" });
   const { sock, sent } = makeSock();
   await messageHandler(rawMsg(".tagall hi"), sock); // group-only, used in private
   assert.equal(textsOf(sent).length, 0);
   assert.deepEqual(reactionsOf(sent), ["🚫"]);
 });
 
-await test("disabled: functional command output still works (.ping)", async () => {
-  setSwitch({ enabled: false, onDisabled: "silent" });
+await test("silent: an unknown command is silenced too", async () => {
+  setSwitch({ silent: true, onDisabled: "silent" });
   const { sock, sent } = makeSock();
-  await messageHandler(rawMsg(".ping"), sock);
-  assert.ok(textsOf(sent).some((t) => t.includes("PONG")), `got: ${JSON.stringify(textsOf(sent))}`);
+  await messageHandler(rawMsg(".pign"), sock);
+  assert.equal(sent.length, 0, `unknown command must be silenced: ${JSON.stringify(textsOf(sent))}`);
 });
 
-await test("disabled: an unknown command still hints (not a gate notice)", async () => {
-  setSwitch({ enabled: false, onDisabled: "silent" });
+await test("not silent: an unknown command still hints", async () => {
+  setSwitch({ silent: false });
   const { sock, sent } = makeSock();
   await messageHandler(rawMsg(".pign"), sock);
   assert.ok(textsOf(sent).some((t) => /unknown/i.test(t)), `got: ${JSON.stringify(textsOf(sent))}`);
 });
 
-await test("disabled: a command error still reports (genericError is functional)", async () => {
-  setSwitch({ enabled: false, onDisabled: "silent" });
+await test("silent: a disabled command is silenced too", async () => {
+  setSwitch({ silent: true, onDisabled: "silent" });
+  const { getPlugin } = await import("../lib/plugins.js");
+  const plugin = getPlugin("ping");
+  const original = plugin.config.isEnabled;
+  plugin.config.isEnabled = false;
+  try {
+    const { sock, sent } = makeSock();
+    await messageHandler(rawMsg(".ping"), sock);
+    assert.equal(sent.length, 0, `disabled command must be silenced: ${JSON.stringify(textsOf(sent))}`);
+  } finally {
+    plugin.config.isEnabled = original;
+  }
+});
+
+await test("silent: functional command output still works (.ping)", async () => {
+  setSwitch({ silent: true, onDisabled: "silent" });
+  const { sock, sent } = makeSock();
+  await messageHandler(rawMsg(".ping"), sock);
+  assert.ok(textsOf(sent).some((t) => t.includes("PONG")), `got: ${JSON.stringify(textsOf(sent))}`);
+});
+
+await test("silent: a command error still reports (genericError is functional)", async () => {
+  setSwitch({ silent: true, onDisabled: "silent" });
   const te = (await import("../lib/error.js")).default;
   assert.ok(typeof te() === "string" && te().length > 0, "genericError must survive the switch");
 });
 
 /* ─────────────────────────── report ─────────────────────────── */
 
+setSilentMode(undefined);
 Object.assign(config.messages, saved);
 
 for (const r of results) console.log(`${r.ok ? "ok  " : "FAIL"} ${r.name}${r.ok ? "" : ` — ${r.error}`}`);

@@ -35,9 +35,9 @@ const configModule = (await import("../config.js")).default;
    legitimate test traffic, so turn it off for the run only. */
 if (configModule.features) configModule.features.antiSpam = false;
 
-/* These assertions check the gate notices themselves, so pin the feedback
-   switch on regardless of the operator's `config.messages.enabled` setting. */
-if (configModule.messages) configModule.messages.enabled = true;
+/* These assertions check the gate notices themselves, so pin silent mode OFF
+   regardless of the operator's `config.messages.silent` setting. */
+if (configModule.messages) configModule.messages.silent = false;
 
 const OWNER = "628000000001@s.whatsapp.net";
 const WHITELIST = "628000000002@s.whatsapp.net";
@@ -1327,6 +1327,91 @@ await test("peer link is bidirectional and shows in .links", async () => {
   await messageHandler(rawMsg(".link peer-a peer-b", { sender: OWNER, group: null }), sock);
   assert.ok(textOf(sent).includes("terhubung"), `got: ${textOf(sent)}`);
   assert.ok(db.isLinked(a, b) && db.isLinked(b, a), "peer link must be bidirectional");
+});
+
+/* ─────────────────── 22b. shared schedules ─────────────────── */
+
+await test("link schedule shares a schedule across groups (fan-out)", async () => {
+  const { runSchedulerTick } = await import("../lib/scheduler.js");
+  const { getCurrentTimeParts, getConfiguredTimezone } = await import("../lib/settings.js");
+  const { getScopeMembers, resolveScopeId } = await import("../lib/group-scope.js");
+  const a = "22100@g.us";
+  const b = "22101@g.us";
+  db.registerGroup(a, { name: "Sched Share A", status: "active", activated: true });
+  db.registerGroup(b, { name: "Sched Share B", status: "active", activated: true });
+  const { setGroupAlias } = await import("../lib/group-registry.js");
+  setGroupAlias(a, "sched-a");
+  setGroupAlias(b, "sched-b");
+
+  /* share the schedule feature */
+  const { sock, sent } = makeSock();
+  await messageHandler(rawMsg(".link schedule sched-a sched-b", { sender: OWNER, group: null }), sock);
+  assert.ok(textOf(sent).includes("dibagikan"), `link: ${textOf(sent)}`);
+  assert.ok(getScopeMembers("schedule", a).includes(b), "linked groups must share the schedule scope");
+
+  /* a schedule created for A must be visible from B's scope too */
+  const now = getCurrentTimeParts(getConfiguredTimezone());
+  const id = `sch_share_${Date.now().toString(36)}`;
+  db.createSchedule(id, {
+    jid: a,
+    content: "pesan dibagikan",
+    sendTime: now.hhmm,
+    recurrence: "daily",
+    recurrenceValue: null,
+    createdBy: OWNER,
+  });
+
+  const { sock: s2, sent: sent2 } = makeSock();
+  await runSchedulerTick(s2);
+  const delivered = sent2.filter((s) => (s.content?.text || "").includes("pesan dibagikan"));
+  assert.ok(delivered.some((s) => s.jid === a), "schedule must fire in its own group");
+  assert.ok(delivered.some((s) => s.jid === b), "shared schedule must also fire in the linked group");
+
+  /* listing B shows the shared schedule with a share marker */
+  const { sock: s3, sent: sent3 } = makeSock();
+  await messageHandler(rawMsg(".schedule list sched-b", { sender: OWNER, group: null }), s3);
+  assert.ok(textOf(sent3).includes(id), `shared schedule missing from list: ${textOf(sent3)}`);
+  assert.ok(textOf(sent3).includes("Dibagikan"), `share note missing: ${textOf(sent3)}`);
+
+  /* cleanup so later tests are unaffected */
+  db.deleteSchedule(id);
+  db.removeGroupFromScope(resolveScopeId("schedule", a), b);
+});
+
+await test("unlink schedule stops the fan-out", async () => {
+  const { runSchedulerTick } = await import("../lib/scheduler.js");
+  const { getCurrentTimeParts, getConfiguredTimezone } = await import("../lib/settings.js");
+  const { getScopeMembers } = await import("../lib/group-scope.js");
+  const a = "22110@g.us";
+  const b = "22111@g.us";
+  db.registerGroup(a, { name: "Sched Unshare A", status: "active", activated: true });
+  db.registerGroup(b, { name: "Sched Unshare B", status: "active", activated: true });
+  const { setGroupAlias } = await import("../lib/group-registry.js");
+  setGroupAlias(a, "sched-un-a");
+  setGroupAlias(b, "sched-un-b");
+
+  let { sock } = makeSock();
+  await messageHandler(rawMsg(".link schedule sched-un-a sched-un-b", { sender: OWNER, group: null }), sock);
+  ({ sock } = makeSock());
+  await messageHandler(rawMsg(".unlink schedule sched-un-a sched-un-b", { sender: OWNER, group: null }), sock);
+  assert.ok(!getScopeMembers("schedule", a).includes(b), "scope must separate after unlink");
+
+  const now = getCurrentTimeParts(getConfiguredTimezone());
+  const id = `sch_unshare_${Date.now().toString(36)}`;
+  db.createSchedule(id, {
+    jid: a,
+    content: "pesan tak dibagikan",
+    sendTime: now.hhmm,
+    recurrence: "daily",
+    recurrenceValue: null,
+    createdBy: OWNER,
+  });
+  const { sock: s2, sent: sent2 } = makeSock();
+  await runSchedulerTick(s2);
+  const delivered = sent2.filter((s) => (s.content?.text || "").includes("pesan tak dibagikan"));
+  assert.ok(delivered.some((s) => s.jid === a), "schedule must still fire in its own group");
+  assert.ok(!delivered.some((s) => s.jid === b), "unlinked group must not receive the schedule");
+  db.deleteSchedule(id);
 });
 
 await test("listreg shows the alias first (id hidden in normal UI)", async () => {

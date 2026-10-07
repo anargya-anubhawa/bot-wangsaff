@@ -250,12 +250,12 @@ export async function runCommand(m, sock, db, legacyConn, prefix) {
   if (!plugin) {
     const suggestion = findSuggestion(m.command);
     const hint = suggestion ? `\n\n💡 Did you mean \`${prefix}${suggestion}\`?` : "";
-    await m.reply(`❓ *Unknown command:* \`${prefix}${m.command}\`${hint}`).catch(() => {});
+    await sendFeedback(m, `❓ *Unknown command:* \`${prefix}${m.command}\`${hint}`);
     return true;
   }
 
   if (!plugin.config.isEnabled) {
-    await m.reply(`⚠️ Command \`${prefix}${m.command}\` is currently disabled.`).catch(() => {});
+    await sendFeedback(m, `⚠️ Command \`${prefix}${m.command}\` is currently disabled.`);
     return true;
   }
 

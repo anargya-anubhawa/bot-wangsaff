@@ -15,13 +15,16 @@
  * Reply to the message you want sent later before creating a schedule.
  * Schedules are persisted, so they survive a restart.
  *
+ * A schedule may be SHARED between groups with `.link schedule <a> <b>`: the
+ * same entry then fires in every linked group (see `lib/scheduler.js`).
+ *
  * Aliases (back-compat): schedules/listschedule/daftarjadwal, unschedule/
  * delschedule/hapusjadwal, settimezone/timezone/setzona/zona.
  */
 import { getConfiguredTimezone, isValidTimezone, setConfiguredTimezone, DEFAULT_TIMEZONE } from "../../lib/settings.js";
 import { detectMediaType, getMimetype, downloadMedia } from "../../lib/media.js";
 import { resolveGroup, resolveManagedTarget } from "../../lib/group-registry.js";
-import { GLOBAL_SCOPE, GLOBAL_KEYWORD, isGlobalTarget } from "../../lib/group-scope.js";
+import { GLOBAL_SCOPE, GLOBAL_KEYWORD, isGlobalTarget, getScopeMembers } from "../../lib/group-scope.js";
 import { isOwnerOrWhitelistedIn, canUseCommand } from "../../lib/access.js";
 
 const TIME_RE = /^([01]\d|2[0-3]):([0-5]\d)$/;
@@ -47,6 +50,7 @@ const pluginConfig = {
     { name: "grup", description: "Target grup (alias/id)" },
     { name: "<HH:MM>", description: "Jam kirim (mis. 08:00)" },
     { name: "daily|weekly|once", description: "Jenis jadwal berulang" },
+    { name: "share", description: "Bagikan jadwal antar grup: .link schedule <a> <b>" },
   ],
   helpOnEmpty: true,
   permission: "all",
@@ -153,9 +157,18 @@ async function handleCreate(m, ctx, rawArgs) {
   });
 
   const when = rec === "daily" ? `setiap hari ${time}` : rec === "weekly" ? `setiap ${recValue} ${time}` : `${recValue} ${time}`;
-  const scopeNote = globalScope ? " (semua grup terdaftar)" : "";
+  const members = globalScope ? [] : getScopeMembers("schedule", target.jid);
+  const shared = members.length > 1;
+  const scopeNote = globalScope
+    ? " (semua grup terdaftar)"
+    : shared
+      ? ` (dibagikan ke ${members.length} grup)`
+      : "";
+  const shareHint = shared
+    ? `\n> Dibagikan ke: ${members.map((g) => db.getRegistration(g)?.alias || String(g).split("@")[0]).join(", ")}`
+    : "";
   await m.reply(
-    `✅ *Jadwal dibuat.*\n\n> ID: \`${id}\`\n> Grup: *${label}*${scopeNote}\n> Waktu: ${when}\n> Zona: ${getConfiguredTimezone()}\n\n> Hapus: \`${prefix}schedule del ${id}\``,
+    `✅ *Jadwal dibuat.*\n\n> ID: \`${id}\`\n> Grup: *${label}*${scopeNote}\n> Waktu: ${when}\n> Zona: ${getConfiguredTimezone()}${shareHint}\n\n> Hapus: \`${prefix}schedule del ${id}\``,
   );
 }
 
@@ -171,17 +184,24 @@ function activeSchedules(db) {
   return db.listSchedules().filter((s) => s.active);
 }
 
-/** Schedules for a single group, plus the global ones. */
+/** Schedules for a single group, plus the global ones and any shared via `.link schedule`. */
 function scopedSchedules(db, jid) {
   const all = activeSchedules(db);
+  const members = new Set(getScopeMembers("schedule", jid));
   const globals = all.filter((s) => s.jid === GLOBAL_SCOPE);
-  const own = all.filter((s) => s.jid === jid);
+  const own = all.filter((s) => members.has(s.jid));
   return [...globals, ...own];
 }
 
 function scheduleLine(s) {
   const where = s.jid === GLOBAL_SCOPE ? GLOBAL_KEYWORD : String(s.jid).split("@")[0];
   return `┃ \`${s.id}\` ${where} • ${describe(s)}`;
+}
+
+/** `scheduleLine` that marks a schedule as shared when its scope has >1 member. */
+function scheduleLineScoped(db, s) {
+  const shared = s.jid !== GLOBAL_SCOPE && getScopeMembers("schedule", s.jid).length > 1;
+  return `${scheduleLine(s)}${shared ? " ⇄" : ""}`;
 }
 
 async function handleList(m, ctx, arg) {
@@ -195,14 +215,24 @@ async function handleList(m, ctx, arg) {
     if (!all.length) return m.reply("⏰ *Belum ada jadwal.*\n\n> Buat dengan `.schedule <grup> <HH:MM> daily`");
     const byGroup = new Map();
     for (const s of all) {
-      const key = s.jid;
-      if (!byGroup.has(key)) byGroup.set(key, []);
-      byGroup.get(key).push(s);
+      /* group shared schedules under their sorted scope membership so linked
+         groups appear as one section instead of one per JID */
+      const members = s.jid === GLOBAL_SCOPE ? [] : getScopeMembers("schedule", s.jid);
+      const key = s.jid === GLOBAL_SCOPE ? GLOBAL_SCOPE : [...members].sort().join(",");
+      if (!byGroup.has(key)) byGroup.set(key, { jids: members, list: [] });
+      byGroup.get(key).list.push(s);
     }
     const sections = [];
-    for (const [jid, list] of byGroup) {
-      const label = jid === GLOBAL_SCOPE ? `${GLOBAL_KEYWORD.toUpperCase()}` : String(jid).split("@")[0];
-      sections.push(`📁 *${label}* (${list.length})\n${list.map(scheduleLine).join("\n")}`);
+    for (const [key, { jids, list }] of byGroup) {
+      let label;
+      if (key === GLOBAL_SCOPE) {
+        label = GLOBAL_KEYWORD.toUpperCase();
+      } else if (jids.length > 1) {
+        label = `${jids.map((g) => db.getRegistration(g)?.alias || String(g).split("@")[0]).join(" ⇄ ")} (dibagikan)`;
+      } else {
+        label = String(list[0].jid).split("@")[0];
+      }
+      sections.push(`📁 *${label}* (${list.length})\n${list.map((s) => scheduleLineScoped(db, s)).join("\n")}`);
     }
     return m.reply(`⏰ *Semua Jadwal (${all.length})*\n\n${sections.join("\n\n")}`);
   }
@@ -226,7 +256,7 @@ async function handleList(m, ctx, arg) {
   if (!jid) {
     const all = activeSchedules(db);
     if (!all.length) return m.reply("⏰ *Belum ada jadwal.*\n\n> Buat dengan `.schedule <grup> <HH:MM> daily`");
-    return m.reply(`⏰ *Jadwal aktif (${all.length})*\n\n${all.map(scheduleLine).join("\n")}`);
+    return m.reply(`⏰ *Jadwal aktif (${all.length})*\n\n${all.map((s) => scheduleLineScoped(db, s)).join("\n")}`);
   }
 
   const scoped = scopedSchedules(db, jid);
@@ -235,7 +265,12 @@ async function handleList(m, ctx, arg) {
   }
   const reg = db.getRegistration(jid);
   const label = arg ? reg?.alias || String(jid).split("@")[0] : "Jadwal aktif";
-  await m.reply(`⏰ *${label} (${scoped.length})*\n\n${scoped.map(scheduleLine).join("\n")}`);
+  const members = getScopeMembers("schedule", jid);
+  const shareNote =
+    members.length > 1
+      ? `\n> ⇄ Dibagikan ke ${members.length} grup: ${members.map((g) => db.getRegistration(g)?.alias || String(g).split("@")[0]).join(", ")}`
+      : "";
+  await m.reply(`⏰ *${label} (${scoped.length})*${shareNote}\n\n${scoped.map((s) => scheduleLineScoped(db, s)).join("\n")}`);
 }
 
 /* ─────────────────────────── del ─────────────────────────── */
@@ -267,7 +302,7 @@ async function handleDel(m, ctx, args) {
     const target = await resolveManagedTarget(m, ctx, { args: [targetArg] });
     if (target.error) return m.reply(target.error);
     const schedule = ctx.db.getSchedule(id);
-    if (schedule && schedule.jid !== target.jid) {
+    if (schedule && !getScopeMembers("schedule", target.jid).includes(schedule.jid)) {
       return m.reply("⚠️ Jadwal itu bukan milik grup tersebut.");
     }
   }

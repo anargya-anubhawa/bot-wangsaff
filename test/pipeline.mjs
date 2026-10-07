@@ -21,10 +21,10 @@ await loadPlugins(path.join(process.cwd(), "plugins"));
 const { messageHandler } = await import("../core/message.js");
 const { extendSocket } = await import("../lib/socket.js");
 
-/* Gate notices are asserted below, so pin the feedback switch on regardless of
-   the operator's `config.messages.enabled` setting. */
+/* Gate notices are asserted below, so pin silent mode OFF regardless of the
+   operator's `config.messages.silent` setting. */
 const configModule = (await import("../config.js")).default;
-if (configModule.messages) configModule.messages.enabled = true;
+if (configModule.messages) configModule.messages.silent = false;
 
 function makeSock() {
   const sent = [];

@@ -5,7 +5,7 @@
  *
  *   .unlink <grup>                        → stop managing <grup> from here
  *   .unlink <grup-a> <grup-b>             → break the peer link
- *   .unlink <notes|filters|blacklist> <a> <b> → stop sharing that feature
+ *   .unlink <notes|filters|blacklist|schedule> <a> <b> → stop sharing that feature
  */
 import { resolveGroup, NOT_REGISTERED_MESSAGE, ALIAS_NOT_FOUND_MESSAGE } from "../../lib/group-registry.js";
 import { isScopeFeature } from "../../lib/group-scope.js";
