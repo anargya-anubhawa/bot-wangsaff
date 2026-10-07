@@ -17,6 +17,8 @@ chess game.
 - [Run the Bot](#run-the-bot)
 - [Minecraft bridge (XMPP)](#minecraft-bridge-xmpp)
 - [Document → PDF (`/pdf`)](#document--pdf-pdf)
+- [PDF → document (`/unpdf`)](#pdf--document-unpdf)
+- [Group links & shared features](#group-links--shared-features)
 - [Plugin System](#plugin-system)
 - [Creating a Plugin](#creating-a-plugin)
 - [Commands](#commands)
@@ -35,10 +37,12 @@ chess game.
 | **Notes** | `addnote`, `notes`, `delnote`, `#name` (lookup) |
 | **Sticker** | `sticker`/`s`, `toimage` |
 | **Media** | `tomp3` |
-| **Utility** | `tts`, `translate`, `qr`, `calculator`, `shorten`, `pdf` |
+| **Utility** | `tts`, `translate`, `qr`, `calculator`, `shorten`, `pdf`, `unpdf` |
 | **Search / Info** | `search`, `ping`, `botinfo`, `owner`, `gempa` (BMKG) |
 | **Game** | `catur`/`chess` (inline) |
 | **Owner** | `mode`, `prefix`, `ban`, `unban` |
+| **Group setup** | `registergroup`, `unregistergroup`, `regcontrol`, `link`, `unlink`, `links`, `listreg` |
+| **Schedule** | `schedule`, `schedules`, `unschedule`, `settimezone` |
 
 Core mechanics:
 
@@ -101,6 +105,7 @@ Key environment variables:
 | `DATABASE_PATH` | `./database/main` | Database directory |
 | `SESSION_FOLDER` | `session` | Session folder under `./storage` |
 | `NODE_ENV` | `production` | `development` enables extra debug logging |
+| `MESSAGES_SILENT` | `true` | Silent mode default (suppress gate/refusal notices) |
 | `APIKEY_*` | — | Third-party API keys (see below) |
 | `TELEGRAM_BOT_TOKEN` | — | Telegram bot token (`.telestick`) |
 
@@ -129,28 +134,40 @@ Unused keys that shipped with the original GX-ID core (`google`, `betabotz`,
 blocks) were removed from the code; their values are preserved, commented out,
 in `.env.example` for reference.
 
-### Feedback messages
+### Silent mode
 
 The notices the bot sends when it *refuses* or *cannot* run a command
-(owner-only, group-only, admin-only, cooldown, ban, unregistered group, …) live
-in `config.messages` and are controlled by a master switch:
+(unknown command, command disabled, owner-only, group-only, admin-only,
+cooldown, ban, unregistered group, anti-call, …) are controlled by a single
+**silent mode** master switch. It can be set three ways, in order of precedence:
+
+1. **`.silent on|off`** — runtime override, persisted in the database
+   (`silentMode`). Owner-only; `.silent` with no argument reports the state.
+2. **`config.messages.silent`** — the config default, optionally seeded from
+   `MESSAGES_SILENT` in `.env`.
+3. **`config.messages.enabled: false`** — legacy alias, still honoured.
 
 ```js
 messages: {
-  enabled: true,      // true  → send the configured text
-                      // false → suppress it, follow `onDisabled`
-  onDisabled: "silent", // "silent" → send nothing
-                        // "react"  → react to the triggering message
-  react: "🔒",        // emoji used when onDisabled is "react"
+  silent: true,         // true → suppress the notices (config default)
+                        // false → send them
+  onDisabled: "silent", // what to do while silent:
+                        //   "silent" → send nothing
+                        //   "react"  → react to the triggering message
+  react: "🔒",          // emoji used when onDisabled is "react"
   // …
 }
 ```
 
-Setting `enabled: false` silences **every** permission/gate notice at once;
-`onDisabled: "react"` replaces them with a single emoji reaction instead of a
-reply. Functional output (`wait`, `success`, `error`, `genericError`) and
-non-gate notices (unknown-command hint, usage cards) are **never** silenced, so
-the bot still tells users when something actually ran or failed.
+```text
+.silent on     → suppress every gate/refusal notice
+.silent off    → send them again
+.silent        → show the current state
+```
+
+Functional output (`wait`, `success`, `error`, `genericError`) and the
+bare-command usage/help cards are **never** silenced, so the bot still tells
+users when something actually ran, failed, or needs parameters.
 
 ---
 
@@ -324,6 +341,89 @@ writer (text layout + embedded JPEG) lives in `lib/pdf-writer.js`.
 
 ---
 
+## PDF → document (`/unpdf`)
+
+The inverse of `.pdf`. Reply to a PDF with `.unpdf` (aliases `frompdf`, `pdf2`,
+`pdfconvert`, `unpdf2docx`) and the bot answers with an **interactive button
+sheet** of target formats. Tap one and the converted file is sent back — all
+locally, nothing uploaded.
+
+| Target | Engine | Notes |
+| --- | --- | --- |
+| `docx` | Built-in | Real OOXML package — opens in Word/LibreOffice/Docs |
+| `txt`, `md`, `html`, `rtf` | Built-in | Re-encoded from the extracted text |
+| `png`, `jpg` | LibreOffice (headless) | First page rendered as an image |
+
+Pass the format directly to skip the picker: `.unpdf docx` (or `txt`, `md`,
+`html`, `rtf`, `png`, `jpg`).
+
+**Text extraction is dependency-free** (`lib/pdf-reader.js`): it inflates the
+content streams (`zlib`), merges compressed object streams, walks the page tree
+and replays the text operators. It handles ordinary *born-digital* PDFs. A
+**scanned / image-only** PDF carries no text — text targets then reply with an
+actionable message instead of an empty file, while `png`/`jpg` still work
+because they rasterise rather than read. Encrypted PDFs are detected and
+reported. DOCX output is assembled by `lib/docx-writer.js` on top of the
+dependency-free ZIP writer in `lib/zip-writer.js`.
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `PDF_JOB_TTL_SECONDS` | `900` | How long a format picker stays valid |
+| `PDF_JOB_MAX` | `50` | Pending conversions kept in memory at once |
+
+The picked PDF is downloaded once and held in memory under a short-lived token
+(`lib/pdf-jobs.js`) until a row is tapped; the token is bound to the chat that
+minted it, so it cannot be redeemed elsewhere. Conversion runs only on tap, so
+an ignored picker costs nothing.
+
+---
+
+## Group links & shared features
+
+Groups can be linked so they share data without duplicating it. A link does not
+copy anything — it makes the groups resolve to one **scope id**, and the shared
+feature is stored under that id.
+
+```text
+.link <grup>                      → this chat manages <grup> (control panel)
+.link <grup-a> <grup-b>           → peer link (either may manage the other)
+.link <fitur> <grup-a> <grup-b>   → share one feature between two groups
+.unlink <fitur> <a> <b>           → stop sharing that feature
+.links [grup|all]                 → show a group's links (or every link)
+```
+
+Shareable features (`SCOPE_FEATURES` in `lib/group-scope.js`):
+
+| Feature | Shared behaviour |
+| --- | --- |
+| `notes` | One note store for every linked group |
+| `filters` | One auto-reply filter set |
+| `blacklist` | One blacklist |
+| `schedule` | One schedule set — each entry **fires in every linked group** |
+| `general` | Reserved general-purpose scope |
+
+### Shared schedules
+
+Schedules are stored per delivery target (`jid`). Linking two groups for the
+`schedule` feature makes the scheduler fan a schedule out to **all** groups that
+share the scope, exactly like the reserved `global` keyword but limited to the
+linked set:
+
+```text
+.link schedule kelas-a kelas-b     → share schedules
+.schedule 08:00 daily              → reply a message, then create it
+# fires at 08:00 in BOTH kelas-a and kelas-b
+.unlink schedule kelas-a kelas-b   → stop the fan-out (own-group delivery stays)
+```
+
+- `.schedule list <grup>` shows the group's own schedules, the global ones and
+  every shared one; shared entries are marked `⇄` and the header lists the
+  linked groups.
+- `.schedule list all` (owner) groups shared schedules under one section.
+- Deleting a shared schedule is allowed from any group in the scope.
+
+---
+
 ## Plugin System
 
 Plugins live under `plugins/<category>/<file>.js`. On boot, `lib/plugins.js`
@@ -479,6 +579,16 @@ All group commands require the bot to be an admin where noted.
 - `notes` — list notes.
 - `delnote <name>` — delete a note.
 
+### Schedule
+
+- `schedule [grup] <HH:MM> <daily|weekly <hari>|once <dd.mm.yyyy>>` — reply a
+  message to send it later (alias `add`/`set`).
+- `schedules [grup|global|all]` — list schedules.
+- `unschedule [grup|global] <id>` — delete a schedule.
+- `settimezone <zona>` — set the IANA timezone (owner).
+- Share schedules across groups with `.link schedule <a> <b>` (see
+  [Group links & shared features](#group-links--shared-features)).
+
 ### Sticker / media
 
 - `sticker` / `s` — make a sticker from an image/video.
@@ -493,6 +603,7 @@ All group commands require the bot to be an admin where noted.
 - `calculator <expr>` — evaluate a math expression.
 - `shorten <url>` — shorten a URL.
 - `pdf` / `topdf` / `convertpdf` — convert a replied document/image to PDF.
+- `unpdf` / `frompdf` / `pdf2` — convert a replied PDF to DOCX/TXT/MD/HTML/RTF (or PNG/JPG) via an interactive button sheet.
 
 ### Search / Info
 
@@ -509,6 +620,7 @@ All group commands require the bot to be an admin where noted.
 ### Owner
 
 - `mode <public|self>` — switch bot mode.
+- `silent <on|off>` — toggle silent mode (suppress gate/refusal notices).
 - `prefix [add|del] <char>` — manage prefixes.
 - `ban` / `unban` — manage banned users.
 - `xmpp [status|groups|on|off|setgroup|unsetgroup]` — control the Minecraft bridge.
@@ -608,7 +720,7 @@ GX-ID/
 │   ├── lid.js               # LID ↔ JID mapping
 │   ├── time.js              # Asia/Jakarta time helpers
 │   ├── error.js             # user-facing error template
-│   ├── messages.js          # feedback-message master switch (enabled/onDisabled)
+│   ├── messages.js          # silent mode + feedback-message switch
 │   ├── control-server.js    # in-bot control socket (for the console)
 │   ├── control-client.js    # interactive console UI (separate process)
 │   ├── control-utils.js     # shared console helpers
@@ -619,6 +731,11 @@ GX-ID/
 │   │   └── manager.js       # singleton lifecycle + database-backed state
 │   ├── pdf-convert.js       # document/image → PDF engine (LibreOffice + built-in)
 │   ├── pdf-writer.js        # dependency-free PDF builder (text + embedded JPEG)
+│   ├── pdf-reader.js        # dependency-free PDF text extractor
+│   ├── pdf-export.js        # PDF → docx/txt/md/html/rtf/png/jpg engine
+│   ├── pdf-jobs.js          # short-lived store for pending PDF conversions
+│   ├── docx-writer.js       # dependency-free DOCX (OOXML) builder
+│   ├── zip-writer.js        # dependency-free ZIP writer (used by DOCX)
 │   └── env.js               # .env loader
 ├── plugins/
 │   ├── main/                # menu, allmenu
@@ -627,7 +744,7 @@ GX-ID/
 │   ├── notes/               # notes
 │   ├── sticker/             # sticker, toimage
 │   ├── media/               # tomp3
-│   ├── utility/             # tts, translate, qr, calculator, shorten, pdf
+│   ├── utility/             # tts, translate, qr, calculator, shorten, pdf, unpdf
 │   ├── search/              # search
 │   ├── info/                # ping, botinfo, owner, gempa
 │   ├── game/                # catur

@@ -120,19 +120,26 @@ const config = {
 
   messages: {
     /**
-     * Master switch for the feedback messages below — the notices the bot
-     * sends when it *refuses* or *cannot* run a command (owner-only,
-     * group-only, admin-only, cooldown, ban, unregistered group, …).
+     * Silent mode — master switch for the feedback notices below: the messages
+     * the bot sends when it *refuses* or *cannot* run a command (unknown
+     * command, command disabled, owner-only, group-only, admin-only, cooldown,
+     * ban, unregistered group, …).
      *
-     *   enabled: true   → send the configured text (normal behaviour)
-     *   enabled: false  → suppress it and follow `onDisabled` instead
+     *   silent: true    → send nothing (or react — see `onDisabled`)
+     *   silent: false   → send the configured text (normal behaviour)
      *
-     * Functional command output (`wait`, `success`, `error`) is NOT affected —
-     * silencing those would break the commands that rely on them.
+     * This is the CONFIG DEFAULT. The owner can override it at runtime with
+     * `.silent on|off`, which persists in the database and takes precedence.
+     * The legacy `enabled` flag is still honoured when present (`enabled: false`
+     * means silent mode ON).
+     *
+     * Functional command output (`wait`, `success`, `error`, `genericError`)
+     * and the bare-command usage/help cards are NOT affected — silencing those
+     * would break the commands that rely on them.
      */
-    enabled: false,
+    silent: env("MESSAGES_SILENT", "true") === "true",
     /**
-     * Second switch — what to do while `enabled` is `false`:
+     * What to do while silent mode is ON:
      *   "silent" → send nothing at all
      *   "react"  → react to the triggering message with `react` below
      */
@@ -196,14 +203,19 @@ const config = {
   xmpp: xmppConfig,
 
   /**
-   * Local document → PDF converter (the `/pdf` command). Runtime limits are
-   * also read directly from `.env` by `lib/pdf-convert.js` (so they hot-reload);
-   * they are mirrored here for discoverability.
+   * Local document → PDF converter (the `/pdf` command) and its inverse, the
+   * PDF → document converter (`/unpdf`). Runtime limits are also read directly
+   * from `.env` by `lib/pdf-convert.js` / `lib/pdf-export.js` (so they
+   * hot-reload); they are mirrored here for discoverability.
    */
   pdf: {
     maxSizeMb: Number(env("PDF_MAX_SIZE_MB", "25")),
     timeoutMs: Number(env("PDF_TIMEOUT_MS", "90000")),
     libreOfficePath: env("LIBREOFFICE_PATH", ""),
+    /** How long a PDF→format picker stays valid, in seconds. */
+    jobTtlSeconds: Number(env("PDF_JOB_TTL_SECONDS", "900")),
+    /** Maximum number of pending PDF→format jobs kept in memory. */
+    jobMax: Number(env("PDF_JOB_MAX", "50")),
   },
 
   /* ───────────────── GX-ID compatibility layer ─────────────────

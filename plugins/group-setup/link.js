@@ -6,7 +6,7 @@
  *   .link <grup>                  → this chat manages <grup> (control panel)
  *   .link <grup-a> <grup-b>       → peer link (either may manage the other)
  *   .link <fitur> <grup-a> <grup-b> → FEATURE link: share that feature's data
- *                                     (`notes`, `filters`, `blacklist`).
+ *                                     (`notes`, `filters`, `blacklist`, `schedule`).
  *
  * Every argument may be an alias, a bare internal id, or a full JID.
  */
@@ -18,7 +18,7 @@ const pluginConfig = {
   alias: ["hubungkan", "tautkan"],
   category: "group-setup",
   description: "Hubungkan grup (manajemen, sesama grup, atau per-fitur)",
-  usage: ".link <grup>  |  .link <grup-a> <grup-b>  |  .link <notes|filters|blacklist> <grup-a> <grup-b>",
+  usage: ".link <grup>  |  .link <grup-a> <grup-b>  |  .link <notes|filters|blacklist|schedule> <grup-a> <grup-b>",
   examples: [".link kelas-a", ".link kelas-a kelas-b", ".link notes kelas-a kelas-b"],
   permission: "owner",
   cooldown: 3,
@@ -41,7 +41,8 @@ async function handler(m, { db, config }) {
         `> \`${prefix}link <grup-a> <grup-b>\` — hubungkan dua grup\n` +
         `> \`${prefix}link notes <a> <b>\` — bagikan catatan\n` +
         `> \`${prefix}link filters <a> <b>\` — bagikan filter\n` +
-        `> \`${prefix}link blacklist <a> <b>\` — bagikan blacklist\n\n` +
+        `> \`${prefix}link blacklist <a> <b>\` — bagikan blacklist\n` +
+        `> \`${prefix}link schedule <a> <b>\` — bagikan jadwal\n\n` +
         `> Grup bisa berupa alias atau id. Lihat: \`${prefix}listreg\``,
     );
   }
