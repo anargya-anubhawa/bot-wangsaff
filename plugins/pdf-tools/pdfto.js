@@ -1,13 +1,13 @@
 /**
- * GX-ID — /unpdf
+ * GX-ID — /pdfto
  *
  * The inverse of `/pdf`: take a PDF and turn it into an editable file — DOCX,
  * TXT, MD, HTML, RTF (built-in, no external tool) or PNG/JPG (via LibreOffice,
  * when installed).
  *
- * UX: reply to a PDF with `.unpdf` and the bot answers with an **interactive
+ * UX: reply to a PDF with `.pdfto` and the bot answers with an **interactive
  * button sheet** listing the target formats. Tapping a row converts the file
- * and sends the result back. A direct `.unpdf <format>` skips the picker.
+ * and sends the result back. A direct `.pdfto <format>` skips the picker.
  *
  * The PDF is downloaded once, kept in memory under a short-lived token
  * (`lib/pdf-jobs.js`) and only converted when a row is tapped — so a picker the
@@ -24,12 +24,12 @@ import { PDF_EXPORT_TARGETS, getExportTarget, convertFromPdf, imageTargetsAvaila
 import { createJob, getJob, dropJob } from "../../lib/pdf-jobs.js";
 
 const pluginConfig = {
-  name: "unpdf",
-  alias: ["frompdf", "pdf2", "pdfconvert", "unpdf2docx"],
-  category: "utility",
+  name: "pdfto",
+  alias: ["frompdf", "pdf2", "pdfconvert", "pdf2docx", "pdfto"],
+  category: "pdf-tools",
   description: "Convert a PDF into DOCX/TXT/MD/HTML/RTF (or PNG/JPG)",
-  usage: ".unpdf (reply to a PDF)",
-  example: ".unpdf",
+  usage: ".pdfto (reply to a PDF)",
+  example: ".pdfto",
   isOwner: false,
   isPremium: false,
   isGroup: false,
@@ -61,9 +61,9 @@ function targetRows(token) {
   const rows = PDF_EXPORT_TARGETS.map((t) => {
     const needsLo = t.engine === "libreoffice";
     const description = needsLo && !images ? `${t.description} — ❌ butuh LibreOffice` : t.description;
-    return { id: `unpdf:to:${token}:${t.id}`, title: `${t.emoji} ${t.label}`, description };
+    return { id: `pdfto:to:${token}:${t.id}`, title: `${t.emoji} ${t.label}`, description };
   });
-  rows.push({ id: `unpdf:cancel:${token}`, title: "✖️ Batal", description: "Tutup pilihan" });
+  rows.push({ id: `pdfto:cancel:${token}`, title: "✖️ Batal", description: "Tutup pilihan" });
   return rows;
 }
 
@@ -96,7 +96,7 @@ async function sendPicker(m, ctx, job) {
     messageParamsJson: buildMessageParams({ listTitle: "FORMAT", buttonTitle: "PILIH" }),
     quoted: m.raw,
     mentionedJid: m.sender ? [m.sender] : [],
-    fallbackLabel: "unpdf",
+    fallbackLabel: "pdfto",
   });
 
   if (!ok) {
@@ -106,7 +106,7 @@ async function sendPicker(m, ctx, job) {
         `📥 *PDF → Dokumen*\n\n` +
           `> ${job.fileName || "file.pdf"} · ${formatFileSize(job.buffer.length)}\n\n` +
           `${list}\n\n` +
-          `> Balas PDF-nya dengan \`${m.prefix || "."}unpdf <format>\` untuk konversi langsung.`,
+          `> Balas PDF-nya dengan \`${m.prefix || "."}pdfto <format>\` untuk konversi langsung.`,
       )
       .catch(() => {});
   }
@@ -152,7 +152,7 @@ async function convertAndSend(m, ctx, job, targetId) {
 
 /* ─────────────────────────── flow route (taps) ─────────────────────────── */
 
-registerFlowRoute("unpdf", async (m, ctx, { action, args }) => {
+registerFlowRoute("pdfto", async (m, ctx, { action, args }) => {
   switch (action) {
     case "to": {
       const [token, targetId] = args;
@@ -160,7 +160,7 @@ registerFlowRoute("unpdf", async (m, ctx, { action, args }) => {
       const job = getJob(token, m.chat);
       if (!job) {
         await m
-          .reply("⌛ *Sesi konversi sudah kedaluwarsa.*\n\n> Balas ulang PDF-nya dengan `.unpdf` untuk memulai lagi.")
+          .reply("⌛ *Sesi konversi sudah kedaluwarsa.*\n\n> Balas ulang PDF-nya dengan `.pdfto` untuk memulai lagi.")
           .catch(() => {});
         return true;
       }
@@ -188,10 +188,10 @@ async function handler(m, ctx) {
   if (!target) {
     return m.reply(
       `📥 *PDF Converter*\n\n` +
-        `> Balas sebuah file PDF dengan \`${prefix}unpdf\`.\n` +
+        `> Balas sebuah file PDF dengan \`${prefix}pdfto\`.\n` +
         `> Bot akan menampilkan pilihan format (interactive button).\n\n` +
         `*Format:* DOCX, TXT, MD, HTML, RTF${isLibreOfficeAvailable() ? ", PNG, JPG" : " (PNG/JPG butuh LibreOffice)"}.\n` +
-        `*Langsung:* \`${prefix}unpdf docx\` untuk melewati pilihan.`,
+        `*Langsung:* \`${prefix}pdfto docx\` untuk melewati pilihan.`,
     );
   }
 
@@ -205,7 +205,7 @@ async function handler(m, ctx) {
     );
   }
 
-  /* direct format (`.unpdf docx`) — validate before downloading */
+  /* direct format (`.pdfto docx`) — validate before downloading */
   if (argFormat) {
     const direct = getExportTarget(argFormat);
     if (!direct) {

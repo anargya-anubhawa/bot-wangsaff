@@ -23,7 +23,7 @@ const ENGINE_LABEL = {
 };
 
 const pluginConfig = {
-  name: "pdf",
+  name: "topdf",
   alias: ["topdf", "convertpdf", "jadipdf"],
   category: "utility",
   description: "Convert a document/image to PDF",

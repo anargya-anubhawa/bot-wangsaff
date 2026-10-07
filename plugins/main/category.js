@@ -42,6 +42,7 @@ export const CATEGORIES = {
   notes: { emoji: "📝", label: "Notes", order: 40 },
   sticker: { emoji: "🖼️", label: "Sticker", order: 50 },
   media: { emoji: "🖼️", label: "Media", order: 60 },
+  "pdf-tools": { emoji: "📁", label: "PDF Tools", order: 61 },
   game: { emoji: "🎮", label: "Game", order: 70 },
   entertainment: { emoji: "🎮", label: "Entertainment", order: 80 },
   utility: { emoji: "🧰", label: "Utility", order: 90 },
