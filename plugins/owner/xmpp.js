@@ -18,6 +18,7 @@
 import config from "../../config.js";
 import { isOwner, isGroupAdmin } from "../../lib/access.js";
 import { getDatabase } from "../../lib/database.js";
+import { sendFeedback } from "../../lib/messages.js";
 import {
   getBridgeGroups,
   setBridgeEnabled,
@@ -132,7 +133,7 @@ async function handler(m) {
 
     case "setgroup": {
       if (!m.isGroup) {
-        return m.reply(config.messages?.groupOnlyExplicit || "❌ Perintah ini hanya dapat digunakan di dalam grup.");
+        return sendFeedback(m, config.messages?.groupOnlyExplicit || "❌ Perintah ini hanya dapat digunakan di dalam grup.");
       }
       const groups = addBridgeGroup(m.chat);
       return m.reply(
@@ -142,7 +143,7 @@ async function handler(m) {
 
     case "unsetgroup": {
       if (!m.isGroup) {
-        return m.reply(config.messages?.groupOnlyExplicit || "❌ Perintah ini hanya dapat digunakan di dalam grup.");
+        return sendFeedback(m, config.messages?.groupOnlyExplicit || "❌ Perintah ini hanya dapat digunakan di dalam grup.");
       }
       const before = getBridgeGroups();
       if (!before.includes(String(m.chat))) {

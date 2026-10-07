@@ -11,10 +11,6 @@ export const GX_CORE_CONFIG = Object.freeze({
     "name": "",
     "number": []
   },
-  "session": {
-    "pairingNumber": "GXMDGXMD",
-    "usePairingCode": true
-  },
   "fake_call": {
     "active": true,
     "usePairing": true,
@@ -50,16 +46,6 @@ export const GX_CORE_CONFIG = Object.freeze({
     "shuffleUrls": [
       "https://files.catbox.moe/hikk5g.jpeg"
     ]
-  },
-  "vercel": {
-    "token": ""
-  },
-  "aquaApi": {
-    "freeRestApiKey": "SK-5A6D0C0FB6D7B35A71B9A70F",
-    "neoxrKey": "Milik-Bot-OurinMD"
-  },
-  "telegram": {
-    "botToken": ""
   },
   "payment": {
     "qrisUrl": "",
@@ -129,36 +115,6 @@ export const GX_CORE_CONFIG = Object.freeze({
     "silent": true,
     "startupDelayMs": 10000,
     "retryDelayMs": 15000
-  },
-  "apiBase": {
-    "xterm": "https://api.termai.cc",
-    "termaiCdn": "https://c.termai.cc",
-    "alight": "https://am.rafaelxd.my.id/api/v1"
-  },
-  "alight": {
-    "apiBase": "https://am.rafaelxd.my.id/api/v1",
-    "apiKey": "alight_live_3809350d937f869762f6de5d3a9a60d0"
-  },
-  "APIkey": {
-    "lolhuman": "APIKey-Milik-Bot-OurinMD(Anita)",
-    "neoxr": "s40ies",
-    "fgsi": "fgsiapi-235affd2-6d",
-    "google": "AIzaSyAS-KiW0SrwiYKwexeBcGPijBVHFg2R_vo",
-    "betabotz": "Btz-67YfP",
-    "covenant": "cov_live_bb660c9e5f735e46d808b7ae362914cfe35c2936739ee2b2",
-    "onlym": "ONLym-783d29",
-    "obscura": "obs-byOn9RVGMzvPXZQTsP9W",
-    "firefly": "ourinNextGen",
-    "cuki": "cuki-x",
-    "xterm": "Bell409",
-    "termaiCdn": "AIzaBj7z2z3xBjsk"
   }
 });
 export const GX_DEVELOPER = "Anargya Prima Anubhawa";
-
-export const GX_PERSONA = Object.freeze({
-  name: "",
-  style: "",
-  greeting: "",
-  prompt: ``
-});

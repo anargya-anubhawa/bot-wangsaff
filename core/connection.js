@@ -22,6 +22,7 @@ import pino from "pino";
 import config, { setBotNumber } from "../config.js";
 import { logger, logBox } from "../lib/logger.js";
 import { extendSocket } from "../lib/socket.js";
+import { sendFeedbackTo } from "../lib/messages.js";
 import {
   isLid,
   decodeAndNormalize,
@@ -737,7 +738,7 @@ export async function startConnection(options = {}) {
           logger.warn(`rejecting call from ${call.from}`);
           try {
             await sock.rejectCall(call.id, call.from);
-            await sock.sendMessage(call.from, { text: config.messages?.rejectCall || "🚫 Please don't call the bot." });
+            await sendFeedbackTo(sock, call.from, config.messages?.rejectCall || "🚫 Please don't call the bot.");
             if (config.features?.blockIfCall) {
               let target = call.from;
               if (target.endsWith("@lid")) {
