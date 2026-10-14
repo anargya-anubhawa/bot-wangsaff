@@ -25,6 +25,7 @@ import {
   NOT_CONFIGURED_MESSAGE,
   MAX_COMMIT_DETAIL,
 } from "../../lib/updater.js";
+import { restartBot } from "../../lib/restart.js";
 import { renderCommandUsage } from "../../lib/command-usage.js";
 
 const CHECK_ALIASES = ["checkupdate", "cekupdate", "updatecheck"];
@@ -179,7 +180,12 @@ async function doApply(m, ctx, ref) {
   await m.reply(renderApply(report, ctx.prefix || m.prefix || "."));
   if (ctx.config?.update?.autoRestart) {
     await m.reply("♻️ _Auto-restart aktif — bot akan restart…_").catch(() => {});
-    setTimeout(() => process.exit(0), 1500);
+    // Go through the normal restart path so the supervisor (built-in or
+    // external) relaunches the bot. A raw `process.exit(0)` used to leave the
+    // bot dead forever when nothing was supervising it.
+    setTimeout(() => {
+      restartBot({ reason: "auto-restart after update" }).catch(() => process.exit(0));
+    }, 1500);
   }
 }
 

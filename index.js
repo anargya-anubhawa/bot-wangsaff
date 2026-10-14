@@ -23,7 +23,10 @@ import { startScheduler } from "./lib/scheduler.js";
 import { runBootInterface } from "./lib/console-ui.js";
 import { startControlServer } from "./lib/control-server.js";
 import { startHotReload } from "./lib/hot-reload.js";
-import { restartBot, shutdownResources, isWatchMode } from "./lib/restart.js";
+import { restartBot, shutdownResources, isWatchMode, onBeforeRestart } from "./lib/restart.js";
+import { shouldSupervise, isSupervisedWorker } from "./lib/runtime-mode.js";
+import { runSupervisor } from "./lib/supervisor.js";
+import { acquireInstanceLock, describeHolder } from "./lib/instance-lock.js";
 import { startXmppBridge, stopXmppBridge } from "./lib/xmpp/manager.js";
 
 /* ─────────────────────────── console noise filter ─────────────────────────── */
@@ -95,6 +98,16 @@ function startHotReloadWatcher() {
     logger.system("hot reload — handled by node --watch (dev mode)");
     return;
   }
+  // A restart tears the process down; make sure the watcher cannot fire a second
+  // restart (or a plugin reload) while we are mid-exit.
+  onBeforeRestart(() => {
+    try {
+      hotReload?.stop();
+    } catch {
+      /* ignore */
+    }
+    hotReload = null;
+  });
   hotReload = startHotReload({
     root: process.cwd(),
     pluginsDir: path.join(process.cwd(), "plugins"),
@@ -201,10 +214,105 @@ async function startControlConsoleServer() {
   });
 }
 
+/* ─────────────────────────── instance lock ─────────────────────────── */
+
+/**
+ * The lock held by this process (when it is the lifecycle owner). `null` for a
+ * supervised worker, which relies on its supervisor's lock instead.
+ */
+let instanceLock = null;
+
+/**
+ * True when THIS process is the built-in supervisor (not the bot worker). The
+ * supervisor owns its own SIGINT/SIGTERM handling (see `lib/supervisor.js`), so
+ * the worker-oriented `shutdown()` must stand down in that case to avoid exiting
+ * the supervisor before it has stopped the worker (which would orphan it).
+ */
+let isSupervisorProcess = false;
+
+/**
+ * Take the single-instance lock so two bots can never share one session.
+ *
+ * @param {object} [options]
+ * @param {boolean} [options.tolerate] when true, a conflict is only warned about
+ *   and the caller continues WITHOUT the lock. Used under `node --watch`, where
+ *   Node relaunches the process and the previous child may not have released the
+ *   lock yet (a benign race) — refusing to start there would be wrong.
+ * @returns {boolean} `true` when we own the lifecycle (or chose to continue).
+ */
+function takeInstanceLock({ tolerate = false } = {}) {
+  const result = acquireInstanceLock({ label: config.bot?.name || "GX-ID" });
+  if (result.ok) {
+    instanceLock = result.lock;
+    return true;
+  }
+  if (tolerate) {
+    logger.warn(
+      `another ${config.bot?.name || "GX-ID"} instance seems to be running (${describeHolder(result.holder)}) — continuing without the lock`,
+    );
+    return true;
+  }
+  logger.error(
+    `another ${config.bot?.name || "GX-ID"} instance is already running (${describeHolder(result.holder)})`,
+  );
+  logger.error("stop it first, or set GX_LOCK_FILE to run an isolated copy.");
+  return false;
+}
+
+/** Release the lock (idempotent). */
+function releaseInstanceLock() {
+  try {
+    instanceLock?.release();
+  } catch {
+    /* ignore */
+  }
+  instanceLock = null;
+}
+
+// Release the lock BEFORE a restart tears the process down. This matters on the
+// detached-relaunch path: the replacement child would otherwise race the parent
+// for the lock file. On a supervised worker the lock is null, so this is a no-op.
+onBeforeRestart(releaseInstanceLock);
+
 async function main() {
+  /* ── supervised worker: the supervisor already ran the menu + holds the lock ── */
+  if (isSupervisedWorker()) {
+    await boot();
+    await startControlConsoleServer();
+    return;
+  }
+
+  /* ── top-level: decide who owns the lifecycle ── */
+  if (shouldSupervise()) {
+    // Claim the lock BEFORE the menu so a second `npm start` fails fast instead
+    // of making the operator pick options and only then be told it is a dupe.
+    if (!takeInstanceLock()) process.exit(1);
+
+    // The operator interacts with the menu ONCE, here in the supervisor. The
+    // worker then boots straight into the bot (the supervisor sets GX_RELAUNCHED),
+    // so a restart never reopens the menu.
+    const action = await runBootInterface();
+    if (action === "exit") {
+      logger.system("keluar dari control panel — bot tidak dijalankan");
+      releaseInstanceLock();
+      process.exit(0);
+    }
+
+    // Never returns — the supervisor stays in the foreground and restarts the
+    // worker in place (no detached/backgrounded process).
+    isSupervisorProcess = true;
+    runSupervisor({ lock: instanceLock });
+    return;
+  }
+
+  /* ── top-level, not supervised (node --watch / pm2 / systemd / GX_SUPERVISE=0) ── */
+  const watch = isWatchMode();
+  if (!takeInstanceLock({ tolerate: watch })) process.exit(1);
+
   const action = await runBootInterface();
   if (action === "exit") {
     logger.system("keluar dari control panel — bot tidak dijalankan");
+    releaseInstanceLock();
     process.exit(0);
   }
   await boot();
@@ -214,12 +322,14 @@ async function main() {
 main().catch((error) => {
   logger.error(`boot failed: ${error?.message || error}`);
   if (process.env.NODE_ENV === "development" && error?.stack) console.error(error.stack);
+  releaseInstanceLock();
   process.exit(1);
 });
 
 /* ─────────────────────────── graceful shutdown ─────────────────────────── */
 
 async function shutdown(signal) {
+  if (isSupervisorProcess) return; // the supervisor handles signals itself
   logger.system(`received ${signal} — shutting down`);
   if (hotReload) hotReload.stop();
   try {
@@ -233,10 +343,14 @@ async function shutdown(signal) {
     /* ignore */
   }
   await shutdownResources();
+  releaseInstanceLock();
   process.exit(0);
 }
 
 process.on("SIGINT", () => shutdown("SIGINT"));
 process.on("SIGTERM", () => shutdown("SIGTERM"));
+// A clean exit (e.g. `process.exit(0)` from the control console) must always
+// release the lock so the next start is never blocked by a ghost holder.
+process.on("exit", releaseInstanceLock);
 
 export { boot };

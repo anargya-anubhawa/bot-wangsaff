@@ -11,7 +11,11 @@
  *   .restart           → restart the bot
  *   .restart status    → show how the restart would be performed
  */
-import { restartBot, isWatchMode, isUnderSupervisor, isRestarting } from "../../lib/restart.js";
+import {
+  restartBot,
+  isRestarting,
+  restartStrategyLabel,
+} from "../../lib/restart.js";
 
 const pluginConfig = {
   name: "restart",
@@ -28,9 +32,7 @@ const pluginConfig = {
 };
 
 function restartMode() {
-  if (isWatchMode()) return "node --watch (auto)";
-  if (isUnderSupervisor()) return "supervisor (pm2)";
-  return "relaunch (proses baru)";
+  return restartStrategyLabel();
 }
 
 async function handler(m, { config }) {
