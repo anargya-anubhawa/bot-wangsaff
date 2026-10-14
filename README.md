@@ -38,7 +38,7 @@ chess game.
 | **Sticker** | `sticker`/`s`, `toimage` |
 | **Media** | `tomp3` |
 | **Utility** | `tts`, `translate`, `qr`, `calculator`, `shorten`, `pdf`, `unpdf` |
-| **Search / Info** | `search`, `ping`, `botinfo`, `owner`, `gempa` (BMKG) |
+| **Search / Info** | `search`, `ping`, `botinfo`, `stats`, `owner`, `gempa` (BMKG) |
 | **Game** | `catur`/`chess` (inline) |
 | **Owner** | `mode`, `prefix`, `ban`, `unban` |
 | **Group setup** | `registergroup`, `unregistergroup`, `regcontrol`, `link`, `unlink`, `links`, `listreg` |
@@ -219,6 +219,39 @@ npm test           # run the smoke + pipeline tests
 On a successful boot you will see the banner, database init, asset loading,
 plugin registration and either the pairing code or QR.
 
+### Restart & hot reload (built-in supervisor)
+
+The bot supervises **itself**. The top-level process stays in the foreground
+(the terminal / `screen` / `tmux` you started it from) and re-spawns the bot
+*in place* whenever it must restart — after `.restart`, a hot-reload of
+`config.js` / `.env`, an auto-update, or a crash. That is why a restart no longer
+"leaks" into a background process: the parent you are watching never exits, and
+the prompt never comes back while a hidden bot keeps running.
+
+```
+terminal / screen / tmux
+  └── supervisor   ← stays attached, holds the single-instance lock
+        └── bot worker   ← restarts here, same terminal
+```
+
+The supervisor stands down automatically when something else already owns the
+lifecycle — `node --watch` (`npm run dev`), **pm2**, **systemd**, **docker** /
+**kubernetes** — so it never fights your own process manager.
+
+A **single-instance lock** (`storage/gx-id.lock`) guarantees only one bot ever
+runs against a session. If you start a second copy, it refuses to run and tells
+you who already holds the lock — this is what prevents the "two bots → 440
+session conflict → corrupted creds" failure.
+
+| Variable | Default | Meaning |
+| --- | --- | --- |
+| `GX_SUPERVISE` | auto (on) | `1` forces the built-in supervisor on; `0` disables it. |
+| `GX_LOCK_FILE` | `storage/gx-id.lock` | Lock path — override to run an isolated copy. |
+
+With `GX_SUPERVISE=0` and no external supervisor, a restart relaunches a
+detached process whose output is appended to `storage/logs/bot.out.log` (the path
+is printed), so a backgrounded bot is never invisible again.
+
 ### Interactive control console
 
 The bot always prints plain logs to its own terminal. To drive it interactively,
@@ -238,6 +271,24 @@ interferes with the bot's own logging.
 
 Set `NO_CONSOLE=1` to disable the control socket, or `CONSOLE_PIPE=<path>` to use
 a custom socket path.
+
+### Command usage statistics (`.stats`)
+
+Every command that runs is counted, globally, in `stats.json` under
+`stats.commands` (`{ "<command>": <count> }`). Counters are bumped on successful
+dispatch — both plugin commands and case-system commands — and **aliases fold
+into the command's canonical name** (`.m`, `.bantuan` → `menu`; `.reboot` →
+`restart`), so the leaderboard never fragments.
+
+```
+.stats          → top 10 most-used commands
+.stats all      → every command, ranked
+.stats reset    → wipe the counters (owner only)
+.stats help     → usage card
+```
+
+Counting starts from a clean slate on a fresh `stats.json`; `.stats reset` lets
+the owner zero it at any time.
 
 ---
 
@@ -610,6 +661,7 @@ All group commands require the bot to be an admin where noted.
 - `search <query>` — web search.
 - `ping` — latency & uptime.
 - `botinfo` — bot information.
+- `stats [all|reset]` — most-used commands, globally (`all` = every command, `reset` = owner-only).
 - `owner` — owner contact.
 - `gempa` — latest BMKG earthquake info.
 
@@ -637,7 +689,7 @@ concern, stored in `DATABASE_PATH` (default `./database/main`):
 | `users.json` | Users, premium/ban flags, cooldowns |
 | `groups.json` | Per-group settings |
 | `settings.json` | Global settings (mode, prefixes, bans) |
-| `stats.json` | Counters |
+| `stats.json` | Counters — global totals + per-command usage (`stats.commands`) |
 | `notes.json` | Group-scoped notes |
 
 Writes are **atomic** (temp file + rename) and dirty stores are flushed every
@@ -653,6 +705,9 @@ db.getGroup(jid); db.setGroup(jid, { welcome: true });
 db.getNote(scope, name); db.setNote(scope, name, content, by);
 db.listNotes(scope); db.deleteNote(scope, name);
 db.setting(key, value?); db.incrementStat(key);
+db.incrementCommandStat(name); db.getTopCommands(limit); db.getCommandStat(name);
+db.getCommandStats(); db.getCommandStatCount(); db.getTotalCommandUsage();
+db.resetCommandStats();
 ```
 
 ---
@@ -664,8 +719,22 @@ Use `npm.cmd` instead of `npm`, or run PowerShell as administrator and set
 `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`.
 
 **Bot keeps disconnecting / "Session Conflict" (440)**
-Another instance is running with the same session. Stop the other bot. For
-`401`/`loggedOut`, delete `./storage/<SESSION_FOLDER>` and log in again.
+Another instance is running with the same session. The built-in single-instance
+lock refuses a second start and prints the holder's pid; stop that process first.
+For `401`/`loggedOut`, delete `./storage/<SESSION_FOLDER>` and log in again.
+
+**"Bot tidak start" tapi ternyata jalan di background**
+With the built-in supervisor (default) this cannot happen: the parent process
+stays in the foreground and restarts the bot in place. If you disabled it
+(`GX_SUPERVISE=0`) and no supervisor is managing the bot, a restart relaunches a
+detached process — check `storage/logs/bot.out.log` and the printed pid. Use
+`npm start` (with the supervisor on) or a real process manager (pm2/systemd) so
+the bot always has a visible owner.
+
+**Restart seems to do nothing**
+The bot is still the same process because `node --watch` or an external
+supervisor (pm2/systemd) owns the lifecycle. Run `.restart status` to see which
+mode is active; the supervisor relaunches within a second or two.
 
 **No QR / pairing code appears**
 Ensure `USE_PAIRING_CODE` and `PRINT_QR` are set correctly, and that the
@@ -724,6 +793,11 @@ GX-ID/
 │   ├── control-server.js    # in-bot control socket (for the console)
 │   ├── control-client.js    # interactive console UI (separate process)
 │   ├── control-utils.js     # shared console helpers
+│   ├── supervisor.js        # built-in supervisor (in-place restart, foreground)
+│   ├── instance-lock.js     # single-instance lock (prevents duplicate bots)
+│   ├── runtime-mode.js      # restart strategy detection (supervisor/watch/pm2/…)
+│   ├── restart.js           # restart/shutdown flow used by commands & hot reload
+│   ├── hot-reload.js        # watches plugins/** and config/.env
 │   ├── log-bus.js           # mirrors logger output to the console
 │   ├── xmpp/                # WhatsApp ↔ Minecraft bridge
 │   │   ├── client.js        # persistent XMPP connection + backoff reconnect

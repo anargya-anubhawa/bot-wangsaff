@@ -8,7 +8,7 @@
  */
 import { serialize } from "../lib/serialize.js";
 import { checkMode, checkPermission, checkCommandEnabled, levenshtein } from "../lib/middleware.js";
-import { getPlugin, getPluginCount, getAllCommandNames, getAnswerHandlers, getLegacyHooks } from "../lib/plugins.js";
+import { getPlugin, getPluginCount, getAllCommandNames, getAnswerHandlers, getLegacyHooks, canonicalCommandName } from "../lib/plugins.js";
 import { getDatabase } from "../lib/database.js";
 import { handleCommand as handleCaseCommand } from "../case/index.js";
 import { logCommand, logger } from "../lib/logger.js";
@@ -236,6 +236,7 @@ export async function runCommand(m, sock, db, legacyConn, prefix) {
   try {
     const caseResult = await handleCaseCommand(m, sock);
     if (caseResult?.handled) {
+      db.incrementCommandStat(canonicalCommandName(m.command));
       if (config.features?.autoTyping && m.isGroup) {
         sock.sendPresenceUpdate("paused", m.chat).catch(() => {});
       }
@@ -309,6 +310,11 @@ export async function runCommand(m, sock, db, legacyConn, prefix) {
   /* execute */
   try {
     const context = buildContext(m, sock, db, legacyConn, prefix);
+    // Per-command usage counter — recorded just before the handler runs (so a
+    // `.stats reset` leaves the counters empty, and a bare `.stats` already
+    // reflects the current invocation). Aggregated by canonical name so aliases
+    // fold into one entry (e.g. `.m` → `menu`).
+    db.incrementCommandStat(canonicalCommandName(m.command || plugin.config.name));
     await plugin.handler(m, context);
     if (cooldown > 0 && !m.isOwner) db.setCooldown(m.sender, cooldownKey, cooldown);
     if (m.isGroup && !m.isOwner && !isOwnerOrWhitelistedIn(m) && !m.isAdmin) {
