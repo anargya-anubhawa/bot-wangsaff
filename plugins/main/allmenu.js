@@ -10,7 +10,7 @@ import { getImageBuffer } from "../../lib/asset-manager.js";
 import { toSmallCaps } from "../../lib/formatter.js";
 import { saluranCtx, interactiveContextInfo } from "../../lib/context.js";
 import { interactiveRelayNodes } from "../../lib/socket.js";
-import { categoryEmoji, categoryLabel, isCategoryVisible, visibleCategories } from "./category.js";
+import { categoryLabel, isCategoryVisible, visibleCategories } from "./category.js";
 
 const pluginConfig = {
   name: "allmenu",
@@ -39,8 +39,8 @@ function commandSymbols(cmd) {
   return s.length ? ` ${s.join(" ")}` : "";
 }
 
-function box(emoji, title, lines) {
-  let text = `╭─〔 ${emoji} \`${title}\`\n`;
+function box(title, lines) {
+  let text = `╭─〔 \`${title}\`\n`;
   for (const line of lines) text += `┃ ${line}\n`;
   text += `╰─⬣\n\n`;
   return text;
@@ -90,7 +90,7 @@ async function handler(m, { sock, config }) {
 
   /* no argument — list categories */
   if (!categoryArg) {
-    let text = `╭─〔 📖 \`legend\`\n`;
+    let text = `╭─〔 \`legend\`\n`;
     for (const line of [
       "Ⓞ = owner only",
       "ⓟ = premium only",
@@ -105,8 +105,7 @@ async function handler(m, { sock, config }) {
     for (const cat of categories) {
       const cmds = [...(commandsByCategory[cat] || []), ...(casesByCategory[cat] || [])];
       if (!cmds.length) continue;
-      const emoji = categoryEmoji(cat);
-      text += box(emoji, toSmallCaps(categoryLabel(cat)), cmds.map((c) => `${prefix}${c}${commandSymbols(c)}`));
+      text += box(toSmallCaps(categoryLabel(cat)), cmds.map((c) => `${prefix}${c}${commandSymbols(c)}`));
     }
     try {
       await sendInteractive(sock, m, config, text);
@@ -133,8 +132,7 @@ async function handler(m, { sock, config }) {
     return m.reply(`Category \`${matched}\` has no commands.`);
   }
 
-  const emoji = categoryEmoji(matched);
-  let text = box(emoji, toSmallCaps(categoryLabel(matched)), allCmds.map((c) => `${prefix}${c}${commandSymbols(c)}`));
+  let text = box(toSmallCaps(categoryLabel(matched)), allCmds.map((c) => `${prefix}${c}${commandSymbols(c)}`));
   text += `Total: \`${allCmds.length}\` commands`;
 
   try {

@@ -51,9 +51,9 @@ async function handler(m, { sock, config, db, uptime }) {
     const count = pluginCmds.length + caseCmds.length;
     totalCommands += count;
     if (!count) continue;
-    const emoji = categoryEmoji(cat);
+    const emoji = config.ui?.menuCategoryIcons === true ? categoryEmoji(cat) : "";
     rows.push({
-      title: `${emoji} ${categoryLabel(cat).toUpperCase()}`,
+      title: `${emoji ? `${emoji} ` : ""}${categoryLabel(cat).toUpperCase()}`,
       description: `${count} command${count > 1 ? "s" : ""}`,
       id: `${prefix}allmenu ${cat}`,
     });
@@ -67,15 +67,15 @@ async function handler(m, { sock, config, db, uptime }) {
   const bodyLines = [
     `${greeting}`,
     ``,
-    `✨━━━〔 *${toSmallCaps("Menu")}* 〕━━━✨`,
-    ``,
-    `➤ ${toSmallCaps("Name")} : *${m.pushName || "User"}*`,
-    `➤ ${toSmallCaps("Role")} : *${role}*`,
-    `➤ ${toSmallCaps("Bot")} : *${config.bot?.name || "GX-ID"}*`,
-    `➤ ${toSmallCaps("Version")} : *${config.bot?.version || "1.0.0"}*`,
-    `➤ ${toSmallCaps("Mode")} : *${(config.mode || "public").toUpperCase()}*`,
-    `➤ ${toSmallCaps("Uptime")} : *${formatUptime(uptime)}*`,
-    `➤ ${toSmallCaps("Features")} : *${totalFeatures}*`,
+    `╭─〔 *${toSmallCaps("Menu")}* 〕`,
+    `┃ ${toSmallCaps("Name")}    : ${m.pushName || "User"}`,
+    `┃ ${toSmallCaps("Role")}    : ${role}`,
+    `┃ ${toSmallCaps("Bot")}     : ${config.bot?.name || "GX-ID"}`,
+    `┃ ${toSmallCaps("Version")} : ${config.bot?.version || "1.0.0"}`,
+    `┃ ${toSmallCaps("Mode")}    : ${(config.mode || "public").toUpperCase()}`,
+    `┃ ${toSmallCaps("Uptime")}  : ${formatUptime(uptime)}`,
+    `┃ ${toSmallCaps("Features")}: ${totalFeatures}`,
+    `╰─⬣`,
     ``,
     `*Select a category below to view available commands.*`,
     ``,

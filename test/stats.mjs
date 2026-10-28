@@ -34,6 +34,9 @@ const configModule = (await import("../config.js")).default;
 
 if (configModule.features) configModule.features.antiSpam = false;
 if (configModule.messages) configModule.messages.silent = false;
+/* These suites assert on raw reply text, so switch OFF the reply transformer
+   (super silent mode / auto-✅). test/messages.mjs covers it instead. */
+if (configModule.messages) configModule.messages.transformEnabled = false;
 
 const OWNER = "628000000001@s.whatsapp.net";
 const USER = "628000000004@s.whatsapp.net";

@@ -25,6 +25,9 @@ const { extendSocket } = await import("../lib/socket.js");
    operator's `config.messages.silent` setting. */
 const configModule = (await import("../config.js")).default;
 if (configModule.messages) configModule.messages.silent = false;
+/* These suites assert on raw reply text, so switch OFF the reply transformer
+   (super silent mode / auto-✅). test/messages.mjs covers it instead. */
+if (configModule.messages) configModule.messages.transformEnabled = false;
 
 function makeSock() {
   const sent = [];

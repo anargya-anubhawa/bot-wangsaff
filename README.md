@@ -136,38 +136,89 @@ in `.env.example` for reference.
 
 ### Silent mode
 
-The notices the bot sends when it *refuses* or *cannot* run a command
-(unknown command, command disabled, owner-only, group-only, admin-only,
-cooldown, ban, unregistered group, anti-call, …) are controlled by a single
-**silent mode** master switch. It can be set three ways, in order of precedence:
+The bot's output volume is controlled by a single **silent mode** master switch
+with three levels. It can be set in two ways, in order of precedence:
 
-1. **`.silent on|off`** — runtime override, persisted in the database
-   (`silentMode`). Owner-only; `.silent` with no argument reports the state.
-2. **`config.messages.silent`** — the config default, optionally seeded from
-   `MESSAGES_SILENT` in `.env`.
-3. **`config.messages.enabled: false`** — legacy alias, still honoured.
+1. **`.silent off|on|super`** — runtime setting, persisted in the database
+   (`silentLevel`). Owner-only; `.silent` with no argument reports the level.
+2. **`config.messages.silent`** / **`config.messages.superSilent`** — the config
+   default, optionally seeded from `MESSAGES_SILENT` / `MESSAGES_SUPER_SILENT`
+   in `.env`.
+
+| Level | Gate/refusal notices | Successful output |
+| --- | --- | --- |
+| `off` | sent | sent |
+| `on` | suppressed | sent |
+| `super` | suppressed | **one reaction only** |
+
+**`super` — minimal replies.** A command that succeeds no longer writes a
+message: the bot reacts to your command instead.
+
+| Reaction | Meaning |
+| --- | --- |
+| 🟢 | the command reported success |
+| 🔴 | the command reported a failure |
+| 🟡 | the outcome could not be decided |
+
+```
+.silent super
+.kick            → 🟢          (instead of "✅ Berhasil mengeluarkan …")
+.kick            → 🔴          (instead of an error message)
+```
+
+Classification comes from the call site first (a handler that returns `true`
+is a success, `false` or a throw is a failure), then from the reply text
+(Indonesian and English success/failure markers such as *berhasil, gagal,
+tidak ditemukan, done, failed*). Two consequences worth knowing:
+
+- Replies held during a command collapse into ONE reaction — a "processing…"
+  notice followed by a result produces a single 🟢/🔴.
+- A reply that carries **no verdict** (a menu, a list, a game question, a status
+  dashboard like `.ping`) is **replayed unchanged** rather than replaced by 🟡,
+  because it is the command's actual payload.
+- Media is dropped when the turn ends with a verdict; on an inconclusive turn it
+  is delivered normally.
+- The generic error template is suppressed in `super` — 🔴 says it.
+
+Plugins can bypass or steer the filter with `m.reply(text, { keep: true })`,
+`{ silentKind: "ok" | "fail" | "info" }`, or the `ctx.output` helpers
+(`done()`, `fail()`, `keep()`, `silent()`). A command that asked a question and
+had it declined should `throw cancel()` (`lib/reply-transform.js`) so it is not
+reported as a failure.
+
+In the normal (`off`) mode a command that finishes without sending anything —
+and without throwing — gets a single ✅ reaction, and a lone "✅ Done!"-style
+toast reply is collapsed into that reaction. Real output is never touched.
+
+Functional output (usage/help cards, game questions, media) and the `wait`
+notice are still delivered normally; only the *result* of a command is
+minimised. Set `config.messages.transformEnabled: false` to disable the whole
+transform (the test suites that assert on raw reply text do this).
 
 ```js
 messages: {
-  silent: true,         // true → suppress the notices (config default)
-                        // false → send them
-  onDisabled: "silent", // what to do while silent:
-                        //   "silent" → send nothing
-                        //   "react"  → react to the triggering message
-  react: "🔒",          // emoji used when onDisabled is "react"
-  // …
+  silent: true,          // config default for the level ("on" when true)
+  superSilent: false,    // config default for "super"
+  onDisabled: "silent",  // "silent" → send nothing, "react" → react with `react`
+  react: "🔒",           // emoji used when onDisabled is "react"
+  reactSuccess: "🟢",    // super mode
+  reactFail: "🔴",
+  reactInfo: "🟡",
+  reactCollapse: "✅",   // normal mode
+  // … classification markers (successMarkers / failureMarkers …) are optional
 }
 ```
 
 ```text
-.silent on     → suppress every gate/refusal notice
-.silent off    → send them again
-.silent        → show the current state
+.silent super  → minimal: one reaction per command
+.silent on     → suppress the notices, keep the text replies
+.silent off    → full text output
+.silent        → show the current level
 ```
 
-Functional output (`wait`, `success`, `error`, `genericError`) and the
-bare-command usage/help cards are **never** silenced, so the bot still tells
-users when something actually ran, failed, or needs parameters.
+Functional output (`wait`, media, usage cards) and the bare-command usage/help
+cards are **never** silenced, so the bot still tells users when something needs
+parameters.
 
 ---
 
@@ -453,6 +504,31 @@ Shareable features (`SCOPE_FEATURES` in `lib/group-scope.js`):
 | `schedule` | One schedule set — each entry **fires in every linked group** |
 | `general` | Reserved general-purpose scope |
 
+### Filters (auto-replies)
+
+A filter answers with saved text or media whenever a member's whole message
+equals its trigger. One command drives them all (`.filter`); the old
+`addfilter` / `delfilter` / `filters` / `filtercd` names still work as aliases.
+
+```text
+.filter                            → usage card (list/add/del/cd)
+.filter list                       → numbered list of this group's filters
+.filter add halo Halo juga!        → add a text trigger
+.filter add "re:^halo dunia$" Hai  → add a regex trigger (quote patterns with spaces)
+.filter add halo                   → add by replying to a message (text or media)
+.filter del halo                   → delete by trigger
+.filter del 1                      → delete by NUMBER — the position the list shows
+.filter del "1"                    → delete a filter literally named "1" (quote it)
+.filter cd 30s                     → per-filter cooldown
+.filter global                     → global filters (owner)
+.filter all                        → every group's filters (owner)
+```
+
+The list is the source of truth for numbering: entries are sorted by trigger,
+`1.` is the first line printed, and `del <n>` removes exactly that entry.
+Deletion is owner / whitelist / group-admin only (plus `.addfilter`'s save gate
+`allowSaveNote`).
+
 ### Shared schedules
 
 Schedules are stored per delivery target (`jid`). Linking two groups for the
@@ -672,7 +748,7 @@ All group commands require the bot to be an admin where noted.
 ### Owner
 
 - `mode <public|self>` — switch bot mode.
-- `silent <on|off>` — toggle silent mode (suppress gate/refusal notices).
+- `silent <off|on|super>` — silent mode: `on` hides gate/refusal notices, `super` answers successful commands with a 🟢 reaction only (🔴 on failure).
 - `prefix [add|del] <char>` — manage prefixes.
 - `ban` / `unban` — manage banned users.
 - `xmpp [status|groups|on|off|setgroup|unsetgroup]` — control the Minecraft bridge.
@@ -790,6 +866,7 @@ GX-ID/
 │   ├── time.js              # Asia/Jakarta time helpers
 │   ├── error.js             # user-facing error template
 │   ├── messages.js          # silent mode + feedback-message switch
+│   ├── reply-transform.js   # super silent mode + automatic status reaction
 │   ├── control-server.js    # in-bot control socket (for the console)
 │   ├── control-client.js    # interactive console UI (separate process)
 │   ├── control-utils.js     # shared console helpers
