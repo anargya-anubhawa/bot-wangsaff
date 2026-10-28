@@ -25,3 +25,6 @@ altheora-report.json
 features-report.json
 xmpp-report.json
 stats-report.json
+
+.opencode
+AGENTS.md
