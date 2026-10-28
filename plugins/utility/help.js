@@ -36,16 +36,18 @@ const pluginConfig = {
   isEnabled: true,
 };
 
-function fallbackOverview(prefix) {
+function fallbackOverview(prefix, icons = false) {
   const cats = listCategories();
-  const lines = cats.map((c) => `┃ ${c.emoji} ${categoryTitle(c.category)} — ${c.count}`).join("\n");
+  const lines = cats
+    .map((c) => `┃ ${icons && c.emoji ? `${c.emoji} ` : ""}${categoryTitle(c.category)} — ${c.count}`)
+    .join("\n");
   return (
-    `📖 *BANTUAN*\n\n╭─〔 kategori 〕\n${lines}\n╰─⬣\n\n` +
+    `*BANTUAN*\n\n╭─〔 kategori 〕\n${lines}\n╰─⬣\n\n` +
     `> Detail: \`${prefix}help <command>\`\n> ${cats.length} kategori · ${getPluginCount()} perintah`
   );
 }
 
-async function sendCategoryFlow(namespace, m, ctx, category, page = 0) {
+async function sendCategoryFlow(namespace, m, ctx, category, page = 0, icons = false) {
   const cmds = commandsInCategory(category);
   const pageData = paginate(cmds, page, MAX_FLOW_ROWS);
 
@@ -76,8 +78,9 @@ async function sendCategoryFlow(namespace, m, ctx, category, page = 0) {
     );
   }
 
+  const icon = icons ? categoryEmoji(category) : "";
   const header =
-    `${categoryEmoji(category)} *${categoryTitle(category)}* (${cmds.length})` +
+    `${icon ? `${icon} ` : ""}*${categoryTitle(category)}* (${cmds.length})` +
     (pageData.totalPages > 1 ? `\n\n> Halaman ${pageData.page + 1}/${pageData.totalPages}` : "");
 
   return sendNativeFlow(ctx.sock, m.chat, {
@@ -89,7 +92,7 @@ async function sendCategoryFlow(namespace, m, ctx, category, page = 0) {
   });
 }
 
-async function sendOverviewFlow(m, ctx, prefix) {
+async function sendOverviewFlow(m, ctx, prefix, icons = false) {
   const cats = listCategories();
   const pageData = paginate(cats, 0, MAX_FLOW_ROWS);
   const mainSelect = createSingleSelect({
@@ -97,7 +100,7 @@ async function sendOverviewFlow(m, ctx, prefix) {
     sectionTitle: "Kategori",
     rows: pageData.items.map((c) => ({
       id: `help:cat:${c.category}`,
-      title: `${c.emoji} ${categoryTitle(c.category)}`,
+      title: `${icons && c.emoji ? `${c.emoji} ` : ""}${categoryTitle(c.category)}`,
       description: `${c.count} perintah`,
     })),
   });
@@ -116,7 +119,7 @@ async function sendOverviewFlow(m, ctx, prefix) {
   });
 }
 
-async function sendOverviewPage(m, ctx, prefix, page) {
+async function sendOverviewPage(m, ctx, prefix, page, icons = false) {
   const cats = listCategories();
   const pageData = paginate(cats, page, MAX_FLOW_ROWS);
   const buttons = [
@@ -125,7 +128,7 @@ async function sendOverviewPage(m, ctx, prefix, page) {
       sectionTitle: "Kategori",
       rows: pageData.items.map((c) => ({
         id: `help:cat:${c.category}`,
-        title: `${c.emoji} ${categoryTitle(c.category)}`,
+        title: `${icons && c.emoji ? `${c.emoji} ` : ""}${categoryTitle(c.category)}`,
         description: `${c.count} perintah`,
       })),
     }),
@@ -148,13 +151,14 @@ async function sendOverviewPage(m, ctx, prefix, page) {
 
 registerFlowRoute("help", async (m, ctx, action) => {
   const prefix = m.prefix || ctx.config?.command?.prefix || ".";
+  const icons = ctx.config?.help?.categoryIcons === true;
   const [kind, ...rest] = [action.action, ...action.args];
 
   if (kind === "cmd") {
     const name = rest[0];
-    const detail = buildCommandHelp(name, prefix);
+    const detail = buildCommandHelp(name, prefix, { icons });
     if (!detail) {
-      await m.reply(`❓ Perintah \`${name}\` tidak ditemukan.`);
+      await m.reply(`Perintah \`${name}\` tidak ditemukan.`);
       return true;
     }
     await m.reply(detail);
@@ -165,21 +169,22 @@ registerFlowRoute("help", async (m, ctx, action) => {
     const category = rest[0];
     const page = Number(rest[1]) || 0;
     if (!category || category === "__all__") {
-      await sendOverviewPage(m, ctx, prefix, page);
+      await sendOverviewPage(m, ctx, prefix, page, icons);
       return true;
     }
-    const sent = await sendCategoryFlow("help", m, ctx, category, page);
+    const sent = await sendCategoryFlow("help", m, ctx, category, page, icons);
     if (!sent) {
+      const icon = icons ? categoryEmoji(category) : "";
       const cmds = commandsInCategory(category);
       await m.reply(
-        `${categoryEmoji(category)} *${categoryTitle(category)}*\n\n${cmds.map((c) => `┃ \`.${c.name}\` — ${c.description}`).join("\n")}`,
+        `${icon ? `${icon} ` : ""}*${categoryTitle(category)}*\n\n${cmds.map((c) => `┃ \`.${c.name}\` — ${c.description}`).join("\n")}`,
       );
     }
     return true;
   }
 
   if (kind === "page") {
-    await sendOverviewPage(m, ctx, prefix, Number(rest[0]) || 0);
+    await sendOverviewPage(m, ctx, prefix, Number(rest[0]) || 0, icons);
     return true;
   }
 
@@ -190,20 +195,21 @@ registerFlowRoute("help", async (m, ctx, action) => {
 
 async function handler(m, ctx) {
   const prefix = m.prefix || ctx.config?.command?.prefix || ".";
+  const icons = ctx.config?.help?.categoryIcons === true;
   const target = (m.args?.[0] || "").toLowerCase().replace(/^[./]/, "");
 
   if (target) {
-    const detail = buildCommandHelp(target, prefix);
+    const detail = buildCommandHelp(target, prefix, { icons });
     if (!detail) {
-      await m.reply(`❓ Perintah \`${target}\` tidak ditemukan.\n\n> Lihat semua: \`${prefix}help\``);
+      await m.reply(`Perintah \`${target}\` tidak ditemukan.\n\n> Lihat semua: \`${prefix}help\``);
       return;
     }
     await m.reply(detail);
     return;
   }
 
-  const sent = await sendOverviewFlow(m, ctx, prefix);
-  if (!sent) await m.reply(fallbackOverview(prefix));
+  const sent = await sendOverviewFlow(m, ctx, prefix, icons);
+  if (!sent) await m.reply(fallbackOverview(prefix, icons));
 }
 
 export { pluginConfig as config, handler };

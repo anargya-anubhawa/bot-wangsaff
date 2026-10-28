@@ -38,6 +38,9 @@ if (configModule.features) configModule.features.antiSpam = false;
 /* These assertions check the gate notices themselves, so pin silent mode OFF
    regardless of the operator's `config.messages.silent` setting. */
 if (configModule.messages) configModule.messages.silent = false;
+/* These suites assert on raw reply text, so switch OFF the reply transformer
+   (super silent mode / auto-✅). test/messages.mjs covers it instead. */
+if (configModule.messages) configModule.messages.transformEnabled = false;
 
 const OWNER = "628000000001@s.whatsapp.net";
 const WHITELIST = "628000000002@s.whatsapp.net";
@@ -141,6 +144,22 @@ async function test(name, fn) {
 
 function textOf(sent) {
   return sent.map((s) => s.content?.text || s.content?.caption || "").join("\n");
+}
+
+/** Every reaction emoji the bot sent in this turn. */
+function reactionsOf(sent) {
+  return sent.filter((s) => s.content?.react).map((s) => s.content.react.text);
+}
+
+/**
+ * Did the command report success? A successful command may answer in text, or —
+ * when its reply is a short success toast — collapse into a single ✅ reaction.
+ * Feature tests only care that the outcome was positive.
+ */
+function saidOk(sent, pattern = null) {
+  const text = textOf(sent);
+  if (pattern ? pattern.test(text) : text.trim().length > 0) return true;
+  return reactionsOf(sent).includes("✅");
 }
 
 /* ─────────────────── 1. registration & no duplicates ─────────────────── */
@@ -445,11 +464,112 @@ await test("filter list renders plain text (regex trigger shown, no flow)", asyn
   const text = textOf(sent);
   assert.ok(text.includes("re:^halo dunia$"), `regex trigger missing: ${text}`);
   assert.ok(text.includes("plain"), `plain trigger missing: ${text}`);
-  assert.ok(text.includes("delfilter"), `expected delete hint: ${text}`);
+  assert.ok(text.includes("filter del"), `expected delete hint: ${text}`);
+});
+
+/* ─────────────────── 5b. filter deletion by number ─────────────────── */
+
+await test(".filter del <numor> removes the filter the list numbered", async () => {
+  const chat = "6016@g.us";
+  for (const t of ["aa", "bb", "cc"]) db.setFilter(chat, t, { content: `${t}!`, createdBy: ADMIN });
+
+  /* the list numbers in sorted order: 1=aa 2=bb 3=cc
+     (bare `.filter` shows the usage card, so ask for the list explicitly) */
+  db.setCooldown(ADMIN, "filter", 0);
+  const { sock, sent } = makeSock();
+  await messageHandler(rawMsg(".filter list", { sender: ADMIN, group: chat }), sock);
+  const listText = textOf(sent);
+  assert.ok(/1\.\s*`aa`/.test(listText), `numbering wrong: ${listText}`);
+  assert.ok(/3\.\s*`cc`/.test(listText), `numbering wrong: ${listText}`);
+
+  db.setCooldown(ADMIN, "filter", 0);
+  const { sock: s2, sent: sent2 } = makeSock();
+  await messageHandler(rawMsg(".filter del 2", { sender: ADMIN, group: chat }), s2);
+  assert.ok(textOf(sent2).includes("dihapus"), `expected delete; got: ${textOf(sent2)}`);
+  const left = db.listFilters(chat).map((f) => f.trigger).sort();
+  assert.deepEqual(left, ["aa", "cc"], `wrong filter removed: ${left.join(",")}`);
+});
+
+await test(".filter del <numor> works for the last entry and for aliases", async () => {
+  const chat = "6017@g.us";
+  for (const t of ["alpha", "beta"]) db.setFilter(chat, t, { content: `${t}!`, createdBy: ADMIN });
+
+  const { sock, sent } = makeSock();
+  await messageHandler(rawMsg(".delfilter 2", { sender: ADMIN, group: chat }), sock);
+  assert.ok(textOf(sent).includes("dihapus"), `alias del failed: ${textOf(sent)}`);
+  assert.deepEqual(db.listFilters(chat).map((f) => f.trigger), ["alpha"]);
+});
+
+await test(".filter del <numor> out of range is reported, not silently ignored", async () => {
+  const chat = "6018@g.us";
+  db.setFilter(chat, "solo", { content: "x", createdBy: ADMIN });
+
+  const { sock, sent } = makeSock();
+  await messageHandler(rawMsg(".filter del 9", { sender: ADMIN, group: chat }), sock);
+  const text = textOf(sent);
+  assert.ok(text.includes("9") && /jangkauan|tidak ada/i.test(text), `unexpected: ${text}`);
+  assert.equal(db.listFilters(chat).length, 1, "nothing may be removed");
+});
+
+await test(".filter del keeps working by trigger name", async () => {
+  const chat = "6019@g.us";
+  db.setFilter(chat, "halo", { content: "Hai", createdBy: ADMIN });
+
+  const { sock, sent } = makeSock();
+  await messageHandler(rawMsg(".filter del halo", { sender: ADMIN, group: chat }), sock);
+  assert.ok(textOf(sent).includes("dihapus"), `got: ${textOf(sent)}`);
+  assert.equal(db.listFilters(chat).length, 0);
+});
+
+await test("a filter literally named '1' is reachable by quoting", async () => {
+  const chat = "6020@g.us";
+  db.setFilter(chat, "1", { content: "one", createdBy: ADMIN });
+  db.setFilter(chat, "zzz", { content: "z", createdBy: ADMIN });
+
+  /* bare `1` addresses position 1, which is the trigger "1" only by luck */
+  const { sock, sent } = makeSock();
+  await messageHandler(rawMsg('.filter del "1"', { sender: ADMIN, group: chat }), sock);
+  assert.ok(textOf(sent).includes("dihapus"), `quoted numeric trigger: ${textOf(sent)}`);
+  assert.deepEqual(db.listFilters(chat).map((f) => f.trigger), ["zzz"]);
+
+  /* and the plain number still addresses the remaining entry
+     (a different alias — each invoked name has its own cooldown bucket) */
+  const { sock: s2, sent: sent2 } = makeSock();
+  await messageHandler(rawMsg(".removefilter 1", { sender: ADMIN, group: chat }), s2);
+  assert.ok(textOf(sent2).includes("dihapus"), `numeric delete: ${textOf(sent2)}`);
+  assert.equal(db.listFilters(chat).length, 0);
+});
+
+await test("a numeric trigger at another position is flagged, not silently ambiguous", async () => {
+  const chat = "6021@g.us";
+  /* sorted: 1="1", 2="aaa", 3="zzz"
+     Now `del 1` is ambiguous: position 1 AND the trigger literally named "1".
+     The position wins (the documented rule) and the reply says how to reach
+     the literal one — here they are the same entry, so no note is needed. */
+  for (const t of ["1", "aaa", "zzz"]) db.setFilter(chat, t, { content: "x", createdBy: ADMIN });
+
+  const { sock, sent } = makeSock();
+  await messageHandler(rawMsg(".filter del 1", { sender: ADMIN, group: chat }), sock);
+  let text = textOf(sent);
+  assert.ok(text.includes("dihapus"), `got: ${text}`);
+  assert.deepEqual(db.listFilters(chat).map((f) => f.trigger).sort(), ["aaa", "zzz"]);
+
+  /* numeric triggers sort first (localeCompare), so with triggers
+     "aaa"/"zzz"/"1" the list is 1="1", 2="aaa", 3="zzz": `del 2` removes "aaa"
+     and — because a numeric-named trigger exists — the reply explains quoting. */
+  const chat2 = "6022@g.us";
+  for (const t of ["aaa", "zzz", "1"]) db.setFilter(chat2, t, { content: "x", createdBy: ADMIN });
+
+  db.setCooldown(ADMIN, "filter", 0);
+  const { sock: s2, sent: sent2 } = makeSock();
+  await messageHandler(rawMsg(".filter del 2", { sender: ADMIN, group: chat2 }), s2);
+  text = textOf(sent2);
+  assert.ok(text.includes("aaa"), `bare 2 must remove the 2nd entry: ${text}`);
+  assert.ok(text.includes('"1"'), `must explain the literal "1": ${text}`);
+  assert.deepEqual(db.listFilters(chat2).map((f) => f.trigger).sort(), ["1", "zzz"]);
 });
 
 /* ─────────────────── 6. notes gate ─────────────────── */
-
 await test("allowsavenote admin blocks plain user", async () => {
   const chat = "7000@g.us";
   const { sock, sent } = makeSock();

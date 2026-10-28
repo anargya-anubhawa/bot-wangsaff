@@ -111,6 +111,19 @@ const config = {
     menuVariant: 2,
     allmenuVariant: 2,
     sendMenuAudio: false,
+    /** Show a category emoji in front of `.menu` category rows. */
+    menuCategoryIcons: env("MENU_CATEGORY_ICONS", "false") === "true",
+  },
+
+  /**
+   * Help / usage cards (`.help <command>` and the bare-command usage card).
+   *
+   * Documentation is plain by default — no decorative emoji — so it reads like
+   * a manual. Flip `categoryIcons` on to put a small category icon back in front
+   * of the command name.
+   */
+  help: {
+    categoryIcons: env("HELP_CATEGORY_ICONS", "false") === "true",
   },
 
   sticker: {
@@ -120,24 +133,24 @@ const config = {
 
   messages: {
     /**
-     * Silent mode — master switch for the feedback notices below: the messages
-     * the bot sends when it *refuses* or *cannot* run a command (unknown
-     * command, command disabled, owner-only, group-only, admin-only, cooldown,
-     * ban, unregistered group, …).
+     * SILENT MODE LEVEL — the master switch. Three levels, selectable at runtime
+     * with `.silent off|on|super` (persisted as the `silentLevel` setting):
      *
-     *   silent: true    → send nothing (or react — see `onDisabled`)
-     *   silent: false   → send the configured text (normal behaviour)
+     *   "off"    → normal: the bot answers in full text
+     *   "on"     → the notices above are suppressed; successful commands still
+     *              answer in text
+     *   "super"  → minimal: a successful command answers with ONE reaction
+     *              (`reactSuccess`), a failed one with `reactFail`, and anything
+     *              inconclusive with `reactInfo`. The error template is dropped.
      *
-     * This is the CONFIG DEFAULT. The owner can override it at runtime with
-     * `.silent on|off`, which persists in the database and takes precedence.
-     * The legacy `enabled` flag is still honoured when present (`enabled: false`
-     * means silent mode ON).
+     * `silent`/`superSilent` are only the config DEFAULTS used until the owner
+     * picks a level (the database setting always wins). The legacy `enabled`
+     * flag is still honoured when present (`enabled: false` → silent ON).
      *
-     * Functional command output (`wait`, `success`, `error`, `genericError`)
-     * and the bare-command usage/help cards are NOT affected — silencing those
-     * would break the commands that rely on them.
+     * The transformer itself lives in `lib/reply-transform.js`.
      */
     silent: env("MESSAGES_SILENT", "true") === "true",
+    superSilent: env("MESSAGES_SUPER_SILENT", "false") === "true",
     /**
      * What to do while silent mode is ON:
      *   "silent" → send nothing at all
@@ -146,6 +159,31 @@ const config = {
     onDisabled: "silent",
     /** Emoji used when `onDisabled` is "react". */
     react: "🔒",
+
+    /** Super silent mode reactions, and the collapse emoji used in normal mode. */
+    reactSuccess: "🟢",
+    reactFail: "🔴",
+    reactInfo: "🟡",
+    reactCollapse: "✅",
+
+    /**
+     * Success/failure word markers used to classify a reply that carries no
+     * explicit outcome (`return m.reply("…")`). Strings are matched on word
+     * boundaries, case-insensitively; RegExps are used as-is. Override either
+     * list here to tune a deployment without touching code.
+     */
+    successMarkers: null,
+    failureMarkers: null,
+    /** Weak failure words (e.g. "timeout") that are ignored inside status dumps. */
+    weakFailureMarkers: null,
+    /** Markers identifying a status/diagnostic report rather than a verdict. */
+    reportMarkers: null,
+    /**
+     * Master switch for the reply transformer (`lib/reply-transform.js`).
+     * `false` restores the pre-existing "every reply sends its text" behaviour.
+     * Test suites that assert on raw reply text turn it off.
+     */
+    transformEnabled: true,
 
     wait: "🕕 *Processing…* please wait a moment.",
     success: "✅ *Done!*",

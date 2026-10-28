@@ -17,6 +17,9 @@ const { initDatabase, getDatabase } = await import("../lib/database.js");
 await initDatabase(dbPath);
 const db = getDatabase();
 db.setting("ownerNumbers", ["628000000001"]);
+/* the persisted level from a previous run must never leak into this suite */
+db.setting("silentLevel", null);
+db.setting("silentMode", null);
 
 const { loadPlugins } = await import("../lib/plugins.js");
 await loadPlugins(path.join(process.cwd(), "plugins"));
@@ -27,6 +30,7 @@ const config = (await import("../config.js")).default;
 const { sendFeedback, sendFeedbackTo, feedbackEnabled, disabledMode, silentEnabled, setSilentMode } = await import(
   "../lib/messages.js"
 );
+const { setSilentLevel, superSilent } = await import("../lib/reply-transform.js");
 
 /* This suite drives many messages from a few senders in quick succession;
    GX-ID's anti-spam gate would otherwise swallow legitimate test traffic. */
@@ -86,17 +90,28 @@ function rawMsg(body, { group = null, sender = USER } = {}) {
 const textsOf = (sent) => sent.filter((s) => s.content?.text).map((s) => s.content.text);
 const reactionsOf = (sent) => sent.filter((s) => s.content?.react).map((s) => s.content.react.text);
 
+/* Every driven command must bypass the per-user cooldown, otherwise a second
+   invocation of the same command in one suite is silently dropped. */
+function clearCooldowns() {
+  try {
+    const users = db.getAllUsers ? db.getAllUsers() : {};
+    for (const jid of Object.keys(users)) db.setUser(jid, { cooldowns: {} });
+  } catch {
+    /* ignore */
+  }
+}
+
 /* Save/restore the switch around each test so order never matters. The DB
    override (`silentMode`) is cleared before each set so the config default is
    the source of truth unless a test explicitly sets the override. */
 const saved = { silent: config.messages.silent, onDisabled: config.messages.onDisabled, react: config.messages.react };
 function setSwitch({ silent, enabled, onDisabled, react, override }) {
-  setSilentMode(undefined);
+  setSilentLevel(undefined);
   if (silent !== undefined) config.messages.silent = silent;
   if (enabled !== undefined) config.messages.enabled = enabled;
   if (onDisabled !== undefined) config.messages.onDisabled = onDisabled;
   if (react !== undefined) config.messages.react = react;
-  if (override !== undefined) setSilentMode(override);
+  if (override !== undefined) setSilentLevel(override ? "on" : "off");
 }
 
 /* ═══════════════════════════ helpers ═══════════════════════════ */
@@ -197,18 +212,107 @@ await test(".silent on enables silent mode and persists it", async () => {
   setSwitch({ silent: false });
   const { sock, sent } = makeSock();
   await messageHandler(rawMsg(".silent on", { sender: OWNER }), sock);
-  assert.ok(textsOf(sent).some((t) => /silent mode on/i.test(t)), `got: ${JSON.stringify(textsOf(sent))}`);
+  // a success toast may be answered in text OR collapsed into a ✅ reaction
+  assert.ok(
+    textsOf(sent).some((t) => /silent mode on/i.test(t)) || reactionsOf(sent).includes("✅"),
+    `got: ${JSON.stringify(textsOf(sent))} reactions: ${JSON.stringify(reactionsOf(sent))}`,
+  );
   assert.equal(silentEnabled(), true);
-  assert.equal(db.setting("silentMode"), true);
+  assert.equal(db.setting("silentLevel"), "on");
 });
 
 await test(".silent off disables silent mode and persists it", async () => {
   setSwitch({ silent: true });
   const { sock, sent } = makeSock();
   await messageHandler(rawMsg(".silent off", { sender: OWNER }), sock);
-  assert.ok(textsOf(sent).some((t) => /silent mode off/i.test(t)), `got: ${JSON.stringify(textsOf(sent))}`);
+  assert.ok(
+    textsOf(sent).some((t) => /silent mode off/i.test(t)) || reactionsOf(sent).includes("✅"),
+    `got: ${JSON.stringify(textsOf(sent))} reactions: ${JSON.stringify(reactionsOf(sent))}`,
+  );
   assert.equal(silentEnabled(), false);
-  assert.equal(db.setting("silentMode"), false);
+  assert.equal(db.setting("silentLevel"), "off");
+});
+
+await test(".silent super switches to minimal mode and persists it", async () => {
+  setSwitch({ silent: false });
+  const { sock, sent } = makeSock();
+  await messageHandler(rawMsg(".silent super", { sender: OWNER }), sock);
+  // the confirmation always goes through (the turn began under the old level)
+  assert.ok(
+    textsOf(sent).some((t) => /silent mode super/i.test(t)),
+    `got: ${JSON.stringify(textsOf(sent))}`,
+  );
+  assert.equal(superSilent(), true);
+  assert.equal(db.setting("silentLevel"), "super");
+});
+
+await test("super mode: a succeeding command answers with ONE green reaction", async () => {
+  setSwitch({ silent: false });
+  clearCooldowns();
+  setSilentLevel("super");
+  const { getPlugin } = await import("../lib/plugins.js");
+  const plugin = getPlugin("ping");
+  const original = plugin.handler;
+  // a deterministic success: no network, one verdict line
+  plugin.handler = async (m) => m.reply("✅ Berhasil mengecek latency.");
+  try {
+    const { sock, sent } = makeSock();
+    await messageHandler(rawMsg(".ping"), sock);
+    assert.equal(textsOf(sent).length, 0, `no text allowed: ${JSON.stringify(textsOf(sent))}`);
+    assert.deepEqual(reactionsOf(sent), ["🟢"]);
+  } finally {
+    plugin.handler = original;
+    setSilentLevel(undefined);
+  }
+});
+
+await test("super mode: an inconclusive reply (a status report) is still replayed", async () => {
+  setSwitch({ silent: false });
+  clearCooldowns();
+  setSilentLevel("super");
+  const { getPlugin } = await import("../lib/plugins.js");
+  const plugin = getPlugin("ping");
+  const original = plugin.handler;
+  // a dashboard gives no verdict — replaying it beats a meaningless 🟡
+  plugin.handler = async (m) => m.reply("🏓 *PONG!*\n\nServer Ping: *Timeout*");
+  try {
+    const { sock, sent } = makeSock();
+    await messageHandler(rawMsg(".ping"), sock);
+    assert.ok(textsOf(sent).some((t) => t.includes("PONG")), `got: ${JSON.stringify(textsOf(sent))}`);
+    assert.equal(reactionsOf(sent).length, 0, "a replay must not also react");
+  } finally {
+    plugin.handler = original;
+    setSilentLevel(undefined);
+  }
+});
+
+await test("super mode: a failing command answers with ONE red reaction", async () => {
+  setSwitch({ silent: false });
+  clearCooldowns();
+  setSilentLevel("super");
+  const { getPlugin } = await import("../lib/plugins.js");
+  const plugin = getPlugin("botinfo");
+  const original = plugin.handler;
+  plugin.handler = async () => {
+    throw new Error("boom");
+  };
+  try {
+    const { sock, sent } = makeSock();
+    await messageHandler(rawMsg(".botinfo"), sock);
+    assert.equal(textsOf(sent).length, 0, "the error template must be suppressed");
+    assert.deepEqual(reactionsOf(sent), ["🔴"]);
+  } finally {
+    plugin.handler = original;
+    setSilentLevel(undefined);
+  }
+});
+
+await test(".silent super implies silentEnabled (gate notices suppressed)", async () => {
+  setSwitch({ silent: false });
+  setSilentLevel("super");
+  assert.equal(superSilent(), true);
+  assert.equal(silentEnabled(), true);
+  setSilentLevel(undefined);
 });
 
 await test(".silent with no argument reports the state", async () => {

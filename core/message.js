@@ -28,6 +28,7 @@ import { shouldShowUsage, renderCommandUsage } from "../lib/command-usage.js";
 import { publishIncoming } from "../lib/console-bus.js";
 import { relayWhatsAppToMinecraft } from "../lib/xmpp/manager.js";
 import { sendFeedback } from "../lib/messages.js";
+import { beginTurn, finishTurn, finishError, superSilent, outputApi } from "../lib/reply-transform.js";
 import config from "../config.js";
 import te from "../lib/error.js";
 
@@ -196,6 +197,8 @@ function buildContext(m, sock, db, legacyConn, prefix) {
     db,
     uptime: getUptime(),
     plugins: { count: getPluginCount() },
+    /** explicit status API (done / fail / keep / silent) for plugins */
+    output: outputApi(m),
   };
 }
 
@@ -278,7 +281,7 @@ export async function runCommand(m, sock, db, legacyConn, prefix) {
      with its usage + available parameters instead of running. Opt-out commands
      declare `helpOnEmpty: false` / `runsBare: true`; aliases never trigger it. */
   if (shouldShowUsage(m, plugin.config)) {
-    await m.reply(renderCommandUsage(plugin.config, prefix)).catch(() => {});
+    await m.reply(renderCommandUsage(plugin.config, prefix, { icons: config.help?.categoryIcons === true })).catch(() => {});
     return true;
   }
 
@@ -315,7 +318,10 @@ export async function runCommand(m, sock, db, legacyConn, prefix) {
     // reflects the current invocation). Aggregated by canonical name so aliases
     // fold into one entry (e.g. `.m` → `menu`).
     db.incrementCommandStat(canonicalCommandName(m.command || plugin.config.name));
-    await plugin.handler(m, context);
+    // Open the output turn (super silent mode / automatic status reaction).
+    beginTurn(m);
+    const returned = await plugin.handler(m, context);
+    await finishTurn(m, returned);
     if (cooldown > 0 && !m.isOwner) db.setCooldown(m.sender, cooldownKey, cooldown);
     if (m.isGroup && !m.isOwner && !isOwnerOrWhitelistedIn(m) && !m.isAdmin) {
       const groupCooldown = getGroupCooldown(m.chat);
@@ -323,9 +329,21 @@ export async function runCommand(m, sock, db, legacyConn, prefix) {
     }
     db.incrementStat("commandsSuccess");
   } catch (error) {
+    /* a plugin may abort cleanly (confirmation answered "no", a picker without
+       a pick…): its replies stay, its outcome is recorded, no error template. */
+    if (error?.__gxCancel) {
+      await finishTurn(m, error.outcome);
+      return true;
+    }
     logger.error(`plugin "${plugin.config.name}" failed: ${error.message}`);
     if (process.env.NODE_ENV === "development") console.error(error.stack);
-    await m.reply(te(m.prefix || prefix, plugin.config.name, m.pushName)).catch(() => {});
+    // In super silent mode a failure is just the red reaction — the error
+    // template would defeat the point of a minimal bot.
+    if (superSilent()) await finishError(m);
+    else {
+      await m.reply(te(m.prefix || prefix, plugin.config.name, m.pushName)).catch(() => {});
+      await finishError(m);
+    }
   } finally {
     if (config.features?.autoTyping && m.isGroup) {
       sock.sendPresenceUpdate("paused", m.chat).catch(() => {});
