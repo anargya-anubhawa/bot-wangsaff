@@ -207,6 +207,7 @@ async function handleRvoScope(m, value, prefix) {
       `> Mode saat ini: *${getRvoScope().toUpperCase()}*\n\n` +
       `> \`${prefix}log rvo registered\` — \`.rvo\` hanya di grup terdaftar & di-log\n` +
       `> \`${prefix}log rvo public\` — \`.rvo\` bisa di semua grup\n\n` +
+      `> Untuk akses & pengiriman: \`${prefix}rvo owner|admin|public\`, \`${prefix}rvo private|default\`.\n` +
       `> Tujuan log mengikuti scope log pesan dihapus.`,
   );
 }

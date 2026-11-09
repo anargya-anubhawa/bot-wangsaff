@@ -1,15 +1,36 @@
 /**
  * GX-ID — /rvo (read view once)
  *
- * Replies with the media of a view-once message so it can be saved. The feature
- * is scoped (`.log rvo <registered|public>`):
+ * Replies with the media of a view-once message so it can be saved.
  *
- *   registered (default) — `.rvo` only works inside registered groups, and the
- *                          reveal is recorded in the log
- *   public               — `.rvo` works in every group
+ * Two independent settings (both owner-only, both global):
+ *
+ *   1. ACCESS — who may USE `.rvo`
+ *        `.rvo owner`    → owner (or whitelist in a private chat) only
+ *        `.rvo admin`    → owner, whitelist (PC) or a group admin
+ *        `.rvo public`   → anyone (default)
+ *
+ *   2. DELIVERY — where the revealed media goes
+ *        `.rvo default`  → in the same chat, right under the `.rvo` command
+ *        `.rvo private`  → in a private chat with whoever ran `.rvo`
+ *
+ * The older enable/disable scope (`.log rvo registered|public`) still applies
+ * on top: in `registered` mode `.rvo` only works inside registered groups.
+ *
+ * Running a bare `.rvo` (no argument) just opens the view-once message — it
+ * never changes a setting, so a normal user can use the feature without ever
+ * touching its configuration.
  */
-import { getRvoScope } from "../../lib/settings.js";
-import { isRegisteredGroup } from "../../lib/access.js";
+import {
+  getRvoScope,
+  getRvoAccess,
+  setRvoAccess,
+  getRvoDelivery,
+  setRvoDelivery,
+  RVO_ACCESS,
+  RVO_DELIVERY,
+} from "../../lib/settings.js";
+import { isRegisteredGroup, isOwner, isOwnerOrWhitelistedIn, isGroupAdmin } from "../../lib/access.js";
 import { logModerationEvent, getExternalLogPanel } from "../../lib/moderation-log.js";
 import { detectMediaType, getMimetype } from "../../lib/media.js";
 
@@ -20,7 +41,7 @@ const pluginConfig = {
   alias: ["readviewonce", "readview"],
   category: "tools",
   description: "Baca pesan sekali lihat (view once)",
-  usage: ".rvo (reply pesan view once)",
+  usage: ".rvo [owner|admin|public|private|default]",
   example: ".rvo",
   isOwner: false,
   isPremium: false,
@@ -28,11 +49,106 @@ const pluginConfig = {
   isPrivate: false,
   cooldown: 5,
   energi: 1,
+  // A bare `.rvo` must OPEN the media, not print a usage card.
+  helpOnEmpty: false,
   isEnabled: true,
 };
 
+const ACCESS_LABEL = { owner: "Owner", admin: "Admin grup", public: "Public (semua orang)" };
+const DELIVERY_LABEL = { default: "Default (di chat yang sama)", private: "Private (PC peminta)" };
+
+/**
+ * Whether `m` may run `.rvo`, honouring the configured access tier.
+ * Owner/whitelist always pass; `admin` additionally accepts group admins.
+ *
+ * @returns {boolean}
+ */
+export function canUseRvo(m) {
+  const level = getRvoAccess();
+  if (level === RVO_ACCESS.PUBLIC) return true;
+  if (m.isOwner || m.fromMe) return true;
+  if (isOwnerOrWhitelistedIn(m)) return true;
+  if (level === RVO_ACCESS.ADMIN) return isGroupAdmin(m);
+  return false;
+}
+
+/** The message shown when the access tier denies the requester. */
+function accessDeniedMessage(prefix) {
+  const level = getRvoAccess();
+  if (level === RVO_ACCESS.ADMIN) {
+    return `🔒 *\`.rvo\` hanya untuk admin grup.*\n\n> Owner bisa mengubahnya: \`${prefix}rvo public\`.`;
+  }
+  return `🔒 *\`.rvo\` hanya untuk owner.*\n\n> Owner bisa mengubahnya: \`${prefix}rvo admin\` atau \`${prefix}rvo public\`.`;
+}
+
+/**
+ * Handle a configuration sub-command. Owner-only, and deliberately checked
+ * here rather than via `pluginConfig.permission` so that ordinary users can
+ * still run a bare `.rvo` when the access tier allows it.
+ *
+ * @returns {Promise<boolean>} `true` when the argument was a config command
+ */
+async function handleConfig(m, arg, prefix) {
+  const value = String(arg || "").toLowerCase();
+  const isAccess = ["owner", "admin", "public"].includes(value);
+  const isDelivery = ["private", "default"].includes(value);
+  if (!isAccess && !isDelivery) return false;
+
+  /* Only the owner (or a whitelisted number in a private chat) may reconfigure. */
+  if (!isOwnerOrWhitelistedIn(m)) {
+    await m.reply(`🔒 *Hanya owner* yang boleh mengubah setelan \`.rvo\`.`);
+    return true;
+  }
+
+  if (isAccess) {
+    setRvoAccess(value);
+    await m.reply(`✅ *Akses \`.rvo\`* sekarang: *${ACCESS_LABEL[value]}*`);
+    return true;
+  }
+
+  setRvoDelivery(value);
+  await m.reply(
+    value === RVO_DELIVERY.PRIVATE
+      ? `✅ *Pengiriman \`.rvo\`* sekarang: *${DELIVERY_LABEL.private}*\n\n> Hasil dibuka dikirim ke PC orang yang mengetik \`.rvo\`.`
+      : `✅ *Pengiriman \`.rvo\`* sekarang: *${DELIVERY_LABEL.default}*\n\n> Hasil dibuka dikirim di chat yang sama, di bawah perintah \`.rvo\`.`,
+  );
+  return true;
+}
+
+/** Show the current configuration (owner, `.rvo status`). */
+async function showStatus(m, prefix) {
+  const access = getRvoAccess();
+  const delivery = getRvoDelivery();
+  await m.reply(
+    `👁️ *Setelan RVO*\n\n` +
+      `> Akses     : *${ACCESS_LABEL[access]}*\n` +
+      `> Pengiriman: *${DELIVERY_LABEL[delivery]}*\n` +
+      `> Scope     : *${getRvoScope().toUpperCase()}*\n\n` +
+      `> \`${prefix}rvo owner\` — hanya owner\n` +
+      `> \`${prefix}rvo admin\` — admin grup & owner\n` +
+      `> \`${prefix}rvo public\` — semua orang\n` +
+      `> \`${prefix}rvo private\` — hasil dikirim ke PC peminta\n` +
+      `> \`${prefix}rvo default\` — hasil dikirim di chat ini\n\n` +
+      `> Reply pesan view once dengan \`${prefix}rvo\` untuk membukanya.`,
+  );
+}
+
 async function handler(m, { sock, config }) {
   const prefix = m.prefix || config.command?.prefix || ".";
+  const arg = (m.args || [])[0];
+
+  /* Configuration first — it is owner-gated inside handleConfig, so an
+     ordinary user reaching here with "public" is told to ask the owner. */
+  if (String(arg || "").toLowerCase() === "status") {
+    if (!isOwnerOrWhitelistedIn(m)) {
+      return m.reply(`🔒 *Hanya owner* yang boleh melihat setelan \`.rvo\`.`);
+    }
+    return showStatus(m, prefix);
+  }
+  if (await handleConfig(m, arg, prefix)) return;
+
+  /* Access gate — who may use the feature at all. */
+  if (!canUseRvo(m)) return m.reply(accessDeniedMessage(prefix));
 
   /* Scope gate: in `registered` mode `.rvo` is only allowed inside registered
      groups. Private chats are unaffected by the group scope. */
@@ -45,7 +161,7 @@ async function handler(m, { sock, config }) {
   const quoted = m.quoted;
   if (!quoted) {
     return m.reply(
-      `Reply pesan sekali lihat (view once) untuk membukanya.\n\n\`Contoh: ${m.prefix}rvo\` (reply pesan view once)`,
+      `Reply pesan sekali lihat (view once) untuk membukanya.\n\n\`Contoh: ${prefix}rvo\` (reply pesan view once)`,
     );
   }
 
@@ -54,6 +170,14 @@ async function handler(m, { sock, config }) {
   }
 
   m.react("⏱️");
+
+  /* Delivery target: the current chat (default) or a private chat with the
+     requester. Private mode is meaningless when the command was already run in
+     a private chat, so it falls back to the current chat. */
+  const privateMode = getRvoDelivery() === RVO_DELIVERY.PRIVATE && m.isGroup && !!m.sender;
+  const target = privateMode ? m.sender : m.chat;
+  /* Quote the triggering message only where it is visible to the recipient. */
+  const sendOptions = privateMode ? undefined : { quoted: m };
 
   try {
     let originalCaption = "";
@@ -67,51 +191,41 @@ async function handler(m, { sock, config }) {
     if (!buffer) throw new Error("Gagal download media");
 
     const caption = originalCaption ? `\`Pesan :\`\n> ${originalCaption}` : "";
+    /* In private mode the recipient no longer sees the source chat, so the
+       origin is spelled out. */
+    const privateCaption = privateMode
+      ? `👁️ *View Once*${m.pushName ? `\n\`Dari :\` ${m.pushName}` : ""}${caption ? `\n\n${caption}` : ""}`
+      : caption;
 
     if (quoted.isImage) {
-      await sock.sendMessage(
-        m.chat,
-        {
-          image: buffer,
-          caption,
-        },
-        { quoted: m },
-      );
+      await sock.sendMessage(target, { image: buffer, caption: privateCaption }, sendOptions);
     } else if (quoted.isVideo) {
-      await sock.sendMessage(
-        m.chat,
-        {
-          video: buffer,
-          caption,
-        },
-        { quoted: m },
-      );
+      await sock.sendMessage(target, { video: buffer, caption: privateCaption }, sendOptions);
     } else if (quoted.isAudio) {
       await sock.sendMessage(
-        m.chat,
+        target,
         {
           audio: buffer,
           mimetype: quoted.message?.[quoted.type]?.mimetype || "audio/mpeg",
         },
-        { quoted: m },
+        sendOptions,
       );
     } else {
       const ext = quoted.type?.replace("Message", "") || "bin";
       await sock.sendMessage(
-        m.chat,
+        target,
         {
           document: buffer,
           fileName: `rvo_${Date.now()}.${ext}`,
-          mimetype:
-            quoted.message?.[quoted.type]?.mimetype ||
-            "application/octet-stream",
-          caption: caption || "📎 View once media",
+          mimetype: quoted.message?.[quoted.type]?.mimetype || "application/octet-stream",
+          caption: privateCaption || "📎 View once media",
         },
-        { quoted: m },
+        sendOptions,
       );
     }
 
     m.react("✅");
+    if (privateMode) await m.reply("📩 Hasil view once dikirim ke PC kamu.").catch(() => {});
 
     if (m.isGroup) await logReveal(m, sock, quoted, buffer, originalCaption);
   } catch (e) {

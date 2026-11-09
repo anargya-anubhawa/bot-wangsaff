@@ -28,6 +28,7 @@ import { shouldSupervise, isSupervisedWorker } from "./lib/runtime-mode.js";
 import { runSupervisor } from "./lib/supervisor.js";
 import { acquireInstanceLock, describeHolder } from "./lib/instance-lock.js";
 import { startXmppBridge, stopXmppBridge } from "./lib/xmpp/manager.js";
+import { notifyOnline } from "./lib/lifecycle-notice.js";
 
 /* ─────────────────────────── console noise filter ─────────────────────────── */
 
@@ -161,6 +162,14 @@ async function boot({ showBanner = true } = {}) {
   logger.info("starting connection…");
   await startConnection({
     onMessage: messageHandler,
+    // Announce "bot aktif" on the management panel as soon as WhatsApp is
+    // reachable (not merely when the process booted — a QR/pairing wait must
+    // not report the bot as online).
+    onConnectionUpdate: async (update, sock) => {
+      if (update?.connection === "open") {
+        await notifyOnline(sock).catch(() => {});
+      }
+    },
     onGroupUpdate: async (update) => {
       try {
         const db = (await import("./lib/database.js")).getDatabase();
@@ -208,7 +217,8 @@ async function startControlConsoleServer() {
     onShutdown: async () => {
       if (hotReload) hotReload.stop();
       await controlServer?.stop();
-      await shutdownResources();
+      // Announces the stop on the management panel before the socket closes.
+      await shutdownResources({ reason: "control console", restart: false });
       process.exit(0);
     },
   });
@@ -342,7 +352,9 @@ async function shutdown(signal) {
   } catch {
     /* ignore */
   }
-  await shutdownResources();
+  // `shutdownResources` announces the stop on the management panel before the
+  // socket closes; a signal is a permanent stop, not a restart.
+  await shutdownResources({ reason: signal, restart: false });
   releaseInstanceLock();
   process.exit(0);
 }
