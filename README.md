@@ -218,9 +218,26 @@ messages: {
 .silent        → show the current level
 ```
 
-Functional output (`wait`, media, usage cards) and the bare-command usage/help
-cards are **never** silenced, so the bot still tells users when something needs
-parameters.
+Command **documentation** is never silenced, so the bot still tells users how a
+command works:
+
+- the automatic usage card shown for a bare command (`.cmd` with no arguments);
+- `.help` / `.help <command>` detail cards;
+- `.menu` and `.allmenu`.
+
+These are sent with `{ keep: true }`, which bypasses the transformer entirely.
+That matters in super mode: a help card whose text happens to contain a
+success/failure marker word would otherwise collapse into a single 🟢/🔴.
+
+Everything else still collapses to a reaction in super mode — **refusals**
+(owner-only, admin-only, cooldown, banned, unknown command), **errors** and
+**waiting/processing notices** — so the chat stays minimal.
+
+When writing a plugin, mark documentation replies explicitly:
+
+```js
+await m.reply(renderCommandUsage(cfg, prefix), { keep: true });
+```
 
 ---
 

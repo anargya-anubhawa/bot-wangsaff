@@ -137,10 +137,11 @@ async function handler(m, { sock, config, db, uptime }) {
       await sock
         .sendMessage(m.chat, { image: imageBuffer, caption: body, contextInfo: saluranCtx() }, { quoted: m.raw })
         .catch(async () => {
-          await m.reply(body);
+          // documentation — super silent mode must still show it in full
+          await m.reply(body, { keep: true });
         });
     } else {
-      await m.reply(body);
+      await m.reply(body, { keep: true });
     }
   }
 }

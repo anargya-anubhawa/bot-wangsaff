@@ -161,7 +161,8 @@ registerFlowRoute("help", async (m, ctx, action) => {
       await m.reply(`Perintah \`${name}\` tidak ditemukan.`);
       return true;
     }
-    await m.reply(detail);
+    // documentation is information, not command output — always shown in full
+    await m.reply(detail, { keep: true });
     return true;
   }
 
@@ -172,12 +173,14 @@ registerFlowRoute("help", async (m, ctx, action) => {
       await sendOverviewPage(m, ctx, prefix, page, icons);
       return true;
     }
+
     const sent = await sendCategoryFlow("help", m, ctx, category, page, icons);
     if (!sent) {
       const icon = icons ? categoryEmoji(category) : "";
       const cmds = commandsInCategory(category);
       await m.reply(
         `${icon ? `${icon} ` : ""}*${categoryTitle(category)}*\n\n${cmds.map((c) => `┃ \`.${c.name}\` — ${c.description}`).join("\n")}`,
+        { keep: true },
       );
     }
     return true;
@@ -204,12 +207,13 @@ async function handler(m, ctx) {
       await m.reply(`Perintah \`${target}\` tidak ditemukan.\n\n> Lihat semua: \`${prefix}help\``);
       return;
     }
-    await m.reply(detail);
+    // documentation is information, not command output — always shown in full
+    await m.reply(detail, { keep: true });
     return;
   }
 
   const sent = await sendOverviewFlow(m, ctx, prefix, icons);
-  if (!sent) await m.reply(fallbackOverview(prefix, icons));
+  if (!sent) await m.reply(fallbackOverview(prefix, icons), { keep: true });
 }
 
 export { pluginConfig as config, handler };

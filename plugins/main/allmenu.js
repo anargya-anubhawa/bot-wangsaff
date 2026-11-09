@@ -110,7 +110,8 @@ async function handler(m, { sock, config }) {
     try {
       await sendInteractive(sock, m, config, text);
     } catch {
-      await m.reply(text);
+      // documentation — super silent mode must still show it in full
+      await m.reply(text, { keep: true });
     }
     return;
   }
@@ -146,7 +147,8 @@ async function handler(m, { sock, config }) {
       },
     ]);
   } catch {
-    await m.reply(text);
+    // documentation — super silent mode must still show it in full
+    await m.reply(text, { keep: true });
   }
 }
 
