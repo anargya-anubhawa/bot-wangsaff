@@ -282,9 +282,15 @@ export async function runCommand(m, sock, db, legacyConn, prefix) {
 
   /* auto usage card — a bare parent command (no args/quote/mentions) replies
      with its usage + available parameters instead of running. Opt-out commands
-     declare `helpOnEmpty: false` / `runsBare: true`; aliases never trigger it. */
+     declare `helpOnEmpty: false` / `runsBare: true`; aliases never trigger it.
+     `keep: true` — documentation is real information, not command output, so
+     super silent mode must still show it in full. */
   if (shouldShowUsage(m, plugin.config)) {
-    await m.reply(renderCommandUsage(plugin.config, prefix, { icons: config.help?.categoryIcons === true })).catch(() => {});
+    await m
+      .reply(renderCommandUsage(plugin.config, prefix, { icons: config.help?.categoryIcons === true }), {
+        keep: true,
+      })
+      .catch(() => {});
     return true;
   }
 

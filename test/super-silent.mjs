@@ -340,6 +340,96 @@ await test("super: `{ keep: true }` bypasses the filter entirely", async () => {
   });
 });
 
+/* ═══════════════ documentation stays visible in super mode ═══════════════ */
+
+await test("super: the auto usage card is shown in full, not replaced by a reaction", async () => {
+  reset();
+  rt.setSilentLevel("super");
+  // `.translate` takes parameters, so a bare call renders the usage card.
+  const plugin = getPlugin("translate");
+  assert.ok(plugin, "the translate plugin must be loaded for this test");
+  const { sock, sent } = makeSock();
+  await messageHandler(rawMsg(".translate"), sock);
+
+  const texts = textsOf(sent);
+  assert.ok(
+    texts.some((t) => /Parameter tersedia|Usage:/i.test(t)),
+    `the usage card must be delivered, got: ${JSON.stringify(texts)}`
+  );
+  assert.deepEqual(reactionsOf(sent), [], "documentation is not a verdict — no status light");
+});
+
+await test("super: .help <command> detail card is shown in full", async () => {
+  reset();
+  rt.setSilentLevel("super");
+  // `.help close` is the telling case: its card mentions a failure-marker word,
+  // so without `keep` super mode would collapse the whole card into a 🔴.
+  const { sock, sent } = makeSock();
+  await messageHandler(rawMsg(".help close"), sock);
+  const texts = textsOf(sent);
+  assert.ok(
+    texts.some((t) => /Kategori|Usage:/i.test(t)),
+    `the help detail must be delivered, got: ${JSON.stringify(texts)}`
+  );
+  assert.deepEqual(reactionsOf(sent), [], "the help card must not be replaced by a reaction");
+});
+
+await test("super: a non-documentation reply that gives no verdict is replayed (unchanged)", async () => {
+  reset();
+  rt.setSilentLevel("super");
+  // Existing behaviour: an inconclusive informational reply is replayed rather
+  // than replaced by a 🟡. Only the explicitly `keep`-marked DOCUMENTATION
+  // bypasses the hold queue — this test pins that distinction down.
+  await withHandler("botinfo", async (m) => m.reply("📄 Daftar dokumen: SOP, Kalender"), async () => {
+    const { sock, sent } = makeSock();
+    await messageHandler(rawMsg(".botinfo"), sock);
+    assert.ok(
+      textsOf(sent).some((t) => t.includes("Daftar dokumen")),
+      "an inconclusive info reply is still replayed",
+    );
+    assert.deepEqual(reactionsOf(sent), []);
+  });
+});
+
+await test("super: a refusal is still the red reaction, with no text", async () => {
+  reset();
+  rt.setSilentLevel("super");
+  const { sock, sent } = makeSock();
+  // `.silent` is owner-only: a plain user is refused by the permission gate
+  await messageHandler(rawMsg(".silent on", { sender: USER }), sock);
+  assert.equal(textsOf(sent).length, 0, `a refusal must stay silent, got: ${JSON.stringify(textsOf(sent))}`);
+  reset();
+});
+
+await test("super: a plugin error message is still a reaction, not text", async () => {
+  reset();
+  rt.setSilentLevel("super");
+  await withHandler("botinfo", async (m) => m.reply("❌ Gagal: target tidak ditemukan."), async () => {
+    const { sock, sent } = makeSock();
+    await messageHandler(rawMsg(".botinfo"), sock);
+    assert.deepEqual(textsOf(sent), [], "error text must be suppressed in super mode");
+    assert.deepEqual(reactionsOf(sent), ["🔴"]);
+  });
+});
+
+await test("super: a waiting/processing notice is still collapsed, not shown", async () => {
+  reset();
+  rt.setSilentLevel("super");
+  await withHandler(
+    "botinfo",
+    async (m) => {
+      await m.reply(config.messages.wait);
+      await m.reply("✅ Berhasil.");
+    },
+    async () => {
+      const { sock, sent } = makeSock();
+      await messageHandler(rawMsg(".botinfo"), sock);
+      assert.deepEqual(textsOf(sent), [], "the waiting notice must never be shown");
+      assert.deepEqual(reactionsOf(sent), ["🟢"]);
+    },
+  );
+});
+
 /* ═══════════════════════════ cancels ═══════════════════════════ */
 
 await test("super: a cancelled prompt keeps its text and is NOT red", async () => {
