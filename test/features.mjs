@@ -1880,6 +1880,278 @@ await test(".log scope / .log rvo report and set the mode", async () => {
   }
 });
 
+/* ═══════════════════ .rvo access tier & delivery mode ═══════════════════ */
+
+await test(".rvo access: owner may switch tiers, non-owner may not", async () => {
+  const { getRvoAccess, setRvoAccess } = await import("../lib/settings.js");
+  const prev = getRvoAccess();
+  try {
+    let { sock, sent } = makeSock();
+    await messageHandler(rawMsg(".rvo owner", { sender: OWNER, group: null }), sock);
+    assert.equal(getRvoAccess(), "owner", "owner must be able to set the tier");
+    assert.ok(textOf(sent).includes("Owner"), `got: ${textOf(sent)}`);
+
+    // a plain user must NOT be able to raise their own access
+    ({ sock, sent } = makeSock());
+    await messageHandler(rawMsg(".rvo public", { sender: USER, group: "26100@g.us" }), sock);
+    assert.equal(getRvoAccess(), "owner", "a plain user must not change the tier");
+    assert.ok(textOf(sent).includes("Hanya owner"), `got: ${textOf(sent)}`);
+
+    ({ sock, sent } = makeSock());
+    await messageHandler(rawMsg(".rvo admin", { sender: OWNER, group: null }), sock);
+    assert.equal(getRvoAccess(), "admin");
+  } finally {
+    setRvoAccess(prev);
+  }
+});
+
+await test(".rvo access owner blocks a plain user but allows the owner", async () => {
+  const { setRvoAccess, getRvoAccess, setRvoScope, getRvoScope } = await import("../lib/settings.js");
+  const prevAccess = getRvoAccess();
+  const prevScopeValue = getRvoScope();
+  try {
+    setRvoAccess("owner");
+    setRvoScope("public"); // isolate the access gate from the scope gate
+
+    const { sock, sent } = makeSock();
+    await messageHandler(rawMsg(".rvo", { sender: USER, group: "26101@g.us" }), sock);
+    assert.ok(textOf(sent).includes("hanya untuk owner"), `got: ${textOf(sent)}`);
+
+    // the owner gets past the access gate → the "reply a view once" hint
+    const second = makeSock();
+    await messageHandler(rawMsg(".rvo", { sender: OWNER, group: "26101@g.us" }), second.sock);
+    assert.ok(!textOf(second.sent).includes("hanya untuk owner"), `owner must pass: ${textOf(second.sent)}`);
+    assert.ok(textOf(second.sent).includes("view once"), `got: ${textOf(second.sent)}`);
+  } finally {
+    setRvoAccess(prevAccess);
+    setRvoScope(prevScopeValue);
+  }
+});
+
+await test(".rvo access admin allows a group admin but not a plain user", async () => {
+  const { setRvoAccess, getRvoAccess, setRvoScope, getRvoScope } = await import("../lib/settings.js");
+  const prevAccess = getRvoAccess();
+  const prevScope = getRvoScope();
+  try {
+    setRvoAccess("admin");
+    setRvoScope("public");
+    const group = "26102@g.us";
+    db.setGroup(group, { allowAdminCommands: true });
+
+    const asAdmin = makeSock();
+    await messageHandler(rawMsg(".rvo", { sender: ADMIN, group }), asAdmin.sock);
+    assert.ok(!textOf(asAdmin.sent).includes("hanya untuk"), `admin must pass: ${textOf(asAdmin.sent)}`);
+
+    const asUser = makeSock();
+    await messageHandler(rawMsg(".rvo", { sender: USER, group }), asUser.sock);
+    assert.ok(textOf(asUser.sent).includes("admin grup"), `got: ${textOf(asUser.sent)}`);
+  } finally {
+    setRvoAccess(prevAccess);
+    setRvoScope(prevScope);
+  }
+});
+
+await test(".rvo access public lets anyone through the access gate", async () => {
+  const { setRvoAccess, getRvoAccess, setRvoScope, getRvoScope } = await import("../lib/settings.js");
+  const prevAccess = getRvoAccess();
+  const prevScope = getRvoScope();
+  try {
+    setRvoAccess("public");
+    setRvoScope("public");
+    const { sock, sent } = makeSock();
+    await messageHandler(rawMsg(".rvo", { sender: USER, group: "26103@g.us" }), sock);
+    assert.ok(!textOf(sent).includes("hanya untuk"), `public must not deny: ${textOf(sent)}`);
+  } finally {
+    setRvoAccess(prevAccess);
+    setRvoScope(prevScope);
+  }
+});
+
+await test(".rvo private/default switch the delivery mode (owner only)", async () => {
+  const { getRvoDelivery, setRvoDelivery } = await import("../lib/settings.js");
+  const prev = getRvoDelivery();
+  try {
+    let { sock, sent } = makeSock();
+    await messageHandler(rawMsg(".rvo private", { sender: OWNER, group: null }), sock);
+    assert.equal(getRvoDelivery(), "private");
+    assert.ok(/PC/i.test(textOf(sent)), `got: ${textOf(sent)}`);
+
+    // a plain user must not change it
+    ({ sock, sent } = makeSock());
+    await messageHandler(rawMsg(".rvo default", { sender: USER, group: "26104@g.us" }), sock);
+    assert.equal(getRvoDelivery(), "private", "a plain user must not change the delivery mode");
+    assert.ok(textOf(sent).includes("Hanya owner"), `got: ${textOf(sent)}`);
+
+    ({ sock, sent } = makeSock());
+    await messageHandler(rawMsg(".rvo default", { sender: OWNER, group: null }), sock);
+    assert.equal(getRvoDelivery(), "default");
+  } finally {
+    setRvoDelivery(prev);
+  }
+});
+
+await test(".rvo status is owner-only and reports both settings", async () => {
+  const { getRvoAccess, setRvoAccess, getRvoDelivery, setRvoDelivery } = await import("../lib/settings.js");
+  const prevAccess = getRvoAccess();
+  const prevDelivery = getRvoDelivery();
+  try {
+    setRvoAccess("admin");
+    setRvoDelivery("private");
+    let { sock, sent } = makeSock();
+    await messageHandler(rawMsg(".rvo status", { sender: OWNER, group: null }), sock);
+    const text = textOf(sent);
+    assert.ok(text.includes("Admin grup"), `got: ${text}`);
+    assert.ok(/PC/i.test(text), `got: ${text}`);
+
+    ({ sock, sent } = makeSock());
+    await messageHandler(rawMsg(".rvo status", { sender: USER, group: "26105@g.us" }), sock);
+    assert.ok(textOf(sent).includes("Hanya owner"), `got: ${textOf(sent)}`);
+  } finally {
+    setRvoAccess(prevAccess);
+    setRvoDelivery(prevDelivery);
+  }
+});
+
+await test("a bare .rvo is not hijacked by the usage card", async () => {
+  const { setRvoAccess, getRvoAccess, setRvoScope, getRvoScope } = await import("../lib/settings.js");
+  const prevAccess = getRvoAccess();
+  const prevScope = getRvoScope();
+  try {
+    setRvoAccess("public");
+    setRvoScope("public");
+    const { sock, sent } = makeSock();
+    await messageHandler(rawMsg(".rvo", { sender: USER, group: "26106@g.us" }), sock);
+    // the plugin's own hint, never the generic ".rvo <param>" usage card
+    assert.ok(textOf(sent).includes("view once"), `got: ${textOf(sent)}`);
+  } finally {
+    setRvoAccess(prevAccess);
+    setRvoScope(prevScope);
+  }
+});
+
+/* ── delivery: default (same chat) vs private (requester's PC) ── */
+
+/** A fake message that replies to a view-once image, for the plugin handler. */
+function rvoMessage({ chat, sender }) {
+  const sent = [];
+  const config = { command: { prefix: "." } };
+  const m = {
+    isGroup: chat.endsWith("@g.us"),
+    isOwner: sender === OWNER,
+    isAdmin: sender === ADMIN,
+    fromMe: false,
+    chat,
+    sender,
+    pushName: "Penguji",
+    prefix: ".",
+    args: [],
+    command: "rvo",
+    react: async (e) => sent.push({ react: e }),
+    reply: async (text) => {
+      sent.push({ jid: chat, content: { text } });
+      return { key: { id: `t${sent.length}` } };
+    },
+    quoted: {
+      isViewOnce: true,
+      isMedia: true,
+      isImage: true,
+      isVideo: false,
+      isAudio: false,
+      type: "imageMessage",
+      message: { imageMessage: { caption: "rahasia" } },
+      sender: ADMIN,
+      id: "QVO1",
+      download: async () => Buffer.from("fake-image-bytes"),
+    },
+    groupMetadata: { participants: [] },
+  };
+  return { m, sent, config };
+}
+
+await test(".rvo default delivers in the SAME chat under the command", async () => {
+  const { setRvoAccess, getRvoAccess, setRvoScope, getRvoScope, setRvoDelivery, getRvoDelivery } =
+    await import("../lib/settings.js");
+  const prevAccess = getRvoAccess();
+  const prevScope = getRvoScope();
+  const prevDelivery = getRvoDelivery();
+  try {
+    setRvoAccess("public");
+    setRvoScope("public");
+    setRvoDelivery("default");
+    const chat = "26107@g.us";
+    const { sock, sent } = makeSock();
+    const { m, sent: mine, config } = rvoMessage({ chat, sender: USER });
+    const { handler } = await import("../plugins/tools/rvo.js");
+    await handler(m, { sock, config, db });
+
+    const media = sent.find((s) => s.content?.image);
+    assert.ok(media, "the image must be delivered");
+    assert.equal(media.jid, chat, "default mode delivers in the same chat");
+    // no "sent to PC" notice in default mode
+    const texts = mine.filter((s) => s.content?.text).map((s) => s.content.text);
+    assert.ok(!texts.some((t) => /PC/i.test(t)), `default mode must not claim PC delivery: ${JSON.stringify(texts)}`);
+  } finally {
+    setRvoAccess(prevAccess);
+    setRvoScope(prevScope);
+    setRvoDelivery(prevDelivery);
+  }
+});
+
+await test(".rvo private delivers to the requester's PC, not the group", async () => {
+  const { setRvoAccess, getRvoAccess, setRvoScope, getRvoScope, setRvoDelivery, getRvoDelivery } =
+    await import("../lib/settings.js");
+  const prevAccess = getRvoAccess();
+  const prevScope = getRvoScope();
+  const prevDelivery = getRvoDelivery();
+  try {
+    setRvoAccess("public");
+    setRvoScope("public");
+    setRvoDelivery("private");
+    const chat = "26108@g.us";
+    const { sock, sent } = makeSock();
+    const { m, sent: mine, config } = rvoMessage({ chat, sender: USER });
+    const { handler } = await import("../plugins/tools/rvo.js");
+    await handler(m, { sock, config, db });
+
+    const media = sent.find((s) => s.content?.image);
+    assert.ok(media, "the image must be delivered");
+    assert.equal(media.jid, USER, "private mode delivers to the requester's PC");
+    assert.notEqual(media.jid, chat, "it must NOT go to the group");
+    // the group is told where it went (via m.reply → the local sink)
+    const texts = mine.filter((s) => s.content?.text).map((s) => s.content.text);
+    assert.ok(texts.some((t) => /PC/i.test(t)), `got: ${JSON.stringify(texts)}`);
+  } finally {
+    setRvoAccess(prevAccess);
+    setRvoScope(prevScope);
+    setRvoDelivery(prevDelivery);
+  }
+});
+
+await test(".rvo private falls back to the same chat when already in a PC", async () => {
+  const { setRvoAccess, getRvoAccess, setRvoScope, getRvoScope, setRvoDelivery, getRvoDelivery } =
+    await import("../lib/settings.js");
+  const prevAccess = getRvoAccess();
+  const prevScope = getRvoScope();
+  const prevDelivery = getRvoDelivery();
+  try {
+    setRvoAccess("public");
+    setRvoScope("public");
+    setRvoDelivery("private");
+    const { sock, sent } = makeSock();
+    const { m, config } = rvoMessage({ chat: USER, sender: USER });
+    const { handler } = await import("../plugins/tools/rvo.js");
+    await handler(m, { sock, config, db });
+
+    const media = sent.find((s) => s.content?.image);
+    assert.ok(media, "the image must be delivered");
+    assert.equal(media.jid, USER, "a PC request is answered in that same PC");
+  } finally {
+    setRvoAccess(prevAccess);
+    setRvoScope(prevScope);
+    setRvoDelivery(prevDelivery);
+  }
+});
+
 await test(".log set / reset / default manage the panel", async () => {
   const { getDefaultLogPanel, setDefaultLogPanel } = await import("../lib/settings.js");
   const src = "26050@g.us";

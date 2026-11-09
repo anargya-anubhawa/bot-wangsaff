@@ -80,7 +80,10 @@ async function handleNoteLookup(m, sock) {
     ? getEffectiveNote(db, m.chat, name)
     : db.getNote(m.sender, name);
   if (!note) {
-    await m.reply(`❓ *Note not found.* No note named \`${name}\` here.`);
+    // A missing note is a refusal notice, not output: silent / super silent
+    // mode suppresses it exactly like an unknown command. A random tag
+    // (`#okasdkdas`) must never make the bot speak in those modes.
+    await sendFeedback(m, `❓ *Note not found.* No note named \`${name}\` here.`);
     return;
   }
   if (note.mediaBase64 && note.mediaType) {

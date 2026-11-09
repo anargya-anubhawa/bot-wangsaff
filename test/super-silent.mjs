@@ -436,6 +436,55 @@ await test("super: an unknown command is silenced, not reacted to", async () => 
   reset();
 });
 
+/* ─────────────────────────── #hashtag / note lookup ─────────────────────────── */
+
+await test("super: a random hashtag is silenced (no 'Note not found')", async () => {
+  reset();
+  rt.setSilentLevel("super");
+  for (const body of ["#hai", "#okasdkdas", "#random-tag"]) {
+    const { sock, sent } = makeSock();
+    await messageHandler(rawMsg(body), sock);
+    assert.equal(
+      sent.length,
+      0,
+      `${body} must produce nothing, got: ${JSON.stringify(textsOf(sent))} / ${JSON.stringify(reactionsOf(sent))}`,
+    );
+  }
+  reset();
+});
+
+await test("silent: a random hashtag is silenced (no 'Note not found')", async () => {
+  reset();
+  rt.setSilentLevel("on");
+  for (const body of ["#hai", "#okasdkdas"]) {
+    const { sock, sent } = makeSock();
+    await messageHandler(rawMsg(body), sock);
+    assert.equal(sent.length, 0, `${body} must produce nothing, got: ${JSON.stringify(textsOf(sent))}`);
+  }
+  reset();
+});
+
+await test("off: a random hashtag still reports 'Note not found'", async () => {
+  reset();
+  const { sock, sent } = makeSock();
+  await messageHandler(rawMsg("#okasdkdas"), sock);
+  assert.ok(
+    textsOf(sent).some((t) => /note not found/i.test(t)),
+    `the notice must be shown when not silent, got: ${JSON.stringify(textsOf(sent))}`,
+  );
+  reset();
+});
+
+await test("silent: a REAL note is still delivered", async () => {
+  reset();
+  rt.setSilentLevel("on");
+  db.setNote(USER, "hai", "Halo juga!", USER);
+  const { sock, sent } = makeSock();
+  await messageHandler(rawMsg("#hai"), sock);
+  assert.deepEqual(textsOf(sent), ["Halo juga!"], "real note content is real output, not a notice");
+  reset();
+});
+
 /* ═══════════════════════════ native flow ═══════════════════════════ */
 
 await test("a flow prompt is its own output: no auto-reaction is stacked on it", async () => {

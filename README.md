@@ -19,6 +19,8 @@ chess game.
 - [Document → PDF (`/pdf`)](#document--pdf-pdf)
 - [PDF → document (`/unpdf`)](#pdf--document-unpdf)
 - [Group links & shared features](#group-links--shared-features)
+- [View-once reader (`.rvo`)](#view-once-reader-rvo)
+- [Management panel notices (bot aktif / shutting down)](#management-panel-notices-bot-aktif--shutting-down)
 - [Plugin System](#plugin-system)
 - [Creating a Plugin](#creating-a-plugin)
 - [Commands](#commands)
@@ -37,11 +39,11 @@ chess game.
 | **Notes** | `addnote`, `notes`, `delnote`, `#name` (lookup) |
 | **Sticker** | `sticker`/`s`, `toimage` |
 | **Media** | `tomp3` |
-| **Utility** | `tts`, `translate`, `qr`, `calculator`, `shorten`, `pdf`, `unpdf` |
+| **Utility** | `tts`, `translate`, `qr`, `calculator`, `shorten`, `pdf`, `unpdf`, `rvo` (view once) |
 | **Search / Info** | `search`, `ping`, `botinfo`, `stats`, `owner`, `gempa` (BMKG) |
 | **Game** | `catur`/`chess` (inline) |
 | **Owner** | `mode`, `prefix`, `ban`, `unban` |
-| **Group setup** | `registergroup`, `unregistergroup`, `regcontrol`, `link`, `unlink`, `links`, `listreg` |
+| **Group setup** | `registergroup`, `unregistergroup`, `regcontrol`, `link`, `unlink`, `links`, `listreg`, `log` (panel & scope) |
 | **Schedule** | `schedule`, `schedules`, `unschedule`, `settimezone` |
 
 Core mechanics:
@@ -551,6 +553,61 @@ linked set:
 
 ---
 
+## View-once reader (`.rvo`)
+
+Reply to a view-once message with `.rvo` to reveal and save its media. Two
+owner-controlled settings (global, applied everywhere) govern who may use it and
+where the result is delivered:
+
+| Command | Effect |
+| --- | --- |
+| `.rvo owner` | only the owner (or a whitelisted number in a private chat) may use `.rvo` |
+| `.rvo admin` | the owner **or** a group admin may use it |
+| `.rvo public` | anyone may use it *(default)* |
+| `.rvo private` | the revealed media is sent to the requester's **private chat** (PC) |
+| `.rvo default` | the media is sent **in the same chat**, under the `.rvo` command *(default)* |
+| `.rvo status` | show the current access + delivery settings |
+
+Only the owner can change these — a plain user typing `.rvo public` is told to
+ask the owner, so nobody can raise their own access. Running a bare `.rvo` with
+no argument always just opens the message and never changes a setting.
+
+The older enable/disable scope still applies on top: with
+`.log rvo registered`, `.rvo` only works inside registered groups.
+
+---
+
+## Management panel notices (bot aktif / shutting down)
+
+The bot posts a short lifecycle notice to the **management panel** — the global
+default log panel, set once from inside the panel group:
+
+```
+.log default
+```
+
+Once a panel is registered:
+
+| Event | When | Notice |
+| --- | --- | --- |
+| Start | WhatsApp reports `connection: open` (not merely when the process boots) | 🟢 `BOT AKTIF` with name, version and time |
+| Stop | SIGINT / SIGTERM, the control console, or a restart | 🔴 `BOT SHUTTING DOWN` with reason and session uptime |
+
+A restart sends `shutting down` and then `bot aktif` again, so the panel always
+shows the current state. When no default panel is configured, nothing is sent —
+the bot stays completely silent about its own lifecycle.
+
+Notes:
+
+- The notice is delivered **before** the socket closes; it is time-boxed and
+  best-effort, so an unreachable panel can never delay or block a shutdown.
+- Only the global default panel is used. Per-group `logPanel` overrides
+  (`.log set <grup>`) address moderation traffic only, not bot lifecycle.
+- Implementation: `lib/lifecycle-notice.js`, wired from `index.js` (online +
+  signals) and `lib/restart.js` (`shutdownResources`).
+
+---
+
 ## Plugin System
 
 Plugins live under `plugins/<category>/<file>.js`. On boot, `lib/plugins.js`
@@ -826,6 +883,10 @@ If absent, a placeholder is generated automatically.
 
 **`#note` does nothing**
 Notes are scoped to the chat: a group note must be looked up in the same group.
+
+In silent (`.silent on`) and super silent (`.silent super`) mode an unknown
+tag is ignored without a word — `#hai` or a random `#okasdkdas` never triggers
+a *Note not found* notice. Only a tag that matches a real note is answered.
 
 **Command does nothing in a group**
 The bot may not be an admin (for admin commands), or the bot is in `self` mode.
