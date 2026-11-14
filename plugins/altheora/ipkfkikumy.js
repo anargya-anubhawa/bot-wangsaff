@@ -23,6 +23,10 @@ import {
   fetchTranscriptPdf,
   getAccessMode,
   setAccessMode,
+  getBlockedNims,
+  isNimBlocked,
+  blockNim,
+  unblockNim,
 } from "./simak-fkik.js";
 
 const pluginConfig = {
@@ -36,7 +40,7 @@ const pluginConfig = {
   ],
   category: "altheora",
   description: "Ambil & kirim PDF transkrip mahasiswa FKIK UMY dari SIMAK",
-  usage: ".ipkfkikumy <nim> | -owner | -public | -status",
+  usage: ".ipkfkikumy <nim> | -owner | -public | -status | -block <nim> | -unblock <nim>",
   example: ".ipkfkikumy 20250310001",
   helpOnEmpty: false,
   isOwner: false,
@@ -50,7 +54,7 @@ const pluginConfig = {
   isEnabled: true,
 };
 
-const ACTION_RE = /^-{1,2}(owner|public|status|help)$/i;
+const ACTION_RE = /^-{1,2}(owner|public|status|help|block|unblock)$/i;
 
 /**
  * Cek apakah pengirim boleh mengubah mode akses.
@@ -80,6 +84,10 @@ function renderHelp(prefix = ".", mode = "owner") {
     `> \`${prefix}ipkfkikumy -owner\`   → hanya Owner/Partner`,
     `> \`${prefix}ipkfkikumy -public\`  → semua orang`,
     `> \`${prefix}ipkfkikumy -status\`  → lihat mode sekarang`,
+    "",
+    "*Blokir NIM (Owner/Partner):*",
+    `> \`${prefix}ipkfkikumy -block <nim>\`   → blokir NIM`,
+    `> \`${prefix}ipkfkikumy -unblock <nim>\` → buka blokir NIM`,
     "━━━━━━━━━━━━━━━━━━━━━━━━",
     `🔐 Mode saat ini: *${modeLabel}*`,
   ].join("\n");
@@ -88,7 +96,7 @@ function renderHelp(prefix = ".", mode = "owner") {
 /**
  * Handler /ipkfkikumy
  */
-async function handler(m, { sock, args = [], text = "", db: ctxDb } = {}) {
+async function handler(m, { sock, args = [], text = "", db: ctxDb, output } = {}) {
   const prefix = m.prefix || ".";
   const db = ctxDb || getDatabase();
 
@@ -122,10 +130,52 @@ async function handler(m, { sock, args = [], text = "", db: ctxDb } = {}) {
       const mode = getAccessMode(db);
       const modeLabel =
         mode === "public" ? "PUBLIC (semua orang)" : "OWNER ONLY";
+      const blocked = getBlockedNims(db);
       return m.reply(
         "🔐 *STATUS AKSES — ipkfkikumy*\n\n" +
           `> Mode: *${modeLabel}*\n` +
+          `> NIM diblokir: *${blocked.length}*\n` +
           `> Ubah: \`${prefix}ipkfkikumy -owner\` / \`${prefix}ipkfkikumy -public\``,
+      );
+    }
+
+    if (action === "block" || action === "unblock") {
+      const rawNim = String(argv[1] || "").trim();
+      const nim = normalizeNim(rawNim);
+      if (!isValidNim(nim)) {
+        return m.reply(
+          `⚠️ *NIM tidak valid.*\n\n> Format: \`${prefix}ipkfkikumy -${action} <nim>\`\n> Contoh: \`${prefix}ipkfkikumy -${action} 20250310001\``,
+        );
+      }
+
+      const result =
+        action === "block" ? blockNim(db, nim) : unblockNim(db, nim);
+      await db.save?.();
+      await m.react("✅").catch(() => {});
+      simakLog(
+        "CMD",
+        "info",
+        `${action} ${nim} oleh ${m.sender} (total ${result.list.length})`,
+      );
+
+      if (action === "block") {
+        if (!result.added) {
+          return m.reply(
+            `ℹ️ *NIM sudah diblokir.*\n\n> NIM: \`${nim}\`\n> Total diblokir: *${result.list.length}*`,
+          );
+        }
+        return m.reply(
+          `✅ *NIM diblokir.*\n\n> NIM: \`${nim}\`\n> Command dengan NIM ini tidak akan direspons.\n> Total diblokir: *${result.list.length}*`,
+        );
+      }
+
+      if (!result.removed) {
+        return m.reply(
+          `ℹ️ *NIM tidak sedang diblokir.*\n\n> NIM: \`${nim}\`\n> Total diblokir: *${result.list.length}*`,
+        );
+      }
+      return m.reply(
+        `✅ *Blokir NIM dibuka.*\n\n> NIM: \`${nim}\`\n> Total diblokir: *${result.list.length}*`,
       );
     }
 
@@ -143,6 +193,14 @@ async function handler(m, { sock, args = [], text = "", db: ctxDb } = {}) {
     );
   }
 
+  // ── NIM diblokir → jangan merespons sama sekali ─────────────────────────
+  const nim = normalizeNim(first);
+  if (isValidNim(nim) && isNimBlocked(db, nim)) {
+    simakLog("CMD", "warn", `NIM diblokir diabaikan: ${nim} oleh ${m.sender}`);
+    output?.silent?.();
+    return;
+  }
+
   // ── Cek izin menjalankan berdasarkan mode tersimpan ──────────────────────
   const mode = getAccessMode(db);
   if (mode === "owner" && !isPrivileged(m)) {
@@ -153,7 +211,6 @@ async function handler(m, { sock, args = [], text = "", db: ctxDb } = {}) {
   }
 
   // ── Ambil & validasi NIM ────────────────────────────────────────────────
-  const nim = normalizeNim(first);
   if (!isValidNim(nim)) {
     return m.reply(
       "⚠️ *NIM tidak valid.*\n\n" +

@@ -75,6 +75,9 @@ const simakConfig = {
   /** Kunci penyimpanan mode akses di lowdb settings. */
   accessKey: "altheora_simak_access",
 
+  /** Kunci penyimpanan daftar NIM yang diblokir di lowdb settings. */
+  blockedKey: "altheora_simak_blocked",
+
   /** User-Agent browser agar terlihat seperti akses manusia. */
   userAgent:
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
@@ -110,6 +113,7 @@ function simakLog(scope, kind, message) {
 function normalizeNim(raw) {
   const s = String(raw ?? "")
     .trim()
+    .replace(/^["'`]+|["'`]+$/g, "")
     .replace(/\s+/g, "");
   return /^\d+$/.test(s) ? s : "";
 }
@@ -338,6 +342,57 @@ function setAccessMode(db, mode) {
   return value;
 }
 
+function normalizeBlockList(raw) {
+  if (Array.isArray(raw)) {
+    return raw
+      .map((n) => String(n ?? "").trim())
+      .filter((n) => /^\d+$/.test(n));
+  }
+  if (typeof raw === "string") {
+    return raw
+      .split(/[\s,]+/)
+      .map((n) => n.trim())
+      .filter((n) => /^\d+$/.test(n));
+  }
+  return [];
+}
+
+function getBlockedNims(db) {
+  return normalizeBlockList(db?.setting?.(simakConfig.blockedKey));
+}
+
+function isNimBlocked(db, nim) {
+  const target = String(nim ?? "").trim();
+  return target !== "" && getBlockedNims(db).includes(target);
+}
+
+function setBlockedNims(db, list) {
+  const unique = [...new Set(normalizeBlockList(list))];
+  db?.setting?.(simakConfig.blockedKey, unique);
+  return unique;
+}
+
+function blockNim(db, nim) {
+  const target = String(nim ?? "").trim();
+  const list = getBlockedNims(db);
+  if (list.includes(target)) return { added: false, list };
+  list.push(target);
+  return { added: true, list: setBlockedNims(db, list) };
+}
+
+function unblockNim(db, nim) {
+  const target = String(nim ?? "").trim();
+  const list = getBlockedNims(db);
+  if (!list.includes(target)) return { removed: false, list };
+  return {
+    removed: true,
+    list: setBlockedNims(
+      db,
+      list.filter((n) => n !== target),
+    ),
+  };
+}
+
 export {
   simakConfig,
   simakLog,
@@ -349,4 +404,8 @@ export {
   fetchTranscriptPdf,
   getAccessMode,
   setAccessMode,
+  getBlockedNims,
+  isNimBlocked,
+  blockNim,
+  unblockNim,
 };
