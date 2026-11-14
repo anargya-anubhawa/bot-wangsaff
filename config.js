@@ -149,14 +149,17 @@ const config = {
      *
      * The transformer itself lives in `lib/reply-transform.js`.
      */
-    silent: env("MESSAGES_SILENT", "true") === "true",
+    silent: env("MESSAGES_SILENT", "false") === "true",
     superSilent: env("MESSAGES_SUPER_SILENT", "false") === "true",
     /**
      * What to do while silent mode is ON:
      *   "silent" → send nothing at all
      *   "react"  → react to the triggering message with `react` below
+     *
+     * Defaults to "react" so a suppressed gate notice still acknowledges the
+     * command with a single emoji instead of leaving the user with silence.
      */
-    onDisabled: "silent",
+    onDisabled: "react",
     /** Emoji used when `onDisabled` is "react". */
     react: "🔒",
 
@@ -198,6 +201,7 @@ const config = {
     botAdminOnly: "*Bot must be an admin* to perform this action.",
 
     cooldown: "🕕 *Cooldown.* Wait %time% more second(s) before using this again.",
+    spam: "🚫 *Slow down.* You are sending commands too fast. Try again in a moment.",
     banned: "🚫 *You are banned* from using this bot.",
     rejectCall: "🚫 *Please don't call the bot.* Send a message instead.",
     //❓ Command not found.

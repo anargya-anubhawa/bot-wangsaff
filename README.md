@@ -107,7 +107,7 @@ Key environment variables:
 | `DATABASE_PATH` | `./database/main` | Database directory |
 | `SESSION_FOLDER` | `session` | Session folder under `./storage` |
 | `NODE_ENV` | `production` | `development` enables extra debug logging |
-| `MESSAGES_SILENT` | `true` | Silent mode default (suppress gate/refusal notices) |
+| `MESSAGES_SILENT` | `false` | Silent mode default (suppress gate/refusal notices) |
 | `APIKEY_*` | — | Third-party API keys (see below) |
 | `TELEGRAM_BOT_TOKEN` | — | Telegram bot token (`.telestick`) |
 
@@ -152,6 +152,11 @@ with three levels. It can be set in two ways, in order of precedence:
 | `off` | sent | sent |
 | `on` | suppressed | sent |
 | `super` | suppressed | **one reaction only** |
+
+In `on` mode a suppressed gate notice still reacts with `🔒` by default
+(`config.messages.onDisabled: "react"`), so a typo, cooldown or permission
+denial never looks like the bot ignored you. Set `onDisabled: "silent"` to send
+nothing at all.
 
 **`super` — minimal replies.** A command that succeeds no longer writes a
 message: the bot reacts to your command instead.
@@ -199,9 +204,9 @@ transform (the test suites that assert on raw reply text do this).
 
 ```js
 messages: {
-  silent: true,          // config default for the level ("on" when true)
+  silent: false,         // config default for the level ("on" when true)
   superSilent: false,    // config default for "super"
-  onDisabled: "silent",  // "silent" → send nothing, "react" → react with `react`
+  onDisabled: "react",   // "silent" → send nothing, "react" → react with `react`
   react: "🔒",           // emoji used when onDisabled is "react"
   reactSuccess: "🟢",    // super mode
   reactFail: "🔴",
