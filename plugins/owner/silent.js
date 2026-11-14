@@ -26,7 +26,7 @@ const pluginConfig = {
   name: "silent",
   alias: ["silentmode", "hening", "bisukan"],
   category: "owner",
-  description: "Atur mode silent: off (normal), on (sembunyikan notice gate), super (balas reaction saja)",
+  description: "Atur mode silent: off (normal), on (sembunyikan teks gate, tetap reaction), super (balas reaction saja)",
   usage: ".silent <off|on|super>",
   examples: [".silent off", ".silent on", ".silent super", ".silent"],
   helpOnEmpty: false,
@@ -50,7 +50,7 @@ function helpText(prefix) {
     `🔇 *Silent Mode*\n\n` +
     `> Status: *${label(silentLevel())}*\n\n` +
     `> \`${prefix}silent off\` — balasan teks normal\n` +
-    `> \`${prefix}silent on\` — sembunyikan pesan penolakan/error\n` +
+    `> \`${prefix}silent on\` — sembunyikan teks penolakan (tetap reaction 🔒)\n` +
     `> \`${prefix}silent super\` — command sukses hanya dibalas reaction\n` +
     `>   ${emojiFor("ok")} sukses · ${emojiFor("fail")} gagal · ${emojiFor("info")} hasil lain\n`
   );

@@ -50,7 +50,9 @@ function isSpamming(m) {
   }
   entry.count++;
   spamTracker.set(key, entry);
-  return entry.count > SPAM_LIMIT;
+  if (entry.count <= SPAM_LIMIT) return false;
+  /* Notify once per window; the rest stay silently dropped. */
+  return entry.count === SPAM_LIMIT + 1 ? "notify" : "drop";
 }
 
 setInterval(() => {
@@ -83,7 +85,11 @@ async function handleNoteLookup(m, sock) {
     // A missing note is a refusal notice, not output: silent / super silent
     // mode suppresses it exactly like an unknown command. A random tag
     // (`#okasdkdas`) must never make the bot speak in those modes.
-    await sendFeedback(m, `❓ *Note not found.* No note named \`${name}\` here.`);
+    await sendFeedback(
+      m,
+      `❓ *Note not found.* No note named \`${name}\` here.`,
+      { react: false },
+    );
     return;
   }
   if (note.mediaBase64 && note.mediaType) {
@@ -215,7 +221,10 @@ function buildContext(m, sock, db, legacyConn, prefix) {
 export async function runCommand(m, sock, db, legacyConn, prefix) {
   /* mode gate */
   const modeCheck = checkMode(m);
-  if (!modeCheck.allowed) return true;
+  if (!modeCheck.allowed) {
+    await sendFeedback(m, modeCheck.reason || "🔒 *The bot is in self mode.*");
+    return true;
+  }
 
   /* ban gate */
   if (m.isBanned) {
@@ -224,7 +233,16 @@ export async function runCommand(m, sock, db, legacyConn, prefix) {
   }
 
   /* spam gate */
-  if (isSpamming(m)) return true;
+  const spam = isSpamming(m);
+  if (spam) {
+    if (spam === "notify") {
+      await sendFeedback(
+        m,
+        config.messages?.spam || "🚫 *Slow down.* You are sending commands too fast.",
+      );
+    }
+    return true;
+  }
 
   /* command log */
   if (config.features?.logMessage) {

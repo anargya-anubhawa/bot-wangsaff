@@ -638,6 +638,41 @@ await test("transformEnabled=false restores raw replies", async () => {
   }
 });
 
+/* ═══════════════════════════ reaction failure fallback ═══════════════════════════ */
+
+await test("normal: a failed ✅ reaction falls back to the collapsed text", async () => {
+  reset();
+  const sent = [];
+  const m = {
+    chat: "628000000004@s.whatsapp.net",
+    reply: async (t) => sent.push({ text: t }),
+    react: async () => null,
+  };
+  rt.instrumentMessage(m);
+  rt.beginTurn(m);
+  await m.reply("✅ *Done!*");
+  await rt.finishTurn(m, undefined);
+  assert.deepEqual(sent.map((s) => s.text), ["✅ *Done!*"], "the text must be delivered when the reaction fails");
+  reset();
+});
+
+await test("super: a failed 🟢 reaction replays the held reply", async () => {
+  reset();
+  rt.setSilentLevel("super");
+  const sent = [];
+  const m = {
+    chat: "628000000004@s.whatsapp.net",
+    reply: async (t) => sent.push({ text: t }),
+    react: async () => null,
+  };
+  rt.instrumentMessage(m);
+  rt.beginTurn(m);
+  await m.reply("✅ Berhasil menyimpan catatan.");
+  await rt.finishTurn(m, undefined);
+  assert.deepEqual(sent.map((s) => s.text), ["✅ Berhasil menyimpan catatan."]);
+  reset();
+});
+
 /* ─────────────────────────── report ─────────────────────────── */
 
 reset();
