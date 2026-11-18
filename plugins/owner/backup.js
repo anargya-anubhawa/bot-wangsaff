@@ -1,19 +1,37 @@
 /**
  * GX-ID — /backup (owner only)
  *
- * Creates a FULL zip snapshot of the bot's own project directory and sends it.
- * Unlike /getsc (which is a safe source-only copy), this includes secrets and
- * runtime state: `.env`, `session/`, `database/`, `storage/`, `media/`, etc.
- * Only `node_modules` is skipped.
+ *   .backup                 → inspect what will be archived (structure + sizes)
+ *   .backup start           → build the archive and deliver it per settings
+ *   .backup setting         → native-flow menu (delivery + scope)
+ *   .backup whatsapp|hosting|full|source → quick setters
  *
- * The archive is built asynchronously (no event-loop stall) and sent as a
- * single ZIP attachment.
+ * Two scopes:
+ *   full   — the whole project except `node_modules` (secrets + state included)
+ *   source — same exclusions as /getsc (no .env, session, database, ...)
+ *
+ * Two deliveries:
+ *   whatsapp — send one ZIP document
+ *   hosting  — upload to catbox.moe (no login) and send the link; falls back to
+ *              litterbox (72h) when the file is over catbox's 200 MB limit.
  */
 import { existsSync } from "fs";
-import { readdir, readFile } from "fs/promises";
+import { readdir, readFile, stat } from "fs/promises";
 import { join, relative, sep } from "path";
 import { deflateRaw } from "zlib";
 import { promisify } from "util";
+import { formatFileSize } from "../../lib/formatter.js";
+import { registerFlowRoute } from "../../lib/flow-router.js";
+import { sendNativeFlow, createSingleSelect, buildMessageParams } from "../../lib/flow.js";
+import { isOwnerOrWhitelistedIn } from "../../lib/access.js";
+import {
+  getBackupDelivery,
+  setBackupDelivery,
+  getBackupScope,
+  setBackupScope,
+  BACKUP_DELIVERY,
+  BACKUP_SCOPE,
+} from "../../lib/settings.js";
 
 const deflate = promisify(deflateRaw);
 
@@ -21,24 +39,68 @@ const pluginConfig = {
   name: "backup",
   alias: ["fullbackup", "backupall", "backupfull"],
   category: "owner",
-  description: "Backup penuh proyek bot (database, .env, session, dll) kecuali node_modules",
-  usage: ".backup",
-  examples: [".backup"],
+  description: "Backup proyek bot (full / source) ke WhatsApp atau hosting gratis",
+  usage: ".backup [start|setting]",
+  examples: [".backup", ".backup start", ".backup setting"],
+  helpOnEmpty: false,
   permission: "owner",
   cooldown: 60,
-  notes: "Berisi rahasia (session/.env) — hanya owner. node_modules dikecualikan.",
+  notes: "Default full backup termasuk .env/session/database. Hanya owner.",
   isEnabled: true,
 };
 
-const EXCLUDED_DIRS = new Set(["node_modules"]);
+const EXCLUDED_DIRS = {
+  [BACKUP_SCOPE.FULL]: new Set(["node_modules"]),
+  [BACKUP_SCOPE.SOURCE]: new Set([
+    "node_modules",
+    ".git",
+    "session",
+    "sessions",
+    "database",
+    "storage",
+    "media",
+    "temp",
+    "tmp",
+    "assets",
+    ".cache",
+  ]),
+};
 
-async function collectFiles(rootDir, current = rootDir, acc = []) {
+const SOURCE_EXCLUDED_FILES = new Set([
+  ".env",
+  ".env.local",
+  ".env.production",
+  "creds.json",
+  "auth.json",
+]);
+
+const SOURCE_EXCLUDED_EXT = new Set([".log", ".session", ".db", ".sqlite", ".sqlite3"]);
+
+const CATBOX_LIMIT = 200 * 1024 * 1024;
+
+/* ─────────────────────────── file collection ─────────────────────────── */
+
+function isExcludedFile(name) {
+  return SOURCE_EXCLUDED_FILES.has(name);
+}
+
+function isExcludedByExt(name) {
+  const dot = name.lastIndexOf(".");
+  if (dot < 0) return false;
+  return SOURCE_EXCLUDED_EXT.has(name.slice(dot).toLowerCase());
+}
+
+async function collectFiles(rootDir, scope, current = rootDir, acc = []) {
+  const excludedDirs = EXCLUDED_DIRS[scope] || EXCLUDED_DIRS[BACKUP_SCOPE.FULL];
+  const sourceMode = scope === BACKUP_SCOPE.SOURCE;
+
   for (const entry of await readdir(current, { withFileTypes: true })) {
     const full = join(current, entry.name);
     if (entry.isDirectory()) {
-      if (EXCLUDED_DIRS.has(entry.name)) continue;
-      await collectFiles(rootDir, full, acc);
+      if (excludedDirs.has(entry.name)) continue;
+      await collectFiles(rootDir, scope, full, acc);
     } else if (entry.isFile()) {
+      if (sourceMode && (isExcludedFile(entry.name) || isExcludedByExt(entry.name))) continue;
       const rel = relative(rootDir, full);
       if (rel.startsWith("..") || rel.includes(`..${sep}`)) continue;
       acc.push({ full, rel: rel.split(sep).join("/") });
@@ -46,6 +108,36 @@ async function collectFiles(rootDir, current = rootDir, acc = []) {
   }
   return acc;
 }
+
+async function summarize(entries) {
+  const groups = new Map();
+  let totalBytes = 0;
+
+  for (const entry of entries) {
+    let size = 0;
+    try {
+      size = (await stat(entry.full)).size;
+    } catch {
+      size = 0;
+    }
+    totalBytes += size;
+
+    const parts = entry.rel.split("/");
+    const key = parts.length > 1 ? `${parts[0]}/` : parts[0];
+    const group = groups.get(key) || { key, files: 0, bytes: 0 };
+    group.files += 1;
+    group.bytes += size;
+    groups.set(key, group);
+  }
+
+  return {
+    totalBytes,
+    totalFiles: entries.length,
+    groups: [...groups.values()].sort((a, b) => b.bytes - a.bytes),
+  };
+}
+
+/* ─────────────────────────── zip writer ─────────────────────────── */
 
 function crc32(buf) {
   let crc = ~0;
@@ -56,7 +148,6 @@ function crc32(buf) {
   return ~crc >>> 0;
 }
 
-/** Build a ZIP buffer (deflate) from `{ rel, full }` entries, yielding to the loop. */
 async function buildZip(entries) {
   const chunks = [];
   const central = [];
@@ -131,6 +222,8 @@ async function buildZip(entries) {
   return Buffer.concat([...chunks, centralBuf, end]);
 }
 
+/* ─────────────────────────── delivery ─────────────────────────── */
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function sendDocument(sock, m, buffer, fileName, caption) {
@@ -149,20 +242,190 @@ async function sendDocument(sock, m, buffer, fileName, caption) {
   }
 }
 
-async function handler(m, { sock }) {
+async function postMultipart(url, fields, blob, fileName) {
+  const form = new FormData();
+  for (const [key, value] of Object.entries(fields)) form.append(key, value);
+  form.append("fileToUpload", blob, fileName);
+  const response = await fetch(url, {
+    method: "POST",
+    body: form,
+    signal: AbortSignal.timeout(300_000),
+  });
+  const text = (await response.text()).trim();
+  if (!response.ok || !/^https?:\/\//i.test(text)) {
+    throw new Error(`hosting HTTP ${response.status}: ${text.slice(0, 120) || "no url"}`);
+  }
+  return text;
+}
+
+async function uploadArchive(zip, fileName) {
+  const blob = new Blob([zip], { type: "application/zip" });
+  const tooBig = zip.length > CATBOX_LIMIT;
+
+  if (!tooBig) {
+    try {
+      const url = await postMultipart(
+        "https://catbox.moe/user/api.php",
+        { reqtype: "fileupload" },
+        blob,
+        fileName,
+      );
+      return { url, host: "catbox.moe", expiry: null };
+    } catch {
+      /* fall through to litterbox */
+    }
+  }
+
+  const url = await postMultipart(
+    "https://litterbox.catbox.moe/resources/internals/api.php",
+    { reqtype: "fileupload", time: "72h" },
+    blob,
+    fileName,
+  );
+  return { url, host: "litterbox.catbox.moe", expiry: "72 jam" };
+}
+
+/* ─────────────────────────── views ─────────────────────────── */
+
+function scopeLabel(scope) {
+  return scope === BACKUP_SCOPE.SOURCE ? "Source only (.getsc)" : "Full backup";
+}
+
+function deliveryLabel(delivery) {
+  return delivery === BACKUP_DELIVERY.HOSTING ? "Hosting gratis (link)" : "WhatsApp (dokumen)";
+}
+
+async function showInspection(m, ctx) {
   const root = process.cwd();
   if (!existsSync(root)) return m.reply("❌ Direktori proyek tidak ditemukan.");
 
-  await m.reply("📦 Menyiapkan backup penuh… (proses ini bisa lama)");
-
+  const scope = getBackupScope();
   let entries;
   try {
-    entries = await collectFiles(root);
+    entries = await collectFiles(root, scope);
   } catch (error) {
     await m.reply("❌ Gagal membaca file proyek.");
     throw error;
   }
 
+  if (!entries.length) return m.reply("❌ Tidak ada file untuk dibackup.");
+
+  const { totalBytes, totalFiles, groups } = await summarize(entries);
+  const max = 25;
+  const shown = groups.slice(0, max);
+  const structure = shown
+    .map((g) => `┃ ${g.key} — ${g.files} file · ${formatFileSize(g.bytes)}`)
+    .join("\n");
+  const more = groups.length > max ? `\n┃ … dan ${groups.length - max} item lainnya` : "";
+
+  const excluded =
+    scope === BACKUP_SCOPE.SOURCE
+      ? "node_modules, .env, session, database, storage, media, assets, .git"
+      : "node_modules";
+
+  await m.reply(
+    `📦 *Backup — Pemeriksaan Data*\n\n` +
+      `> Mode    : *${scopeLabel(scope)}*\n` +
+      `> Kirim   : *${deliveryLabel(getBackupDelivery())}*\n` +
+      `> Dikecualikan: ${excluded}\n\n` +
+      `*Total:* ${totalFiles} file · ${formatFileSize(totalBytes)}\n\n` +
+      `*Struktur:*\n${structure}${more}\n\n` +
+      `> Jalankan \`${m.prefix || "."}backup start\` untuk mulai.\n` +
+      `> Ubah opsi: \`${m.prefix || "."}backup setting\`.`,
+  );
+}
+
+function settingsButtons() {
+  const delivery = getBackupDelivery();
+  const scope = getBackupScope();
+
+  return [
+    createSingleSelect({
+      title: "Pengiriman",
+      sectionTitle: "CARA KIRIM",
+      highlightLabel: "Pilih pengiriman",
+      rows: [
+        {
+          id: "backup:delivery:whatsapp",
+          title: "WhatsApp (dokumen)",
+          description: delivery === BACKUP_DELIVERY.WHATSAPP ? "Aktif — kirim ZIP ke chat" : "Kirim ZIP langsung",
+        },
+        {
+          id: "backup:delivery:hosting",
+          title: "Hosting gratis (link)",
+          description: delivery === BACKUP_DELIVERY.HOSTING ? "Aktif — upload & kirim link" : "Upload tanpa login",
+        },
+      ],
+    }),
+    createSingleSelect({
+      title: "Cakupan",
+      sectionTitle: "ISI BACKUP",
+      highlightLabel: "Pilih cakupan",
+      rows: [
+        {
+          id: "backup:scope:full",
+          title: "Full backup",
+          description: scope === BACKUP_SCOPE.FULL ? "Aktif — semua kecuali node_modules" : "Database, .env, session",
+        },
+        {
+          id: "backup:scope:source",
+          title: "Source only (.getsc)",
+          description: scope === BACKUP_SCOPE.SOURCE ? "Aktif — kode sumber saja" : "Tanpa rahasia & state",
+        },
+      ],
+    }),
+  ];
+}
+
+async function showSettings(m, ctx, note = "") {
+  const prefix = m.prefix || ".";
+  const body =
+    `⚙️ *Backup Settings*\n\n` +
+    (note ? `${note}\n\n` : "") +
+    `> Pengiriman : *${deliveryLabel(getBackupDelivery())}*\n` +
+    `> Cakupan    : *${scopeLabel(getBackupScope())}*\n\n` +
+    `Pilih opsi di bawah. Perubahan langsung tersimpan.\n` +
+    `Mulai: \`${prefix}backup start\` · Cek data: \`${prefix}backup\``;
+
+  const ok = await sendNativeFlow(ctx.sock, m.chat, {
+    headerTitle: "Backup Settings",
+    body,
+    footer: "GX-ID • Backup",
+    buttons: settingsButtons(),
+    messageParamsJson: buildMessageParams({ listTitle: "BACKUP", buttonTitle: "PILIH" }),
+    quoted: m.raw,
+    mentionedJid: [m.sender],
+    fallbackLabel: "backup-settings",
+  });
+
+  if (!ok) {
+    await m.reply(
+      `${body}\n\n*Fallback teks:*\n` +
+        `> \`${prefix}backup whatsapp\` / \`${prefix}backup hosting\`\n` +
+        `> \`${prefix}backup full\` / \`${prefix}backup source\``,
+    );
+  }
+  return true;
+}
+
+/* ─────────────────────────── actions ─────────────────────────── */
+
+async function startBackup(m, ctx) {
+  const root = process.cwd();
+  if (!existsSync(root)) return m.reply("❌ Direktori proyek tidak ditemukan.");
+
+  const scope = getBackupScope();
+  const delivery = getBackupDelivery();
+
+  await m.reply(`📦 Menyiapkan ${scopeLabel(scope).toLowerCase()}…`);
+
+  let entries;
+  try {
+    entries = await collectFiles(root, scope);
+  } catch (error) {
+    await m.reply("❌ Gagal membaca file proyek.");
+    throw error;
+  }
   if (!entries.length) return m.reply("❌ Tidak ada file untuk dibackup.");
 
   let zip;
@@ -173,18 +436,114 @@ async function handler(m, { sock }) {
     throw error;
   }
 
-  const stamp = Date.now();
-  const base = `${root.split(/[\\/]/).pop() || "bot"}-backup-${stamp}`;
+  const base = `${root.split(/[\\/]/).pop() || "bot"}-backup-${Date.now()}`;
+  const size = formatFileSize(zip.length);
+
+  if (delivery === BACKUP_DELIVERY.HOSTING) {
+    await m.reply(`☁️ Mengunggah ${size} ke cloud…`);
+    let uploaded;
+    try {
+      uploaded = await uploadArchive(zip, `${base}.zip`);
+    } catch (error) {
+      await m.reply(
+        `❌ *Upload gagal.*\n\n> ${error.message}\n\n` +
+          `> Coba lagi atau set pengiriman ke WhatsApp:\n> \`${m.prefix || "."}backup whatsapp\``,
+      );
+      throw error;
+    }
+
+    await m.reply(
+      `✅ *Backup selesai*\n\n` +
+        `> File    : *${base}.zip*\n` +
+        `> Ukuran  : *${size}*\n` +
+        `> Mode    : *${scopeLabel(scope)}*\n` +
+        `> Host    : *${uploaded.host}*${uploaded.expiry ? ` (${uploaded.expiry})` : ""}\n` +
+        `> File    : ${entries.length} file\n\n` +
+        `🔗 ${uploaded.url}`,
+    );
+    return;
+  }
 
   await sendDocument(
-    sock,
+    ctx.sock,
     m,
     zip,
     `${base}.zip`,
-    `📦 *Backup penuh* (${entries.length} file, ${(zip.length / 1048576).toFixed(1)} MB)\n\n` +
-      "> Hanya node_modules yang dikecualikan.\n" +
-      "> ⚠️ Arsip ini berisi kredensial (.env, session). Simpan dengan aman.",
+    `📦 *Backup* (${scopeLabel(scope)})\n\n` +
+      `> ${entries.length} file · ${size}\n` +
+      (scope === BACKUP_SCOPE.FULL
+        ? "> Termasuk .env, session, database & storage. Simpan dengan aman."
+        : "> Mode source: rahasia & state dikecualikan."),
   );
+}
+
+/* ─────────────────────────── flow route ─────────────────────────── */
+
+registerFlowRoute("backup", async (m, ctx, { action, args }) => {
+  if (!isOwnerOrWhitelistedIn(m)) {
+    await m.reply("❌ *Akses ditolak.*\n\n> Backup hanya untuk owner.").catch(() => {});
+    return true;
+  }
+
+  const value = String(args[0] || "").toLowerCase();
+
+  if (action === "delivery") {
+    if (!setBackupDelivery(value)) return false;
+    return showSettings(m, ctx, `✅ Pengiriman: *${deliveryLabel(getBackupDelivery())}*`);
+  }
+  if (action === "scope") {
+    if (!setBackupScope(value)) return false;
+    return showSettings(m, ctx, `✅ Cakupan: *${scopeLabel(getBackupScope())}*`);
+  }
+  if (action === "menu") return showSettings(m, ctx);
+  if (action === "start") return startBackup(m, ctx);
+  return false;
+});
+
+/* ─────────────────────────── handler ─────────────────────────── */
+
+async function handler(m, ctx) {
+  const sub = String(m.args?.[0] || "").toLowerCase();
+  const prefix = m.prefix || ".";
+
+  switch (sub) {
+    case "":
+    case "check":
+    case "info":
+    case "status":
+      return showInspection(m, ctx);
+    case "start":
+    case "run":
+    case "go":
+      return startBackup(m, ctx);
+    case "setting":
+    case "settings":
+    case "set":
+      return showSettings(m, ctx);
+    case "whatsapp":
+    case "wa":
+      setBackupDelivery(BACKUP_DELIVERY.WHATSAPP);
+      return showSettings(m, ctx, "✅ Pengiriman: *WhatsApp (dokumen)*");
+    case "hosting":
+    case "link":
+    case "upload":
+      setBackupDelivery(BACKUP_DELIVERY.HOSTING);
+      return showSettings(m, ctx, "✅ Pengiriman: *Hosting gratis (link)*");
+    case "full":
+      setBackupScope(BACKUP_SCOPE.FULL);
+      return showSettings(m, ctx, "✅ Cakupan: *Full backup*");
+    case "source":
+    case "getsc":
+      setBackupScope(BACKUP_SCOPE.SOURCE);
+      return showSettings(m, ctx, "✅ Cakupan: *Source only (.getsc)*");
+    default:
+      return m.reply(
+        `📦 *Backup*\n\n` +
+          `> \`${prefix}backup\` — cek struktur & ukuran\n` +
+          `> \`${prefix}backup start\` — mulai backup\n` +
+          `> \`${prefix}backup setting\` — atur pengiriman & cakupan`,
+      );
+  }
 }
 
 export { pluginConfig as config, handler };
