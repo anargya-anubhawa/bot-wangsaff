@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { parseWebpExif } from "../plugins/utility/parse.js";
+import { findContextInfo, parseWebpExif, toJsonSafe } from "../plugins/utility/parse.js";
 
 const metadata = { "sticker-pack-name": "GX-ID", audio: "sample" };
 const payload = Buffer.from(JSON.stringify(metadata));
@@ -15,3 +15,10 @@ chunk.copy(webp, 12);
 
 assert.deepEqual(parseWebpExif(webp), metadata);
 assert.equal(parseWebpExif(Buffer.from("not-webp")), null);
+assert.equal(toJsonSafe(1n), "1");
+assert.equal(toJsonSafe(Buffer.from("x")), "eA==");
+const circular = {};
+circular.self = circular;
+assert.equal(toJsonSafe(circular).self, "[Circular]");
+const context = { quotedMessage: { contextInfo: { stanzaId: "quoted-id" } } };
+assert.equal(findContextInfo(context).stanzaId, "quoted-id");
