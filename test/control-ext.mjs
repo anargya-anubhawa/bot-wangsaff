@@ -28,9 +28,53 @@ function fakeDb() {
   const schedules = {};
   const stats = { commandsUsed: 42 };
   const state = { whitelistEnabled: false };
+  const groups = { "111@g.us": { name: "Alpha", registered: true, antilink: true } };
+  const notes = {};
+  const filters = {};
+  const blacklists = {};
   return {
     listRegistrations: () => [{ jid: "111@g.us", name: "Alpha", alias: "alpha", status: "active" }],
-    getAllGroups: () => ({ "111@g.us": { name: "Alpha", registered: true } }),
+    getAllGroups: () => groups,
+    getGroup: (jid) => groups[jid] || null,
+    setGroup: (jid, data) => {
+      groups[jid] = { ...(groups[jid] || {}), ...data, jid };
+      return groups[jid];
+    },
+    listNotes: (scope) => Object.values(notes[scope] || {}),
+    setNote: (scope, name, content) => {
+      (notes[scope] ||= {})[name.toLowerCase()] = { name, content };
+      return notes[scope][name.toLowerCase()];
+    },
+    deleteNote: (scope, name) => {
+      const ok = Boolean(notes[scope]?.[name.toLowerCase()]);
+      if (notes[scope]) delete notes[scope][name.toLowerCase()];
+      return ok;
+    },
+    listFilters: (scope) => Object.values(filters[scope] || {}),
+    setFilter: (scope, trigger, data) => {
+      (filters[scope] ||= {})[trigger] = { trigger, ...data };
+      return filters[scope][trigger];
+    },
+    deleteFilter: (scope, trigger) => {
+      const ok = Boolean(filters[scope]?.[trigger]);
+      if (filters[scope]) delete filters[scope][trigger];
+      return ok;
+    },
+    listBlacklist: (scope) => Object.values(blacklists[scope] || {}),
+    addBlacklist: (scope, entry) => {
+      (blacklists[scope] ||= {})[entry] = { entry };
+      return blacklists[scope][entry];
+    },
+    removeBlacklist: (scope, entry) => {
+      const ok = Boolean(blacklists[scope]?.[entry]);
+      if (blacklists[scope]) delete blacklists[scope][entry];
+      return ok;
+    },
+    registerGroup: (jid, data) => ({ jid, ...data }),
+    unregisterGroup: () => true,
+    listRegistrationsFull: () => [],
+    listFederations: () => [],
+    listScopes: () => [],
     getSettings: () => ({ ...settings }),
     setting: (key, value = undefined) => {
       if (value !== undefined) settings[key] = value;
@@ -217,6 +261,76 @@ await test("unknown command still reports unknown", async () => {
   const reply = await rawRequest(server, { id: 15, type: "definitely-not-a-command" });
   assert.equal(reply.ok, false);
   assert.match(reply.error, /unknown request/);
+  await server.stop();
+});
+
+await test("group-flags reads and group-set-flags updates", async () => {
+  const server = await makeServer();
+  const got = await rawRequest(server, { id: 20, type: "group-flags", jid: "111@g.us" });
+  assert.equal(got.ok, true);
+  assert.equal(got.flags.antilink, true);
+  const set = await rawRequest(server, {
+    id: 21, type: "group-set-flags", jid: "111@g.us", flags: { antilink: false, antinsfw: true },
+  });
+  assert.equal(set.ok, true);
+  assert.equal(set.flags.antilink, false);
+  assert.equal(set.flags.antinsfw, true);
+  await server.stop();
+});
+
+await test("blacklist add / list / remove", async () => {
+  const server = await makeServer();
+  await rawRequest(server, { id: 22, type: "blacklist-add", jid: "111@g.us", entry: "badword" });
+  const list = await rawRequest(server, { id: 23, type: "blacklist-list", jid: "111@g.us" });
+  assert.equal(list.entries.length, 1);
+  const del = await rawRequest(server, { id: 24, type: "blacklist-remove", jid: "111@g.us", entry: "badword" });
+  assert.equal(del.ok, true);
+  await server.stop();
+});
+
+await test("notes add / list / delete", async () => {
+  const server = await makeServer();
+  await rawRequest(server, { id: 25, type: "note-add", jid: "111@g.us", name: "rules", content: "be nice" });
+  const list = await rawRequest(server, { id: 26, type: "note-list", jid: "111@g.us" });
+  assert.equal(list.notes.length, 1);
+  const del = await rawRequest(server, { id: 27, type: "note-delete", jid: "111@g.us", name: "rules" });
+  assert.equal(del.ok, true);
+  await server.stop();
+});
+
+await test("filters add / list / delete", async () => {
+  const server = await makeServer();
+  await rawRequest(server, { id: 28, type: "filter-add", jid: "111@g.us", trigger: "hi", content: "hello" });
+  const list = await rawRequest(server, { id: 29, type: "filter-list", jid: "111@g.us" });
+  assert.equal(list.filters.length, 1);
+  const del = await rawRequest(server, { id: 30, type: "filter-delete", jid: "111@g.us", trigger: "hi" });
+  assert.equal(del.ok, true);
+  await server.stop();
+});
+
+await test("banned add / list / remove", async () => {
+  const server = await makeServer();
+  await rawRequest(server, { id: 31, type: "banned-add", number: "628111222333" });
+  const list = await rawRequest(server, { id: 32, type: "banned-list" });
+  assert.ok(list.banned.includes("628111222333"));
+  const del = await rawRequest(server, { id: 33, type: "banned-remove", number: "628111222333" });
+  assert.ok(!del.banned.includes("628111222333"));
+  await server.stop();
+});
+
+await test("plugin-info reports categories", async () => {
+  const server = await makeServer();
+  const reply = await rawRequest(server, { id: 34, type: "plugin-info" });
+  assert.equal(reply.ok, true);
+  assert.ok(typeof reply.info.count === "number");
+  await server.stop();
+});
+
+await test("reg-register registers a group", async () => {
+  const server = await makeServer();
+  const reply = await rawRequest(server, { id: 35, type: "reg-register", jid: "222@g.us", name: "Beta" });
+  assert.equal(reply.ok, true);
+  assert.equal(reply.registration.jid, "222@g.us");
   await server.stop();
 });
 
