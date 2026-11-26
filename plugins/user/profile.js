@@ -1,8 +1,7 @@
 /**
  * GX-ID — /profile (all)
  *
- * Shows a user's profile card: registration, message count, level (when the
- * group has levels on) and join date.
+ * Shows a user's profile card: registration, message count and join date.
  */
 import { resolveTarget, numberFromJid } from "../../lib/group-utils.js";
 
@@ -31,7 +30,6 @@ async function handler(m, { db, config }) {
   const prefix = m.prefix || config.command?.prefix || ".";
   const target = resolveTarget(m) || m.sender;
   const user = db.getUser(target) || {};
-  const level = m.isGroup ? db.getLevel(target, m.chat) : null;
 
   let text =
     `👤 *PROFIL*\n\n` +
@@ -43,11 +41,6 @@ async function handler(m, { db, config }) {
     `┃ Pesan   : ${user.messageCount || 0}\n` +
     `╰─⬣`;
 
-  if (level) {
-    text += `\n\n╭─〔 level grup 〕\n┃ Level : *${level.level}*\n┃ XP    : *${level.xp}*\n╰─⬣`;
-  } else if (m.isGroup) {
-    text += `\n\n> _Sistem level belum aktif di grup ini._`;
-  }
   text += `\n\n> ${user.isRegistered ? "" : `Daftar dulu: \`${prefix}daftar\``}`;
 
   await m.reply(text, { mentions: [target] });

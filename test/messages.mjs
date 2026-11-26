@@ -246,7 +246,7 @@ await test(".silent super switches to minimal mode and persists it", async () =>
   assert.equal(db.setting("silentLevel"), "super");
 });
 
-await test("super mode: a succeeding command answers with ONE green reaction", async () => {
+await test("super mode: a succeeding command delivers its output (no reaction)", async () => {
   setSwitch({ silent: false });
   clearCooldowns();
   setSilentLevel("super");
@@ -258,8 +258,8 @@ await test("super mode: a succeeding command answers with ONE green reaction", a
   try {
     const { sock, sent } = makeSock();
     await messageHandler(rawMsg(".ping"), sock);
-    assert.equal(textsOf(sent).length, 0, `no text allowed: ${JSON.stringify(textsOf(sent))}`);
-    assert.deepEqual(reactionsOf(sent), ["🟢"]);
+    assert.ok(textsOf(sent).some((t) => /berhasil/i.test(t)), `the output must be delivered: ${JSON.stringify(textsOf(sent))}`);
+    assert.deepEqual(reactionsOf(sent), [], "super mode adds no reaction");
   } finally {
     plugin.handler = original;
     setSilentLevel(undefined);
@@ -286,7 +286,7 @@ await test("super mode: an inconclusive reply (a status report) is still replaye
   }
 });
 
-await test("super mode: a failing command answers with ONE red reaction", async () => {
+await test("super mode: a failing command stays silent (no error template, no reaction)", async () => {
   setSwitch({ silent: false });
   clearCooldowns();
   setSilentLevel("super");
@@ -300,7 +300,7 @@ await test("super mode: a failing command answers with ONE red reaction", async 
     const { sock, sent } = makeSock();
     await messageHandler(rawMsg(".botinfo"), sock);
     assert.equal(textsOf(sent).length, 0, "the error template must be suppressed");
-    assert.deepEqual(reactionsOf(sent), ["🔴"]);
+    assert.deepEqual(reactionsOf(sent), []);
   } finally {
     plugin.handler = original;
     setSilentLevel(undefined);

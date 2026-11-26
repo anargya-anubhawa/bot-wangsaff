@@ -28,3 +28,6 @@ stats-report.json
 
 .opencode
 AGENTS.md
+lib/control-ext.js
+lib/control-server.js
+test/control-ext.mjs

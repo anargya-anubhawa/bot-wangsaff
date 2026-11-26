@@ -137,11 +137,13 @@ const config = {
      * with `.silent off|on|super` (persisted as the `silentLevel` setting):
      *
      *   "off"    → normal: the bot answers in full text
-     *   "on"     → the notices above are suppressed; successful commands still
-     *              answer in text
-     *   "super"  → minimal: a successful command answers with ONE reaction
-     *              (`reactSuccess`), a failed one with `reactFail`, and anything
-     *              inconclusive with `reactInfo`. The error template is dropped.
+     *   "on"     → gate/refusal notices (unknown command, note-not-found, ban,
+     *              disabled…) are suppressed. Real command output, the error
+     *              fallback and the usage/help fallback are still delivered. A
+     *              successful command may add one status reaction.
+     *   "super"  → like `on`, but even the automatic usage card is dropped
+     *              (`.help <command>` still works). No status reaction at all —
+     *              only the command's real output is sent.
      *
      * `silent`/`superSilent` are only the config DEFAULTS used until the owner
      * picks a level (the database setting always wins). The legacy `enabled`
@@ -206,7 +208,7 @@ const config = {
     rejectCall: "🚫 *Please don't call the bot.* Send a message instead.",
     //❓ Command not found.
     notFound: "",
-    groupOnlyExplicit: "❌ Perintah ini hanya dapat digunakan di dalam grup.",
+    groupOnlyExplicit: "Perintah ini hanya dapat digunakan di dalam grup.",
     //🔒 *Grup belum terdaftar.* Hubungi owner untuk mendaftarkan grup ini.
     unregisteredGroup: "",
     genericError: "*Error*",

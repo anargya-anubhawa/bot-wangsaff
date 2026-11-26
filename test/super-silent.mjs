@@ -203,20 +203,20 @@ await test(".silent off leaves super mode", async () => {
   reset();
 });
 
-/* ═══════════════════════════ the minimal reply ═══════════════════════════ */
+/* ═══════════════ super mode: real output is delivered, no reaction ═══════════════ */
 
-await test("super: a success replies with ONE 🟢 and no text", async () => {
+await test("super: a success delivers its text and adds NO reaction", async () => {
   reset();
   rt.setSilentLevel("super");
   await withHandler("botinfo", async (m) => m.reply("✅ *Kick berhasil.* User sudah dikeluarkan."), async () => {
     const { sock, sent } = makeSock();
     await messageHandler(rawMsg(".botinfo"), sock);
-    assert.deepEqual(textsOf(sent), [], `no text allowed, got ${JSON.stringify(textsOf(sent))}`);
-    assert.deepEqual(reactionsOf(sent), ["🟢"]);
+    assert.ok(textsOf(sent).some((t) => /berhasil/i.test(t)), `the output must be delivered, got ${JSON.stringify(textsOf(sent))}`);
+    assert.deepEqual(reactionsOf(sent), [], "super mode never reacts");
   });
 });
 
-await test("super: a failure replies with ONE 🔴 and suppresses the error template", async () => {
+await test("super: a thrown failure stays silent (no error template, no 🔴)", async () => {
   reset();
   rt.setSilentLevel("super");
   await withHandler(
@@ -227,37 +227,36 @@ await test("super: a failure replies with ONE 🔴 and suppresses the error temp
     async () => {
       const { sock, sent } = makeSock();
       await messageHandler(rawMsg(".botinfo"), sock);
-      assert.deepEqual(textsOf(sent), [], "the error template must be suppressed in super mode");
-      assert.deepEqual(reactionsOf(sent), ["🔴"]);
+      assert.deepEqual(textsOf(sent), [], "no error template in super mode");
+      assert.deepEqual(reactionsOf(sent), [], "no reaction in super mode");
     },
   );
 });
 
-await test("super: an error MESSAGE replied by the plugin is a 🔴", async () => {
+await test("super: an error MESSAGE replied by the plugin is delivered as text", async () => {
   reset();
   rt.setSilentLevel("super");
   await withHandler("botinfo", async (m) => m.reply("❌ Gagal: target tidak ditemukan."), async () => {
     const { sock, sent } = makeSock();
     await messageHandler(rawMsg(".botinfo"), sock);
-    assert.deepEqual(textsOf(sent), []);
-    assert.deepEqual(reactionsOf(sent), ["🔴"]);
+    assert.ok(textsOf(sent).some((t) => /gagal/i.test(t)), "the plugin's own text is real output");
+    assert.deepEqual(reactionsOf(sent), []);
   });
 });
 
-await test("super: a media reply alone is delivered (no verdict to react to)", async () => {
+await test("super: a media reply is delivered", async () => {
   reset();
   rt.setSilentLevel("super");
   await withHandler("botinfo", async (m) => m.replyImage(Buffer.from("x"), "hasil"), async () => {
     const { sock, sent } = makeSock();
     await messageHandler(rawMsg(".botinfo"), sock);
-    // a media-only reply carries no verdict, so it is replayed instead of a 🟡
     const media = sent.filter((s) => s.content?.image);
     assert.equal(media.length, 1, `the image must be delivered, got: ${JSON.stringify(sent.map((s) => Object.keys(s.content || {})))}`);
     assert.deepEqual(reactionsOf(sent), []);
   });
 });
 
-await test("super: 'processing…' then a verdict collapses into ONE reaction", async () => {
+await test("super: 'processing…' then a verdict delivers both texts, no reaction", async () => {
   reset();
   rt.setSilentLevel("super");
   await withHandler(
@@ -269,13 +268,13 @@ await test("super: 'processing…' then a verdict collapses into ONE reaction", 
     async () => {
       const { sock, sent } = makeSock();
       await messageHandler(rawMsg(".botinfo"), sock);
-      assert.deepEqual(textsOf(sent), [], "the held 'processing' notice must never be shown");
-      assert.deepEqual(reactionsOf(sent), ["🟢"], "exactly one reaction");
+      assert.ok(textsOf(sent).some((t) => /berhasil/i.test(t)), "the result must be delivered");
+      assert.deepEqual(reactionsOf(sent), []);
     },
   );
 });
 
-await test("super: a returned `true` from the handler is a 🟢", async () => {
+await test("super: a returned `true` from the handler still adds no reaction", async () => {
   reset();
   rt.setSilentLevel("super");
   await withHandler(
@@ -287,50 +286,35 @@ await test("super: a returned `true` from the handler is a 🟢", async () => {
     async () => {
       const { sock, sent } = makeSock();
       await messageHandler(rawMsg(".botinfo"), sock);
-      assert.deepEqual(reactionsOf(sent), ["🟢"]);
+      assert.ok(textsOf(sent).some((t) => /tersimpan/i.test(t)));
+      assert.deepEqual(reactionsOf(sent), []);
     },
   );
 });
 
-await test("super: a returned `false` from the handler is a 🔴", async () => {
-  reset();
-  rt.setSilentLevel("super");
-  await withHandler(
-    "botinfo",
-    async (m) => {
-      await m.reply("Sedang diproses.");
-      return false;
-    },
-    async () => {
-      const { sock, sent } = makeSock();
-      await messageHandler(rawMsg(".botinfo"), sock);
-      assert.deepEqual(reactionsOf(sent), ["🔴"]);
-    },
-  );
-});
-
-await test("super: an inconclusive reply is replayed, not replaced by a 🟡", async () => {
+await test("super: an inconclusive info reply is delivered as text", async () => {
   reset();
   rt.setSilentLevel("super");
   await withHandler("botinfo", async (m) => m.reply("📄 Daftar dokumen: SOP, Kalender"), async () => {
     const { sock, sent } = makeSock();
     await messageHandler(rawMsg(".botinfo"), sock);
     assert.ok(textsOf(sent).some((t) => t.includes("Daftar dokumen")), `got: ${JSON.stringify(textsOf(sent))}`);
-    assert.deepEqual(reactionsOf(sent), [], "a replay must not also react");
+    assert.deepEqual(reactionsOf(sent), []);
   });
 });
 
-await test("super: an explicit ctx.output.fail is a 🔴 even for neutral text", async () => {
+await test("super: an explicit ctx.output.fail delivers text, no reaction", async () => {
   reset();
   rt.setSilentLevel("super");
   await withHandler("botinfo", async (m, ctx) => ctx.output.fail("Tidak ada hasil."), async () => {
     const { sock, sent } = makeSock();
     await messageHandler(rawMsg(".botinfo"), sock);
-    assert.deepEqual(reactionsOf(sent), ["🔴"]);
+    assert.ok(textsOf(sent).some((t) => /tidak ada hasil/i.test(t)));
+    assert.deepEqual(reactionsOf(sent), []);
   });
 });
 
-await test("super: `{ keep: true }` bypasses the filter entirely", async () => {
+await test("super: `{ keep: true }` is delivered", async () => {
   reset();
   rt.setSilentLevel("super");
   await withHandler("botinfo", async (m) => m.reply("✅ Detail penting!", { keep: true }), async () => {
@@ -340,12 +324,11 @@ await test("super: `{ keep: true }` bypasses the filter entirely", async () => {
   });
 });
 
-/* ═══════════════ documentation stays visible in super mode ═══════════════ */
+/* ═══════════════ super mode drops the automatic usage card ═══════════════ */
 
-await test("super: the auto usage card is shown in full, not replaced by a reaction", async () => {
+await test("super: the auto usage card is NOT shown for a bare parent command", async () => {
   reset();
   rt.setSilentLevel("super");
-  // `.translate` takes parameters, so a bare call renders the usage card.
   const plugin = getPlugin("translate");
   assert.ok(plugin, "the translate plugin must be loaded for this test");
   const { sock, sent } = makeSock();
@@ -353,17 +336,15 @@ await test("super: the auto usage card is shown in full, not replaced by a react
 
   const texts = textsOf(sent);
   assert.ok(
-    texts.some((t) => /Parameter tersedia|Usage:/i.test(t)),
-    `the usage card must be delivered, got: ${JSON.stringify(texts)}`
+    !texts.some((t) => /Parameter tersedia|Usage:/i.test(t)),
+    `super mode must not auto-show the usage card, got: ${JSON.stringify(texts)}`
   );
-  assert.deepEqual(reactionsOf(sent), [], "documentation is not a verdict — no status light");
+  assert.deepEqual(reactionsOf(sent), [], "no reaction either");
 });
 
-await test("super: .help <command> detail card is shown in full", async () => {
+await test("super: .help <command> still works and shows the detail card", async () => {
   reset();
   rt.setSilentLevel("super");
-  // `.help close` is the telling case: its card mentions a failure-marker word,
-  // so without `keep` super mode would collapse the whole card into a 🔴.
   const { sock, sent } = makeSock();
   await messageHandler(rawMsg(".help close"), sock);
   const texts = textsOf(sent);
@@ -374,45 +355,18 @@ await test("super: .help <command> detail card is shown in full", async () => {
   assert.deepEqual(reactionsOf(sent), [], "the help card must not be replaced by a reaction");
 });
 
-await test("super: a non-documentation reply that gives no verdict is replayed (unchanged)", async () => {
-  reset();
-  rt.setSilentLevel("super");
-  // Existing behaviour: an inconclusive informational reply is replayed rather
-  // than replaced by a 🟡. Only the explicitly `keep`-marked DOCUMENTATION
-  // bypasses the hold queue — this test pins that distinction down.
-  await withHandler("botinfo", async (m) => m.reply("📄 Daftar dokumen: SOP, Kalender"), async () => {
-    const { sock, sent } = makeSock();
-    await messageHandler(rawMsg(".botinfo"), sock);
-    assert.ok(
-      textsOf(sent).some((t) => t.includes("Daftar dokumen")),
-      "an inconclusive info reply is still replayed",
-    );
-    assert.deepEqual(reactionsOf(sent), []);
-  });
-});
-
-await test("super: a refusal is still the red reaction, with no text", async () => {
+await test("super: a refusal produces no output at all", async () => {
   reset();
   rt.setSilentLevel("super");
   const { sock, sent } = makeSock();
   // `.silent` is owner-only: a plain user is refused by the permission gate
   await messageHandler(rawMsg(".silent on", { sender: USER }), sock);
   assert.equal(textsOf(sent).length, 0, `a refusal must stay silent, got: ${JSON.stringify(textsOf(sent))}`);
+  assert.equal(reactionsOf(sent).length, 0, "super must not react");
   reset();
 });
 
-await test("super: a plugin error message is still a reaction, not text", async () => {
-  reset();
-  rt.setSilentLevel("super");
-  await withHandler("botinfo", async (m) => m.reply("❌ Gagal: target tidak ditemukan."), async () => {
-    const { sock, sent } = makeSock();
-    await messageHandler(rawMsg(".botinfo"), sock);
-    assert.deepEqual(textsOf(sent), [], "error text must be suppressed in super mode");
-    assert.deepEqual(reactionsOf(sent), ["🔴"]);
-  });
-});
-
-await test("super: a waiting/processing notice is still collapsed, not shown", async () => {
+await test("super: a waiting/processing notice is delivered as text, no reaction", async () => {
   reset();
   rt.setSilentLevel("super");
   await withHandler(
@@ -424,11 +378,12 @@ await test("super: a waiting/processing notice is still collapsed, not shown", a
     async () => {
       const { sock, sent } = makeSock();
       await messageHandler(rawMsg(".botinfo"), sock);
-      assert.deepEqual(textsOf(sent), [], "the waiting notice must never be shown");
-      assert.deepEqual(reactionsOf(sent), ["🟢"]);
+      assert.ok(textsOf(sent).some((t) => /berhasil/i.test(t)), "the result text must be delivered");
+      assert.deepEqual(reactionsOf(sent), []);
     },
   );
 });
+
 
 /* ═══════════════════════════ cancels ═══════════════════════════ */
 
@@ -597,7 +552,7 @@ await test("a flow prompt is its own output: no auto-reaction is stacked on it",
   reset();
 });
 
-await test("a flow tap continues the turn (super mode applies to the tapped action)", async () => {
+await test("a flow tap continues the turn (super mode delivers output, no reaction)", async () => {
   reset();
   rt.setSilentLevel("super");
   const { registerFlowRoute, handleFlowAction } = await import("../lib/flow-router.js");
@@ -614,8 +569,8 @@ await test("a flow tap continues the turn (super mode applies to the tapped acti
   };
   rt.instrumentMessage(m);
   await handleFlowAction(m, {});
-  assert.deepEqual(sent.filter((s) => s.react), [{ react: "🟢" }], "the tap resolves to one status light");
-  assert.deepEqual(sent.filter((s) => s.text), [], "no text under super mode");
+  assert.deepEqual(sent.filter((s) => s.react), [], "super mode adds no reaction");
+  assert.ok(sent.filter((s) => s.text).some((s) => /berhasil/i.test(s.text)), "the tapped action's output is delivered");
   reset();
 });
 
@@ -656,7 +611,7 @@ await test("normal: a failed ✅ reaction falls back to the collapsed text", asy
   reset();
 });
 
-await test("super: a failed 🟢 reaction replays the held reply", async () => {
+await test("super: real output is delivered even if a reaction could not be sent", async () => {
   reset();
   rt.setSilentLevel("super");
   const sent = [];

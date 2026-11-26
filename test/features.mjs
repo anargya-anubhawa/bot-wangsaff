@@ -179,9 +179,9 @@ await test("all new commands registered", async () => {
     "commandcd", "bulkdelay", "bulkdelaystatus", "presencesim", "presencedelay", "presencestatus",
     "quotelimit", "revokelimit", "revokelimitstatus", "vpsinfo", "copy",
     "logscope", "rvoscope",
-    "setuplevel", "levelstatus", "top", "resetlevel",
     "report", "purge", "help", "leave", "daftar", "profile",
-    "animsticker", "animstickeroptions", "getvo", "tovideo",
+    "animsticker", "animstickeroptions", "getvo", "getdeleted", "tovideo",
+    "health", "cachestat",
     "update", "checkupdate",
   ];
   const missing = expected.filter((c) => !getPlugin(c));
@@ -644,19 +644,6 @@ await test("cmdaccess overrides tier", async () => {
 
 /* ─────────────────── 9. levels ─────────────────── */
 
-await test("level XP only accrues when enabled", async () => {
-  const chat = "9100@g.us";
-  const { sock } = makeSock();
-  await messageHandler(rawMsg("hi", { sender: USER, group: chat }), sock);
-  assert.equal(db.getLevel(USER, chat), null, "XP accrued while disabled");
-
-  db.setGroup(chat, { levelEnabled: true });
-  const { sock: sock2 } = makeSock();
-  await messageHandler(rawMsg("hi again", { sender: USER, group: chat }), sock2);
-  const rec = db.getLevel(USER, chat);
-  assert.ok(rec && rec.xp > 0, "XP did not accrue when enabled");
-});
-
 /* ─────────────────── 10. no-secret guarantees ─────────────────── */
 
 await test("sysinfo (alias of botinfo) exposes no secrets", async () => {
@@ -1005,33 +992,14 @@ await test("whitelist add/list/del", async () => {
   assert.ok(!db.isWhitelisted("628777666555"), "del failed");
 });
 
-/* ─────────────────── 17. levels (cont.) ─────────────────── */
+/* ─────────────────── 17. levels (removed) ─────────────────── */
 
-await test("setuplevel + top + resetlevel", async () => {
-  const chat = "17000@g.us";
-  const { sock, sent } = makeSock();
-  await messageHandler(rawMsg(".setuplevel on", { sender: ADMIN, group: chat }), sock);
-  assert.equal(db.getGroup(chat).levelEnabled, true, `setuplevel: ${textOf(sent)}`);
+/* The group level/XP system was removed. These tests pin its absence. */
 
-  db.addLevelXp(USER, chat, 500);
-  db.addLevelXp(ADMIN, chat, 900);
-
-  const { sock: s2, sent: sent2 } = makeSock();
-  await messageHandler(rawMsg(".top", { sender: USER, group: chat }), s2);
-  assert.ok(textOf(sent2).includes("Peringkat") || textOf(sent2).includes("Level"), `top: ${textOf(sent2)}`);
-
-  const { sock: s3 } = makeSock();
-  await messageHandler(rawMsg(".resetlevel", { sender: ADMIN, group: chat }), s3);
-  assert.equal(db.getTopLevels(chat, 5).length, 0, "resetlevel failed");
-});
-
-await test("levelstatus shows sender progress", async () => {
-  const chat = "17001@g.us";
-  db.setGroup(chat, { levelEnabled: true });
-  db.addLevelXp(USER, chat, 250);
-  const { sock, sent } = makeSock();
-  await messageHandler(rawMsg(".levelstatus", { sender: USER, group: chat }), sock);
-  assert.ok(textOf(sent).includes("Level") || textOf(sent).includes("XP"), `got: ${textOf(sent)}`);
+await test("leveling commands are gone", async () => {
+  for (const name of ["level", "top", "setuplevel", "levelstatus", "resetlevel"]) {
+    assert.equal(getPlugin(name), undefined, `${name} should no longer be registered`);
+  }
 });
 
 /* ─────────────────── 18. utility extras ─────────────────── */
@@ -1614,7 +1582,7 @@ await test("revoked media is forwarded to an external log panel", async () => {
   const forwarded = sent.find((s) => s.jid === panel && s.content?.image);
   assert.ok(forwarded, `media not forwarded: ${JSON.stringify(sent.map((s) => s.jid))}`);
   assert.equal(forwarded.content.image.toString(), buf.toString(), "forwarded bytes must match");
-  assert.ok((forwarded.content.caption || "").includes("REVOKED"), `caption: ${forwarded.content.caption}`);
+  assert.ok((forwarded.content.caption || "").includes("Deleted Message Log"), `caption: ${forwarded.content.caption}`);
   // the source group must NOT get a duplicate notice (panel is external)
   assert.ok(!sent.some((s) => s.jid === src), "source group should stay quiet");
 });
@@ -1641,8 +1609,73 @@ await test("revoked text is forwarded to an external log panel as text", async (
 
   const forwarded = sent.find((s) => s.jid === panel);
   assert.ok(forwarded, "text revoke not forwarded");
-  assert.ok((forwarded.content?.text || "").includes("REVOKED"), `got: ${forwarded.content?.text}`);
+  assert.ok((forwarded.content?.text || "").includes("Deleted Message Log"), `got: ${forwarded.content?.text}`);
   assert.ok((forwarded.content?.text || "").includes("pesan teks rahasia"), "content missing");
+});
+
+await test("revoked sticker is logged with media to the panel", async () => {
+  const src = "21080@g.us";
+  const panel = "21081@g.us";
+  db.registerGroup(src, { name: "Sticker Src", status: "active", activated: true });
+  db.registerGroup(panel, { name: "Sticker Panel", status: "active", activated: true });
+  db.setRegistrationLogPanel(src, panel);
+
+  const { rememberMessage } = await import("../lib/recent-messages.js");
+  const buf = Buffer.from("STICKER_BYTES");
+  await rememberMessage(
+    { chat: src, id: "FWD_STK", body: "", sender: USER, type: "stickerMessage", download: async () => buf },
+    { cacheMedia: true, mediaType: "sticker" },
+  );
+
+  const { sock, sent } = makeSock();
+  await messageHandler(
+    {
+      key: { remoteJid: src, fromMe: false, id: "FWD_REV3", participant: USER },
+      message: { protocolMessage: { type: 0, key: { id: "FWD_STK", remoteJid: src } } },
+      messageTimestamp: Math.floor(Date.now() / 1000),
+    },
+    sock,
+  );
+
+  const forwarded = sent.find((s) => s.jid === panel);
+  assert.ok(forwarded, "sticker revoke not forwarded");
+  assert.ok(forwarded.content?.sticker || forwarded.content?.text, `nothing delivered: ${JSON.stringify(forwarded.content)}`);
+  if (forwarded.content?.text) {
+    assert.ok(forwarded.content.text.includes("[sticker]"), `sticker placeholder missing: ${forwarded.content.text}`);
+  }
+});
+
+await test("revoked message in a private chat is logged to the default panel", async () => {
+  const { setDefaultLogPanel, setLogScope } = await import("../lib/settings.js");
+  const prevPanel = (await import("../lib/settings.js")).getDefaultLogPanel();
+  const prevScope = (await import("../lib/settings.js")).getLogScope();
+  const panel = OWNER;
+  setDefaultLogPanel(panel);
+  setLogScope("public");
+  try {
+    const chat = USER;
+    const { rememberMessage } = await import("../lib/recent-messages.js");
+    rememberMessage({ chat, id: "DM_REVOKE", body: "pesan pribadi", sender: USER, type: "conversation" });
+
+    const { sock, sent } = makeSock();
+    await messageHandler(
+      {
+        key: { remoteJid: chat, fromMe: false, id: "DM_REV", participant: chat },
+        message: { protocolMessage: { type: 0, key: { id: "DM_REVOKE", remoteJid: chat } } },
+        messageTimestamp: Math.floor(Date.now() / 1000),
+      },
+      sock,
+    );
+
+    const notice = sent.find((s) => s.jid === panel && (s.content?.text || "").includes("Deleted Message Log"));
+    assert.ok(notice, `private revoke not logged: ${JSON.stringify(sent.map((s) => s.jid))}`);
+    assert.ok((notice.content.text || "").includes("pesan pribadi"), "content missing");
+    assert.ok((notice.content.text || "").includes("Nomor:"), "number field missing");
+    assert.ok((notice.content.text || "").includes("Timestamp:"), "timestamp field missing");
+  } finally {
+    setDefaultLogPanel(prevPanel);
+    setLogScope(prevScope);
+  }
 });
 
 /* ─────────────────── 23. moderation event logger ─────────────────── */

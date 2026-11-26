@@ -129,7 +129,18 @@ function startHotReloadWatcher() {
 
 /* ─────────────────────────── boot ─────────────────────────── */
 
+/**
+ * Whether the "bot aktif" notice has already been announced for THIS process
+ * lifecycle. A reconnect (network blip, watchdog refresh, session conflict)
+ * re-emits `connection.update: open` and must NOT re-announce — that caused the
+ * management panel to be spammed. Only the first successful connection after a
+ * real boot / restart sends the notice.
+ */
+let onlineAnnounced = false;
+
 async function boot({ showBanner = true } = {}) {
+  onlineAnnounced = false;
+
   if (showBanner) {
     banner({
       name: config.bot?.name || "GX-ID",
@@ -162,11 +173,12 @@ async function boot({ showBanner = true } = {}) {
   logger.info("starting connection…");
   await startConnection({
     onMessage: messageHandler,
-    // Announce "bot aktif" on the management panel as soon as WhatsApp is
-    // reachable (not merely when the process booted — a QR/pairing wait must
-    // not report the bot as online).
+    // Announce "bot aktif" on the management panel once, on the first time
+    // WhatsApp becomes reachable after boot. Reconnects re-emit `open` and must
+    // stay silent (spamming the panel was the bug).
     onConnectionUpdate: async (update, sock) => {
-      if (update?.connection === "open") {
+      if (update?.connection === "open" && !onlineAnnounced) {
+        onlineAnnounced = true;
         await notifyOnline(sock).catch(() => {});
       }
     },

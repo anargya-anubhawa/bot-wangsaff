@@ -21,8 +21,9 @@ import { checkGroupCooldown, applyGroupCooldown, getGroupCooldown } from "../lib
 import { isOwnerOrWhitelistedIn } from "../lib/access.js";
 import { cacheViewOnce } from "../lib/view-once.js";
 import { ingatVisualDibalasVN, ingatStikerSuaraMasuk } from "../lib/stickerAudioCache.js";
-import { rememberMessage, recallMessage } from "../lib/recent-messages.js";
-import { logModerationEvent, getExternalLogPanel } from "../lib/moderation-log.js";
+import { rememberMessage, recallMessage, markDeleted } from "../lib/recent-messages.js";
+import { logModerationEvent, getLogPanel, buildForward } from "../lib/moderation-log.js";
+import { getDefaultLogPanel, getConfiguredTimezone, getCurrentTimeParts } from "../lib/settings.js";
 import { detectMediaType, getMimetype } from "../lib/media.js";
 import { getEffectiveNote } from "../lib/group-scope.js";
 import { shouldShowUsage, renderCommandUsage } from "../lib/command-usage.js";
@@ -303,8 +304,12 @@ export async function runCommand(m, sock, db, legacyConn, prefix) {
      with its usage + available parameters instead of running. Opt-out commands
      declare `helpOnEmpty: false` / `runsBare: true`; aliases never trigger it.
      `keep: true` — documentation is real information, not command output, so
-     super silent mode must still show it in full. */
+     silent mode must still show it in full. Super mode drops the automatic card
+     (`help <command>` remains the way to read it). */
   if (shouldShowUsage(m, plugin.config)) {
+    /* super mode drops the automatic card, and must not fall through to the
+       handler (a bare call would just print its own usage again). */
+    if (superSilent()) return true;
     await m
       .reply(renderCommandUsage(plugin.config, prefix, { icons: config.help?.categoryIcons === true }), {
         keep: true,
@@ -382,23 +387,113 @@ export async function runCommand(m, sock, db, legacyConn, prefix) {
 
 /* ─────────────────────────── revoke handling ─────────────────────────── */
 
+/** Best-effort display name for a GROUP subject. */
+async function resolveGroupName(sock, chat, db) {
+  try {
+    const meta = await sock.groupMetadata(chat);
+    if (meta?.subject) return meta.subject;
+  } catch {
+    /* fall through */
+  }
+  try {
+    const reg = db.getRegistration(chat);
+    if (reg?.name) return reg.name;
+  } catch {
+    /* ignore */
+  }
+  return String(chat || "").split("@")[0];
+}
+
+/** Best-effort display name for a 1:1 chat (the other party's push name). */
+function resolveChatName(jid, db) {
+  try {
+    const user = jid ? db.getUser(jid) : null;
+    if (user?.name) return user.name;
+  } catch {
+    /* ignore */
+  }
+  return String(jid || "").split("@")[0];
+}
+
+/** Best-effort display name for a sender (contact push name, then number). */
+function resolveSenderName(actor, db) {
+  try {
+    const user = actor ? db.getUser(actor) : null;
+    if (user?.name) return user.name;
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
+/** Timestamp for the deleted-message log, in the configured timezone. */
+function formatDeletedTime(date = new Date()) {
+  try {
+    const p = getCurrentTimeParts(getConfiguredTimezone(), date);
+    return `${p.ddmmyyyy} ${p.hhmm}`;
+  } catch {
+    return date.toISOString();
+  }
+}
+
+/**
+ * Build the deleted-message log.
+ *
+ *   group   → "Nama grup: <subject>" + a "Pengirim: <sender name>" line
+ *   private → "Nama chat: <name>"
+ * The number line is ALWAYS the sender's number (both group and private).
+ */
+function formatDeletedNotice({ isGroup, groupName, chatName, senderName, actor, content, mediaType, time }) {
+  const number = String(actor || "").split("@")[0] || "-";
+  const body = content
+    ? String(content).slice(0, 1000)
+    : mediaType
+      ? `[${mediaType}]`
+      : "[konten tidak tersimpan]";
+  const lines = ["> Deleted Message Log"];
+  if (isGroup) {
+    lines.push(`Nama grup: ${groupName}`);
+    lines.push(`Pengirim: ${senderName || "-"}`);
+  } else {
+    lines.push(`Nama chat: ${chatName}`);
+  }
+  lines.push(`Nomor: ${number}`);
+  lines.push("");
+  lines.push("Pesan:");
+  lines.push(body);
+  lines.push(`Timestamp: ${time}`);
+  return lines.join("\n");
+}
+
 /**
  * A user revoking (deleting) their own message arrives as a `protocolMessage`
- * with `type: 0`. We look the original message up in the short-lived recent
- * cache so the event log can show what was deleted — if it has already expired
- * only the metadata (who/when) is recorded, never a stale copy.
+ * with `type: 0`. We look the original message up in the recent-message cache
+ * so the log can show what was deleted — if it was never cached (or evicted by
+ * the per-chat count cap) only the metadata (who/when) is recorded.
  */
 async function handleRevoke(rawMsg, sock) {
   try {
     const proto = rawMsg.message.protocolMessage;
     const originalKey = proto.key || {};
     const chat = rawMsg.key?.remoteJid || originalKey.remoteJid || "";
-    if (!String(chat).endsWith("@g.us")) return;
+    if (!chat) return;
 
+    const isGroup = String(chat).endsWith("@g.us");
     const messageId = originalKey.id || null;
-    const actor = rawMsg.key?.participant || originalKey.participant || null;
+    const actor = rawMsg.key?.participant || originalKey.participant || rawMsg.key?.remoteJid || null;
     const remembered = messageId ? recallMessage(chat, messageId) : null;
+    if (remembered) markDeleted(chat, remembered, messageId);
 
+    const db = getDatabase();
+    const time = formatDeletedTime();
+
+    /* names: group subject for groups (plus the sender's name below it), the
+       other party's name for a 1:1 chat. The number is always the sender's. */
+    const groupName = isGroup ? await resolveGroupName(sock, chat, db) : null;
+    const chatName = isGroup ? null : resolveChatName(chat, db);
+    const senderName = resolveSenderName(actor, db);
+
+    /* Persist the event (no box notice — this path sends its own simple log). */
     await logModerationEvent(
       {
         type: "moderation",
@@ -407,14 +502,37 @@ async function handleRevoke(rawMsg, sock) {
         groupId: chat,
         actorId: actor,
         messageId,
-        contentPreview: remembered?.body || null,
+        contentPreview: remembered?.body || (remembered?.media?.mediaType ? `[${remembered.media.mediaType}]` : null),
         media: remembered?.media || null,
         metadata: remembered
           ? { cached: true, mediaType: remembered.media?.mediaType || null }
-          : { cached: false, detail: "konten sudah kedaluwarsa" },
+          : { cached: false, detail: "konten tidak tersimpan" },
+        skipPanel: true,
       },
       sock,
     );
+
+    /* Deliver a simple, human-readable log to the panel. */
+    const panel = isGroup ? getLogPanel(chat) : getDefaultLogPanel();
+    if (!panel) return;
+
+    const text = formatDeletedNotice({
+      isGroup,
+      groupName,
+      chatName,
+      senderName,
+      actor,
+      content: remembered?.body || null,
+      mediaType: remembered?.media?.mediaType || null,
+      time,
+    });
+
+    const forward = remembered?.media ? buildForward(remembered.media, text) : null;
+    if (forward) {
+      await sock.sendMessage(panel, forward);
+    } else {
+      await sock.sendMessage(panel, { text, mentions: actor ? [actor] : [] });
+    }
   } catch (error) {
     logger.error(`revoke: ${error.message}`);
   }
@@ -475,12 +593,12 @@ export async function messageHandler(rawMsg, sock) {
 
   /* keep the last messages in a short-lived TTL cache so a revoke can be
      reported with its original content (in-memory only, never persisted).
-     Media is cached too, but only when an EXTERNAL log panel exists — that is
-     the only case where the media is forwarded somewhere the group can't see. */
-  if (m.isGroup && !m.fromMe && m.id) {
+     Media is cached too (bounded by count/size) so a revoked sticker / photo /
+     video can still be logged even when it was not seen elsewhere. */
+  if (!m.fromMe && m.id) {
     try {
-      const externalPanel = getExternalLogPanel(m.chat);
-      const mediaType = externalPanel ? detectMediaType(m) : null;
+      const mediaType = detectMediaType(m);
+      const mediaNode = m.type ? rawMsg?.message?.[m.type] : null;
       // Fire-and-forget: caching media must never block message processing.
       Promise.resolve(
         rememberMessage(m, {
@@ -488,6 +606,7 @@ export async function messageHandler(rawMsg, sock) {
           mediaType,
           mimetype: mediaType ? getMimetype(m) : "",
           fileName: m.fileName || "",
+          fileLength: Number(mediaNode?.fileLength) || 0,
         }),
       ).catch(() => {});
     } catch {
@@ -527,16 +646,6 @@ export async function messageHandler(rawMsg, sock) {
       if (await runDirectVirtexCheck(m, sock, config.owner?.number)) return;
     } catch (error) {
       logger.error(`dm antivirtex: ${error.message}`);
-    }
-  }
-
-  /* level XP — every group message grants XP when the group enabled levels */
-  if (m.isGroup && !m.fromMe) {
-    try {
-      const group = db.getGroup(m.chat);
-      if (group?.levelEnabled) db.addLevelXp(m.sender, m.chat, 5);
-    } catch {
-      /* ignore */
     }
   }
 

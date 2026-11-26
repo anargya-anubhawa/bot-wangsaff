@@ -107,6 +107,11 @@ async function main() {
     const r = ser.parseCommand("#rules");
     assert.equal(r.isCommand, false);
   });
+  check("serialize does not treat punctuation-only bodies as commands", () => {
+    for (const body of [".....", "...", "..", ".", ".!!", ". "]) {
+      assert.equal(ser.parseCommand(body).isCommand, false, `"${body}" must not be a command`);
+    }
+  });
   check("serialize jid helpers", () => {
     assert.equal(ser.getNumber("6281@s.whatsapp.net"), "6281");
     assert.equal(ser.createJid("6281"), "6281@s.whatsapp.net");
