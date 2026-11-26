@@ -45,7 +45,7 @@ import crypto from 'crypto';
 import ff from 'fluent-ffmpeg';
 import { path as ffmpegPath } from '@ffmpeg-installer/ffmpeg';
 import webpmux from 'node-webpmux';
-import { downloadContentFromMessage } from '@whiskeysockets/baileys';
+import { downloadContentFromMessage, normalizeMessageContent } from '@whiskeysockets/baileys';
 
 import config from '../../config.js';
 import { getDatabase } from '../../lib/database.js';
@@ -64,7 +64,7 @@ import {
   hapusPilihan,
   MASA_PILIHAN,
 } from '../../lib/stickerAudioCache.js';
-import { fieldMedia, kirimStikerSuara, MIME_AUDIO_STIKER as MIME_AUDIO } from '../../lib/stickerSuara.js';
+import { kirimStikerSuara } from '../../lib/stickerSuara.js';
 
 ff.setFfmpegPath(ffmpegPath);
 
@@ -238,7 +238,7 @@ function visualBersarang(message, remoteJid) {
  * @returns {Promise<string>} path file sementara
  */
 async function unduhDariProto(media, jenis) {
-  const media2 = media?.quoted || {};
+  const media2 = normalizeMessageContent(media?.quoted || {}) || media?.quoted || {};
   const field = Object.keys(media2).find((k) => k.endsWith('Message'));
   if (!field) throw new Error(`File ${jenis} tidak ditemukan setelah diunduh.`);
   const stream = await downloadContentFromMessage(media2[field], field.replace('Message', ''));
@@ -253,19 +253,11 @@ async function unduhDariProto(media, jenis) {
 
 /** Unggah stiker + audio ke CDN WhatsApp, lalu kirim sebagai sound sticker. */
 async function kirimStikerAudio(sock, remoteJid, message, stiker, audio, langkah) {
-  const upAudio = await langkah('upload audio', 60_000, () =>
-    sock.waUploadToServer(fs.readFileSync(audio.file), { type: 'audio', mimetype: MIME_AUDIO }),
-  );
-
   await kirimStikerSuara(sock, remoteJid, {
     webpBuffer: stiker.webpBuffer,
     isAnimated: stiker.isAnimated,
-    audioMessage: {
-      ...fieldMedia(upAudio, MIME_AUDIO),
-      seconds: audio.seconds,
-      ptt: false,
-      ...(upAudio.streamingSidecar ? { streamingSidecar: upAudio.streamingSidecar } : {}),
-    },
+    audioBuffer: fs.readFileSync(audio.file),
+    seconds: audio.seconds,
     quoted: message,
     langkah,
   });
@@ -461,6 +453,7 @@ function buatJejak() {
     gagal(ringkas, error) {
       const di = gagalDi ? ` di langkah "${gagalDi}"` : '';
       console.log(`[SA] ✘ ${ringkas} | gagal${di} setelah ${detik()} dtk: ${error?.message || error}`);
+      if (error?.stack) console.log(error.stack);
     },
   };
 }
@@ -545,10 +538,10 @@ async function handle(m, { sock }) {
     );
   }
 
-  if (typeof sock.waUploadToServer !== 'function') {
+  if (typeof sock.prepareMedia !== 'function') {
     return sock.sendMessage(
       remoteJid,
-      { text: '❌ Fitur ini butuh koneksi yang mendukung upload media manual.' },
+      { text: '❌ Fitur ini butuh koneksi yang mendukung persiapan media (prepareMedia).' },
       { quoted: message },
     );
   }
