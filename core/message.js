@@ -20,6 +20,7 @@ import { runFilters } from "../lib/filters.js";
 import { checkGroupCooldown, applyGroupCooldown, getGroupCooldown } from "../lib/cooldown.js";
 import { isOwnerOrWhitelistedIn } from "../lib/access.js";
 import { cacheViewOnce } from "../lib/view-once.js";
+import { ingatVisualDibalasVN, ingatStikerSuaraMasuk } from "../lib/stickerAudioCache.js";
 import { rememberMessage, recallMessage } from "../lib/recent-messages.js";
 import { logModerationEvent, getExternalLogPanel } from "../lib/moderation-log.js";
 import { detectMediaType, getMimetype } from "../lib/media.js";
@@ -492,6 +493,15 @@ export async function messageHandler(rawMsg, sock) {
     } catch {
       /* ignore */
     }
+  }
+
+  /* Ingatan `.sa`: catat VN/audio yang membalas stiker/gambar, dan stiker
+     suara yang masuk. Hanya mencatat — kegagalannya tidak boleh mengganggu. */
+  try {
+    if (m.isAudio || m.isDocument) ingatVisualDibalasVN(m.chat, m.raw);
+    else if (m.isSticker) ingatStikerSuaraMasuk(m.chat, m.raw);
+  } catch {
+    /* ignore */
   }
 
   /* cache view-once media so `.getvo` can re-send it later */
