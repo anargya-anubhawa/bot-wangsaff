@@ -480,9 +480,19 @@ async function handleRevoke(rawMsg, sock) {
 
     const isGroup = String(chat).endsWith("@g.us");
     const messageId = originalKey.id || null;
-    const actor = rawMsg.key?.participant || originalKey.participant || rawMsg.key?.remoteJid || null;
     const remembered = messageId ? recallMessage(chat, messageId) : null;
     if (remembered) markDeleted(chat, remembered, messageId);
+
+    /* The number shown must belong to whoever DELETED the message. The cached
+       sender of the original message is the most reliable source (Baileys
+       sometimes omits `participant` on the revoke stanza, and in a 1:1 chat
+       `remoteJid` is the other party, not the actor). */
+    const actor =
+      remembered?.sender ||
+      rawMsg.key?.participant ||
+      originalKey.participant ||
+      (!isGroup ? rawMsg.key?.remoteJid : null) ||
+      null;
 
     const db = getDatabase();
     const time = formatDeletedTime();
@@ -647,6 +657,13 @@ export async function messageHandler(rawMsg, sock) {
     } catch (error) {
       logger.error(`dm antivirtex: ${error.message}`);
     }
+  }
+
+  /* mode gate for non-command traffic — in group-only modes a non-command PC
+     message must be ignored silently (no note/game/XMPP replies). */
+  if (!m.isCommand) {
+    const modeCheck = checkMode(m);
+    if (!modeCheck.allowed) return;
   }
 
   /* native-flow response — dispatched before anything else so flow ids are
