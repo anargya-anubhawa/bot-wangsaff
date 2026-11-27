@@ -334,6 +334,26 @@ await test("reg-register registers a group", async () => {
   await server.stop();
 });
 
+await test("settings-options returns catalog with enums", async () => {
+  const server = await makeServer();
+  const reply = await rawRequest(server, { id: 40, type: "settings-options" });
+  assert.equal(reply.ok, true);
+  assert.equal(reply.catalog.botMode.type, "enum");
+  assert.ok(reply.catalog.botMode.options.includes("reggroup"));
+  await server.stop();
+});
+
+await test("env-list masks secret values", async () => {
+  const server = await makeServer();
+  const reply = await rawRequest(server, { id: 41, type: "env-list" });
+  assert.equal(reply.ok, true);
+  assert.ok(Array.isArray(reply.entries));
+  const secret = reply.entries.find((e) => e.secret && e.set);
+  // any present secret must be masked, never the raw value
+  if (secret) assert.equal(secret.value, "********");
+  await server.stop();
+});
+
 /* ─────────────────────────────── report ─────────────────────────────── */
 
 const failed = results.filter((r) => !r.ok);
