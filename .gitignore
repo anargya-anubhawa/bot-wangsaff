@@ -3,8 +3,8 @@ node_modules/
 
 # runtime data (do not commit)
 storage/
-database/main/
-database/lid-cache.json
+database/
+!database/.gitkeep
 
 #session
 session/

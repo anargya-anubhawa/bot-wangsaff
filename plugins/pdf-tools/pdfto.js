@@ -25,7 +25,7 @@ import { createJob, getJob, dropJob } from "../../lib/pdf-jobs.js";
 
 const pluginConfig = {
   name: "pdfto",
-  alias: ["frompdf", "pdf2", "pdfconvert", "pdf2docx", "pdfto"],
+  alias: ["frompdf", "pdf2", "pdfconvert", "pdf2docx"],
   category: "pdf-tools",
   description: "Convert a PDF into DOCX/TXT/MD/HTML/RTF (or PNG/JPG)",
   usage: ".pdfto (reply to a PDF)",

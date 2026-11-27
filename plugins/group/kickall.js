@@ -66,7 +66,9 @@ async function handler(m, { sock, config }) {
     return;
   }
 
-  if (sub) {
+  /* a bare `.kickall` (no args) is documented by the usage card, but an
+     unrecognised extra argument is still an error. */
+  if (sub && sub !== "start") {
     return m.reply(`❌ Sub-perintah tidak dikenal.\n\n> Usage: \`${prefix}kickall\` atau \`${prefix}kickall confirm <token>\``);
   }
 

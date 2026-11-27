@@ -2,7 +2,7 @@
 
 const pluginConfig = {
     name: 'cekumur',
-    alias: ['umur', 'age'],
+    alias: ['age'],
     category: 'cek',
     description: 'Cek umur mental kamu',
     usage: '.cekumur <nama>',

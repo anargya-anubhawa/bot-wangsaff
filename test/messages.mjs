@@ -315,10 +315,17 @@ await test(".silent super implies silentEnabled (gate notices suppressed)", asyn
   setSilentLevel(undefined);
 });
 
-await test(".silent with no argument reports the state", async () => {
+await test(".silent with no argument shows the usage card", async () => {
   setSwitch({ silent: true });
   const { sock, sent } = makeSock();
   await messageHandler(rawMsg(".silent", { sender: OWNER }), sock);
+  assert.ok(textsOf(sent).some((t) => /Usage:/.test(t)), `got: ${JSON.stringify(textsOf(sent))}`);
+});
+
+await test(".silent status reports the current level", async () => {
+  setSwitch({ silent: true });
+  const { sock, sent } = makeSock();
+  await messageHandler(rawMsg(".silent status", { sender: OWNER }), sock);
   assert.ok(textsOf(sent).some((t) => /status/i.test(t) && /on/i.test(t)), `got: ${JSON.stringify(textsOf(sent))}`);
 });
 

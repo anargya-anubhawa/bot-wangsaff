@@ -271,16 +271,16 @@ await test("pdf-jobs evicts the oldest entry past capacity", () => {
 /* ─────────────────────────── plugin registration ─────────────────────────── */
 
 await test(".unpdf plugin registers with the expected metadata", async () => {
-  const mod = await import("../plugins/utility/unpdf.js");
-  assert.equal(mod.config.name, "unpdf");
-  assert.equal(mod.config.category, "utility");
+  const mod = await import("../plugins/pdf-tools/pdfto.js");
+  assert.equal(mod.config.name, "pdfto");
+  assert.equal(mod.config.category, "pdf-tools");
   assert.ok(mod.config.alias.includes("frompdf"));
   assert.equal(typeof mod.handler, "function");
 });
 
 /* ─────────────────────────── handler behaviour ─────────────────────────── */
 
-const plugin = await import("../plugins/utility/unpdf.js");
+const plugin = await import("../plugins/pdf-tools/pdfto.js");
 const { handleFlowAction } = await import("../lib/flow-router.js");
 
 /** Build a minimal `m` + `sock` pair for driving the command handler. */
@@ -362,7 +362,7 @@ await test(".unpdf shows the interactive picker for a replied PDF", async () => 
   const ids = rows.map((r) => r.id);
   assert.ok(ids.some((id) => id.endsWith(":docx")), `docx row missing: ${ids}`);
   assert.ok(ids.some((id) => id.endsWith(":txt")), "txt row missing");
-  assert.ok(rows.some((r) => r.id.startsWith("unpdf:cancel:")), "cancel row missing");
+  assert.ok(rows.some((r) => r.id.startsWith("pdfto:cancel:")), "cancel row missing");
   assert.ok(ctx.reactions.includes("📥"), "expected the download reaction");
 });
 
@@ -373,9 +373,9 @@ await test("tapping a picker row converts and sends the DOCX", async () => {
   await plugin.handler(ctx.m, ctx);
 
   // Recover the token from the row id and drive the flow route.
-  const token = pickerRows(ctx).find((r) => r.id.startsWith("unpdf:to:")).id.split(":")[2];
+  const token = pickerRows(ctx).find((r) => r.id.startsWith("pdfto:to:")).id.split(":")[2];
   const tap = makeCtx();
-  tap.m.body = `unpdf:to:${token}:docx`;
+  tap.m.body = `pdfto:to:${token}:docx`;
   const handled = await handleFlowAction(tap.m, tap);
   assert.equal(handled, true, "the flow route must consume the tap");
 
@@ -395,10 +395,10 @@ await test("tapping the cancel row drops the job and sends nothing", async () =>
   const quoted = { isDocument: true, fileName: "x.pdf", mimetype: "application/pdf", download: async () => pdf };
   const ctx = makeCtx({ quoted });
   await plugin.handler(ctx.m, ctx);
-  const token = pickerRows(ctx).find((r) => r.id.startsWith("unpdf:cancel:")).id.split(":")[2];
+  const token = pickerRows(ctx).find((r) => r.id.startsWith("pdfto:cancel:")).id.split(":")[2];
 
   const tap = makeCtx();
-  tap.m.body = `unpdf:cancel:${token}`;
+  tap.m.body = `pdfto:cancel:${token}`;
   await handleFlowAction(tap.m, tap);
   assert.equal(tap.sent.length, 0);
   assert.equal(jobs.getJob(token), null, "job must be dropped");
@@ -410,11 +410,11 @@ await test("a tap from another chat cannot redeem the job", async () => {
   const quoted = { isDocument: true, fileName: "s.pdf", mimetype: "application/pdf", download: async () => pdf };
   const ctx = makeCtx({ quoted });
   await plugin.handler(ctx.m, ctx);
-  const token = pickerRows(ctx).find((r) => r.id.startsWith("unpdf:to:")).id.split(":")[2];
+  const token = pickerRows(ctx).find((r) => r.id.startsWith("pdfto:to:")).id.split(":")[2];
 
   const intruder = makeCtx();
   intruder.m.chat = "9999@g.us";
-  intruder.m.body = `unpdf:to:${token}:txt`;
+  intruder.m.body = `pdfto:to:${token}:txt`;
   await handleFlowAction(intruder.m, intruder);
   assert.equal(intruder.sent.length, 0, "must not leak a file across chats");
   assert.ok(/kedaluwarsa|expired/i.test(intruder.replies[0]), intruder.replies[0]);

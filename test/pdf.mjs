@@ -176,9 +176,23 @@ await test("convertToPdf passes a PDF through untouched", async () => {
 });
 
 await test("convertToPdf renders text with the built-in writer", async () => {
-  const out = await convert.convertToPdf(Buffer.from("hello world\nsecond line"), { fileName: "notes.txt" });
-  assert.equal(out.engine, "builtin-text");
-  validatePdf(out.buffer);
+  /* force the built-in path so the assertion does not depend on whether a host
+     LibreOffice happens to be installed (it converts text too). */
+  const saved = process.env.LIBREOFFICE_PATH;
+  const savedPath = process.env.PATH;
+  process.env.LIBREOFFICE_PATH = "/nonexistent/soffice";
+  process.env.PATH = "/nonexistent";
+  convert.resetLibreOfficeCache();
+  try {
+    const out = await convert.convertToPdf(Buffer.from("hello world\nsecond line"), { fileName: "notes.txt" });
+    assert.equal(out.engine, "builtin-text");
+    validatePdf(out.buffer);
+  } finally {
+    if (saved === undefined) delete process.env.LIBREOFFICE_PATH;
+    else process.env.LIBREOFFICE_PATH = saved;
+    process.env.PATH = savedPath;
+    convert.resetLibreOfficeCache();
+  }
 });
 
 await test("convertToPdf renders images with the built-in writer", async () => {
@@ -230,7 +244,7 @@ await test("supportedExtensions lists the accepted families", () => {
 /* ═══════════════════════════ plugin registration ═══════════════════════════ */
 
 await test(".pdf plugin registers with the expected metadata", async () => {
-  const mod = await import("../plugins/utility/pdf.js");
+  const mod = await import("../plugins/pdf-tools/topdf.js");
   assert.equal(mod.config.name, "pdf");
   assert.equal(mod.config.category, "utility");
   assert.ok(mod.config.alias.includes("topdf"));
@@ -239,7 +253,7 @@ await test(".pdf plugin registers with the expected metadata", async () => {
 
 /* ═══════════════════════════ handler behaviour ═══════════════════════════ */
 
-const plugin = await import("../plugins/utility/pdf.js");
+const plugin = await import("../plugins/pdf-tools/topdf.js");
 
 /** Build a minimal `m` + `sock` pair for driving the command handler. */
 function makeCtx({ quoted = null, self = {} } = {}) {

@@ -275,19 +275,28 @@ await test("admin commands disabled by allowadmin off", async () => {
 
 /* ─────────────────── 3. kickall two-stage confirmation ─────────────────── */
 
-await test("kickall requires confirmation (stage 1)", async () => {
-  const chat = "4000@g.us";
+await test("kickall bare shows the usage card", async () => {
+  const chat = "3999@g.us";
   const { sock, sent, calls } = makeSock();
   await messageHandler(rawMsg(".kickall", { sender: ADMIN, group: chat }), sock);
   const text = textOf(sent);
-  assert.ok(text.includes("KONFIRMASI") || text.includes("confirm"), `got: ${text}`);
+  assert.ok(text.includes("Usage:"), `got: ${text}`);
+  assert.equal(calls.filter((c) => c.method === "groupParticipantsUpdate").length, 0, "bare kickall must not remove anyone");
+});
+
+await test("kickall requires confirmation (stage 1)", async () => {
+  const chat = "4000@g.us";
+  const { sock, sent, calls } = makeSock();
+  await messageHandler(rawMsg(".kickall confirm", { sender: ADMIN, group: chat }), sock);
+  const text = textOf(sent);
+  assert.ok(text.includes("Token"), `got: ${text}`);
   assert.equal(calls.filter((c) => c.method === "groupParticipantsUpdate").length, 0, "must not remove anyone in stage 1");
 });
 
 await test("kickall confirm removes non-admins", async () => {
   const chat = "4001@g.us";
   const { sock, sent, calls } = makeSock();
-  await messageHandler(rawMsg(".kickall", { sender: ADMIN, group: chat }), sock);
+  await messageHandler(rawMsg(".kickall start", { sender: ADMIN, group: chat }), sock);
   const token = (textOf(sent).match(/kickall confirm ([a-f0-9-]{36})/i) || [])[1];
   assert.ok(token, `no token in: ${textOf(sent)}`);
 
@@ -302,7 +311,7 @@ await test("kickall confirm removes non-admins", async () => {
 await test("kickall token cannot be used by another user", async () => {
   const chat = "4002@g.us";
   const { sock, sent } = makeSock();
-  await messageHandler(rawMsg(".kickall", { sender: ADMIN, group: chat }), sock);
+  await messageHandler(rawMsg(".kickall start", { sender: ADMIN, group: chat }), sock);
   const token = (textOf(sent).match(/kickall confirm ([a-f0-9-]{36})/i) || [])[1];
   assert.ok(token, "no token");
 
@@ -315,7 +324,7 @@ await test("kickall token cannot be used by another user", async () => {
 await test("kickall cancel works", async () => {
   const chat = "4003@g.us";
   const { sock, sent } = makeSock();
-  await messageHandler(rawMsg(".kickall", { sender: ADMIN, group: chat }), sock);
+  await messageHandler(rawMsg(".kickall start", { sender: ADMIN, group: chat }), sock);
   const { sock: sock2, sent: sent2 } = makeSock();
   await messageHandler(rawMsg(".kickall cancel", { sender: ADMIN, group: chat }), sock2);
   assert.ok(textOf(sent2).toLowerCase().includes("dibatalkan"), `got: ${textOf(sent2)}`);
@@ -1524,7 +1533,7 @@ await test(".logs renders recent events and sets retention", async () => {
   await messageHandler(rawMsg("cek https://spam.example.com", { sender: USER, group: chat }), s0);
 
   const { sock, sent } = makeSock();
-  await messageHandler(rawMsg(".logs", { sender: OWNER, group: null }), sock);
+  await messageHandler(rawMsg(".logs 20", { sender: OWNER, group: null }), sock);
   assert.ok(textOf(sent).includes("Log Moderasi"), `got: ${textOf(sent)}`);
 
   const { sock: s2, sent: sent2 } = makeSock();
@@ -2407,13 +2416,11 @@ await test(".checkupdate reports unconfigured when GITHUB_REPO is unset", async 
   assert.ok(text.toLowerCase().includes("belum dikonfigurasi"), `got: ${text}`);
 });
 
-await test(".update bare is treated as apply (not a usage card)", async () => {
+await test(".update bare shows the usage card", async () => {
   const { sock, sent } = makeSock();
   await messageHandler(rawMsg(".update", { sender: OWNER, group: null }), sock);
   const text = textOf(sent);
-  /* helpOnEmpty:false → bare `.update` runs; unconfigured → the GITHUB_REPO hint */
-  assert.ok(text.includes("GITHUB_REPO"), `bare .update should run the handler: ${text}`);
-  assert.ok(!text.includes("Parameter tersedia"), "bare .update must not show the usage card");
+  assert.ok(text.includes("Parameter tersedia"), `bare .update must show the usage card: ${text}`);
 });
 
 await test(".update help renders the usage card", async () => {
