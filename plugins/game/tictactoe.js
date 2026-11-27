@@ -1,7 +1,7 @@
 
 
-import { getDatabase } from '../../src/lib/GX-database.js'
-import { parseMention, delay } from '../../src/lib/GX-utils.js'
+import { getDatabase } from '../../src/lib/VEA-database.js'
+import { parseMention, delay } from '../../src/lib/VEA-utils.js'
 const pluginConfig = {
   name: "tictactoe",
   alias: ["ttt", "xo"],

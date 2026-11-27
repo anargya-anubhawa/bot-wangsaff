@@ -1,10 +1,10 @@
 
 
-import { getAssetBuffer } from "../../src/lib/GX-asset-manager.js";
+import { getAssetBuffer } from "../../src/lib/VEA-asset-manager.js";
 import fs from "fs";
 import config from "../../config.js";
-import te from "../../src/lib/GX-error.js";
-import GXApi from "../../src/lib/GX-apimanager.js";
+import te from "../../src/lib/VEA-error.js";
+import VEAApi from "../../src/lib/VEA-apimanager.js";
 const pluginConfig = {
   name: "brat",
   alias: ["bratmenu", "bratimg", "brattext"],
@@ -98,7 +98,7 @@ async function sendBratMenu(m, sock, text) {
 
   await sock.sendButton(
     m.chat,
-    getAssetBuffer("GX"),
+    getAssetBuffer("VEA"),
     caption,
     m,
     {

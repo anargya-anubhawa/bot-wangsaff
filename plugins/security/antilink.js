@@ -1,5 +1,5 @@
 /**
- * GX-ID — /antilink (admin target / owner / whitelist)
+ * VEA — /antilink (admin target / owner / whitelist)
  *
  * Toggles automatic deletion of links posted by non-admin, non-whitelist
  * members. Works remotely:

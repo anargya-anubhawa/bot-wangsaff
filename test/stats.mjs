@@ -1,5 +1,5 @@
 /**
- * GX-ID — `.stats` (per-command usage statistics) test
+ * VEA — `.stats` (per-command usage statistics) test
  *
  * Verifies the global per-command usage counter end to end:
  *
@@ -63,7 +63,7 @@ async function test(name, fn) {
 function makeSock() {
   const sent = [];
   const sock = {
-    user: { id: BOT, name: "GX-ID" },
+    user: { id: BOT, name: "VEA" },
     sendMessage: async (jid, content, options) => {
       sent.push({ jid, content, options });
       return { key: { id: `m${sent.length}` } };

@@ -1,5 +1,5 @@
 /**
- * GX-ID — /listreg (owner/whitelist)
+ * VEA — /listreg (owner/whitelist)
  *
  * Lists every registered group as plain text (no interactive flow). Each entry
  * shows the alias, name, status and the id as inline code the user can tap to

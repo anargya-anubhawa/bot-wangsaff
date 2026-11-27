@@ -1,11 +1,11 @@
 /**
- * GX-ID — Global configuration
+ * VEA — Global configuration
  *
  * This file holds every user-tunable value. Runtime secrets that should not be
  * committed belong in `.env` (see `.env.example`).
  */
 import { getDatabase } from "./lib/database.js";
-import { GX_CORE_CONFIG } from "./GX.js";
+import { VEA_CORE_CONFIG } from "./VEA.js";
 import xmppConfig from "./config/xmpp.js";
 
 function env(key, fallback = undefined) {
@@ -24,8 +24,8 @@ function envList(key, fallback = []) {
 
 const config = {
   bot: {
-    name: env("BOT_NAME", "GX-ID"),
-    shortName: "GX",
+    name: env("BOT_NAME", "VEA"),
+    shortName: "VEA",
     version: "1.0.0",
     developer: env("BOT_DEVELOPER", "GeneticID"),
     number: env("BOT_NUMBER", ""),
@@ -91,7 +91,7 @@ const config = {
    */
   channel: {
     id: env("CHANNEL_ID", ""),
-    name: env("CHANNEL_NAME", "GX-ID Channel"),
+    name: env("CHANNEL_NAME", "VEA Channel"),
     link: env("CHANNEL_LINK", ""),
   },
 
@@ -102,9 +102,10 @@ const config = {
    */
   assets: {
     menu: env("ASSET_MENU", ""),
+    banner: env("ASSET_BANNER", ""),
     thumb: env("ASSET_THUMB", ""),
     audio: env("ASSET_AUDIO", ""),
-    ...structuredClone(GX_CORE_CONFIG.assets),
+    ...structuredClone(VEA_CORE_CONFIG.assets),
   },
 
   ui: {
@@ -127,8 +128,8 @@ const config = {
   },
 
   sticker: {
-    packname: env("STICKER_PACK", "GX-ID"),
-    author: env("STICKER_AUTHOR", "GX-ID"),
+    packname: env("STICKER_PACK", "VEA"),
+    author: env("STICKER_AUTHOR", "VEA"),
   },
 
   messages: {
@@ -215,7 +216,7 @@ const config = {
   },
 
   errorTemplate:
-  //⚠️ *GX-ID* hit an error while running `{prefix}{command}`.\n\n> Sorry {pushName}, please try again later.\n> If it keeps happening, contact the owner.
+  //⚠️ *VEA* hit an error while running `{prefix}{command}`.\n\n> Sorry {pushName}, please try again later.\n> If it keeps happening, contact the owner.
     "",
 
   dev: {
@@ -262,21 +263,21 @@ const config = {
     jobMax: Number(env("PDF_JOB_MAX", "50")),
   },
 
-  /* ───────────────── GX-ID compatibility layer ─────────────────
-   * The game subsystem copied from GX-ID (src/lib/GX-*.js, plugins/game)
-   * reads a handful of extra config fields. They are mapped onto GX.js and
-   * the GX-ID config above so both bots share a single configuration.
+  /* ───────────────── VEA compatibility layer ─────────────────
+   * The game subsystem copied from VEA (src/lib/VEA-*.js, plugins/game)
+   * reads a handful of extra config fields. They are mapped onto VEA.js and
+   * the VEA config above so both bots share a single configuration.
    */
-  info: structuredClone(GX_CORE_CONFIG.info),
-  saluran: structuredClone(GX_CORE_CONFIG.saluran),
-  officialGXGroup: structuredClone(GX_CORE_CONFIG.officialGXGroup),
-  energi: structuredClone(GX_CORE_CONFIG.energi),
-  payment: structuredClone(GX_CORE_CONFIG.payment),
-  donasi: structuredClone(GX_CORE_CONFIG.donasi),
+  info: structuredClone(VEA_CORE_CONFIG.info),
+  saluran: structuredClone(VEA_CORE_CONFIG.saluran),
+  officialVEAGroup: structuredClone(VEA_CORE_CONFIG.officialVEAGroup),
+  energi: structuredClone(VEA_CORE_CONFIG.energi),
+  payment: structuredClone(VEA_CORE_CONFIG.payment),
+  donasi: structuredClone(VEA_CORE_CONFIG.donasi),
 
   /* Third-party API credentials. Only the keys actually referenced by the code
    * live here; each is read from `.env` so no secret is committed. Unused keys
-   * that shipped with GX-ID are kept, commented out, in `.env.example`. */
+   * that shipped with VEA are kept, commented out, in `.env.example`. */
   APIkey: {
     lolhuman: env("APIKEY_LOLHUMAN", ""),
     neoxr: env("APIKEY_NEOXR", ""),
@@ -358,7 +359,7 @@ function isBanned(number) {
 }
 
 /**
- * Premium / partner checks used by the GX game subsystem. Premium status lives
+ * Premium / partner checks used by the VEA game subsystem. Premium status lives
  * in the user record and in the `premiumUsers` / `partnerUsers` settings lists.
  */
 function isPremium(number) {

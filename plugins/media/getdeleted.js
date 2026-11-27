@@ -1,5 +1,5 @@
 /**
- * GX-ID — /getdeleted (all)
+ * VEA — /getdeleted (all)
  *
  * Memulihkan konten pesan yang dihapus (revoke). Balas sebuah pesan (mis. pesan
  * yang membalas pesan terhapus), lalu bot mengirim kembali isi pesan terakhir

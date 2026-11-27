@@ -1,7 +1,7 @@
-import { GX_CORE_CONFIG } from "../../GX.js";
+import { VEA_CORE_CONFIG } from "../../VEA.js";
 
 
-import { getDatabase } from "../../src/lib/GX-database.js";
+import { getDatabase } from "../../src/lib/VEA-database.js";
 import {
   getOrCreateFischUser,
   getRandomFish,
@@ -14,7 +14,7 @@ import {
   JACKPOT_POOLS,
   doJackpotPull,
   applyJackpotReward,
-} from "../../src/lib/GX-fisch.js";
+} from "../../src/lib/VEA-fisch.js";
 import {
   islands,
   travelRequirements,
@@ -27,7 +27,7 @@ import {
   TOKEN_SHOP,
   GACHA_COST_COINS,
   GACHA_PITY_LIMIT,
-} from "../../src/lib/GX-fisch-data.js";
+} from "../../src/lib/VEA-fisch-data.js";
 import config from "../../config.js";
 import path from "path";
 import fs from "fs";
@@ -47,13 +47,13 @@ const encCost = (r) =>
 
 let thumbFish = null;
 try {
-  const p = path.join(process.cwd(), "assets", "images", "GX-fishit.jpg");
+  const p = path.join(process.cwd(), "assets", "images", "VEA-fishit.jpg");
   if (fs.existsSync(p)) thumbFish = fs.readFileSync(p);
 } catch (e) {}
 
 function ctx(title, body) {
-  const sId = GX_CORE_CONFIG.saluran?.id || "120363400911374213@newsletter";
-  const sName = GX_CORE_CONFIG.saluran?.name || GX_CORE_CONFIG.bot?.name || "GX-AI";
+  const sId = VEA_CORE_CONFIG.saluran?.id || "120363400911374213@newsletter";
+  const sName = VEA_CORE_CONFIG.saluran?.name || VEA_CORE_CONFIG.bot?.name || "VEA";
   const c = {
     forwardingScore: 9999,
     isForwarded: true,

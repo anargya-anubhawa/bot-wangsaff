@@ -1,5 +1,5 @@
 /**
- * GX-ID — /add
+ * VEA — /add
  *
  * Add one or more members to a group. Works in a group (targets that group) or
  * in private (requires a group invite link). Mirrors the reference behaviour.

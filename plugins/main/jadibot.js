@@ -1,6 +1,6 @@
 
 
-import { startJadibot, isJadibotActive } from '../../src/lib/GX-jadibot-manager.js'
+import { startJadibot, isJadibotActive } from '../../src/lib/VEA-jadibot-manager.js'
 
 const pluginConfig = {
     name: 'jadibot',

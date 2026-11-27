@@ -1,5 +1,5 @@
 /**
- * GX-ID — /sticker (alias /s)
+ * VEA — /sticker (alias /s)
  *
  * Convert an image/video (or a quoted image/video, or a URL) into a WhatsApp
  * sticker with EXIF metadata.
@@ -20,8 +20,8 @@ const pluginConfig = {
 
 async function handler(m, { sock, config }) {
   const prefix = m.prefix || config.command?.prefix || ".";
-  const packname = m.args[0] || config.sticker?.packname || "GX-ID";
-  const author = m.args[1] || config.sticker?.author || "GX-ID";
+  const packname = m.args[0] || config.sticker?.packname || "VEA";
+  const author = m.args[1] || config.sticker?.author || "VEA";
 
   let media = null;
   let isVideo = false;

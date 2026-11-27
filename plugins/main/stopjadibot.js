@@ -1,6 +1,6 @@
 
 
-import { stopJadibot, isJadibotActive, getJadibotStatus } from '../../src/lib/GX-jadibot-manager.js'
+import { stopJadibot, isJadibotActive, getJadibotStatus } from '../../src/lib/VEA-jadibot-manager.js'
 
 const pluginConfig = {
     name: 'stopjadibot',

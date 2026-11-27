@@ -1,5 +1,5 @@
 /**
- * GX-ID — handler compatibility shim
+ * VEA — handler compatibility shim
  *
  * This file used to contain a full copy of the connection/message handler that
  * imported the `ourin` Baileys fork (never installed) plus several modules that

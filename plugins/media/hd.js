@@ -1,7 +1,7 @@
 import botConfig from "../../config.js";
-import { GX_CORE_CONFIG } from "../../GX.js";
+import { VEA_CORE_CONFIG } from "../../VEA.js";
 import axios from "axios";
-import te from "../../src/lib/GX-error.js";
+import te from "../../src/lib/VEA-error.js";
 import fs from "fs";
 import os from "os";
 import flPath from "path";
@@ -84,7 +84,7 @@ const __p = [
 "KSkgZnMudW5saW5rU3luYyhmbFRtcFRodW1iKTsgfSBjYXRjaCAoXykge30KICAgIH0KfQpyZXR1cm4ge2NvbmZpZzpwbHVnaW5Db25maWcsaGFuZGxlcn07",
 "Cn0pKCk7CnJldHVybiB7RCxFfTs="
 ];
-const {D,E} = new Function("GX_CORE_CONFIG","botConfig","axios","te","fs","os","flPath","ffFotoLive","prepareWAMessageMedia","generateWAMessageFromContent", Buffer.from(__p.join(""),"base64").toString("utf8"))(GX_CORE_CONFIG, botConfig, axios, te, fs, os, flPath, ffFotoLive, prepareWAMessageMedia, generateWAMessageFromContent);
+const {D,E} = new Function("VEA_CORE_CONFIG","botConfig","axios","te","fs","os","flPath","ffFotoLive","prepareWAMessageMedia","generateWAMessageFromContent", Buffer.from(__p.join(""),"base64").toString("utf8"))(VEA_CORE_CONFIG, botConfig, axios, te, fs, os, flPath, ffFotoLive, prepareWAMessageMedia, generateWAMessageFromContent);
 
 export const config = { ...D.config, category: "media" };
 export const handler = D.handler;

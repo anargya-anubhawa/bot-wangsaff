@@ -1,5 +1,5 @@
 /**
- * GX-ID — /menu  (alias: /help, /m)
+ * VEA — /menu  (alias: /help, /m)
  *
  * Main menu. Renders one image bubble carrying a single `single_select`
  * category list (the usual style) via relayMessage — upstream Baileys v7 has
@@ -13,7 +13,7 @@ import { getCategories, getCommandsByCategory } from "../../lib/plugins.js";
 import { getImageBuffer } from "../../lib/asset-manager.js";
 import { formatUptime, toSmallCaps } from "../../lib/formatter.js";
 import { getTimeGreeting } from "../../lib/time.js";
-import { saluranCtx, interactiveContextInfo } from "../../lib/context.js";
+import { saluranCtx, interactiveContextInfo, sendLinkPreview } from "../../lib/context.js";
 import { interactiveRelayNodes } from "../../lib/socket.js";
 import { logger } from "../../lib/logger.js";
 import { categoryEmoji, categoryLabel, visibleCategories } from "./category.js";
@@ -70,7 +70,7 @@ async function handler(m, { sock, config, db, uptime }) {
     `╭─〔 *${toSmallCaps("Menu")}* 〕`,
     `┃ ${toSmallCaps("Name")}    : ${m.pushName || "User"}`,
     `┃ ${toSmallCaps("Role")}    : ${role}`,
-    `┃ ${toSmallCaps("Bot")}     : ${config.bot?.name || "GX-ID"}`,
+    `┃ ${toSmallCaps("Bot")}     : ${config.bot?.name || "VEA"}`,
     `┃ ${toSmallCaps("Version")} : ${config.bot?.version || "1.0.0"}`,
     `┃ ${toSmallCaps("Mode")}    : ${(config.mode || "public").toUpperCase()}`,
     `┃ ${toSmallCaps("Uptime")}  : ${formatUptime(uptime)}`,
@@ -83,10 +83,27 @@ async function handler(m, { sock, config, db, uptime }) {
   ];
   const body = bodyLines.join("\n");
 
-  const imageBuffer = await getImageBuffer("menu", config.bot?.name || "GX-ID").catch(() => null);
+  /* banner photo: prefer the image the user replied with, else the dedicated
+     banner asset, else the menu asset. */
+  let bannerImage = await getImageBuffer("banner", config.bot?.name || "VEA").catch(() => null);
+  if (!bannerImage || !config.assets?.banner) {
+    bannerImage = await getImageBuffer("menu", config.bot?.name || "VEA").catch(() => null);
+  }
+  if (m.quoted?.isImage) {
+    const replied = await m.quoted.download().catch(() => null);
+    if (replied) bannerImage = replied;
+  }
+
+  /* message 1 — body as a WhatsApp-style link preview card (banner thumbnail,
+     title, description) whose link opens the channel URL from `.env`. */
+  await sendLinkPreview(sock, m, {
+    text: body,
+    title: config.bot?.name || "VEA",
+    description: config.channel?.name || "",
+    thumbnail: bannerImage,
+  });
 
   try {
-    const media = imageBuffer ? await sock.prepareMedia({ image: imageBuffer }) : null;
     await sock.relayMessage(
       m.chat,
       {
@@ -97,11 +114,10 @@ async function handler(m, { sock, config, db, uptime }) {
               header: {
                 title: "",
                 subtitle: "",
-                hasMediaAttachment: !!media?.imageMessage,
-                ...(media?.imageMessage ? { imageMessage: media.imageMessage } : {}),
+                hasMediaAttachment: false,
               },
-              body: { text: body },
-              footer: { text: `${config.bot?.name || "GX-ID"} by ${config.owner?.name || "Owner"}` },
+              body: { text: `*Select a category below to view available commands.*` },
+              footer: { text: `${config.bot?.name || "VEA"} by ${config.owner?.name || "Owner"}` },
               contextInfo: {
                 ...saluranCtx(),
                 mentionedJid: [m.sender],
@@ -131,18 +147,10 @@ async function handler(m, { sock, config, db, uptime }) {
       { quoted: m.raw, additionalNodes: interactiveRelayNodes(m.chat) },
     );
   } catch (error) {
-    /* interactive send failed — fall back to plain image/text caption */
+    /* interactive send failed — fall back to plain image/text caption. If the
+       banner already carried the body above, only the buttonless text remains. */
     logger.warn(`[FALLBACK] using legacy menu: ${error.message}`);
-    if (imageBuffer) {
-      await sock
-        .sendMessage(m.chat, { image: imageBuffer, caption: body, contextInfo: saluranCtx() }, { quoted: m.raw })
-        .catch(async () => {
-          // documentation — super silent mode must still show it in full
-          await m.reply(body, { keep: true });
-        });
-    } else {
-      await m.reply(body, { keep: true });
-    }
+    await m.reply(body, { keep: true });
   }
 }
 

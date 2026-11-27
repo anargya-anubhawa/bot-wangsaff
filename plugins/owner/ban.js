@@ -1,5 +1,5 @@
 /**
- * GX-ID — /ban & /unban (owner only)
+ * VEA — /ban & /unban (owner only)
  *
  * Ban/unban a user from using the bot.
  */

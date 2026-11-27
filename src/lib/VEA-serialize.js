@@ -1,4 +1,4 @@
-import { GX_CORE_CONFIG, GX_DEVELOPER } from "../../GX.js";
+import { VEA_CORE_CONFIG, VEA_DEVELOPER } from "../../VEA.js";
 import {
   downloadContentFromMessage,
   getContentType,
@@ -29,14 +29,14 @@ import {
   cacheParticipantLids,
   cacheLidJid,
   resolveFromSock,
-} from "./GX-lid.js";
+} from "./VEA-lid.js";
 import util from "util";
 import axios from "axios";
 import sharp from "sharp";
 import fsc from "fs";
-import { getDatabase } from "./GX-database.js";
-import { saluranCtx } from "./GX-context.js";
-import { getAssetBuffer } from "./GX-asset-manager.js";
+import { getDatabase } from "./VEA-database.js";
+import { saluranCtx } from "./VEA-context.js";
+import { getAssetBuffer } from "./VEA-asset-manager.js";
 let _prefixCache = null;
 let _prefixCacheTime = 0;
 const PREFIX_CACHE_TTL = 30000;
@@ -480,7 +480,7 @@ function createContextInfo(jid, text, title = "", body = "", thumbnail = null) {
       conversation: text,
     };
     contextInfo.participant = jid;
-    contextInfo.stanzaId = "GXAI" + Date.now();
+    contextInfo.stanzaId = "VEAAI" + Date.now();
   }
 
   return contextInfo;
@@ -765,7 +765,7 @@ async function serialize(sock, msg, store = {}) {
   m.to = m.chat;
   m.botNumber = decodeJid(sock.user?.id)?.replace(/@.+/g, "") || "";
   m.botJid = decodeJid(sock.user?.id) || "";
-  m.botName = sock.user?.name || GX_CORE_CONFIG.bot?.name || "GX-AI";
+  m.botName = sock.user?.name || VEA_CORE_CONFIG.bot?.name || "VEA";
   m.messageId = m.id;
   m.chatId = m.chat;
   m.senderId = m.sender;
@@ -828,7 +828,7 @@ async function serialize(sock, msg, store = {}) {
     let srtImage = null;
     try {
       if (db?.setting?.('srtEnabled')) {
-        const { getRandomShuffleAssetBuffer } = await import('./GX-asset-manager.js');
+        const { getRandomShuffleAssetBuffer } = await import('./VEA-asset-manager.js');
         srtImage = await getRandomShuffleAssetBuffer(config.assets?.shuffleUrls);
       }
     } catch (e) { }
@@ -861,7 +861,7 @@ async function serialize(sock, msg, store = {}) {
         },
         message: {
           contactMessage: {
-            displayName: `🪸 ${GX_CORE_CONFIG.bot?.name}`,
+            displayName: `🪸 ${VEA_CORE_CONFIG.bot?.name}`,
             vcard: `BEGIN:VCARD\nVERSION:3.0\nN:XL;ttname,;;;\nFN:ttname\nitem1.TEL;waid=13135550002:+1 (313) 555-0002\nitem1.X-ABLabel:Ponsel\nEND:VCARD`,
             sendEphemeral: true,
           },
@@ -875,9 +875,9 @@ async function serialize(sock, msg, store = {}) {
             await getCachedThumb(join(process.cwd(), "package.json")) ||
             fsc.readFileSync(join(process.cwd(), "package.json")),
           mimetype: "image/png",
-          fileName: GX_CORE_CONFIG.bot.name,
+          fileName: VEA_CORE_CONFIG.bot.name,
           fileLength: 99999999999999,
-          jpegThumbnail: srtImage ? await sharp(srtImage).resize(300, 300).toBuffer() : await sharp(getAssetBuffer("GX2"))
+          jpegThumbnail: srtImage ? await sharp(srtImage).resize(300, 300).toBuffer() : await sharp(getAssetBuffer("VEA2"))
             .resize(300, 300)
             .toBuffer(),
           caption: text,
@@ -890,11 +890,11 @@ async function serialize(sock, msg, store = {}) {
       );
     } else if (replyVariant === 3) {
       const uptime = process.uptime();
-      const sss = getAssetBuffer("GX3");
+      const sss = getAssetBuffer("VEA3");
       return sock.sendMessage(
         await ensureResolved(m.chat),
         {
-          video: getAssetBuffer("GX-mp4"),
+          video: getAssetBuffer("VEA-mp4"),
           caption: text,
           gifPlayback: true,
           contextInfo: {
@@ -906,15 +906,15 @@ async function serialize(sock, msg, store = {}) {
         },
       );
     } else if (replyVariant === 4) {
-      const thumbnail = srtImage || getAssetBuffer("GX");
+      const thumbnail = srtImage || getAssetBuffer("VEA");
       return sock.sendPreview(
         m.chat,
         {
           caption: `${config.info?.website}\n\n${text}`,
           url: config.info?.website || "https://github.com",
-          title: GX_CORE_CONFIG.bot?.name || "GX-AI",
+          title: VEA_CORE_CONFIG.bot?.name || "VEA",
           description:
-            `Pengembang: ${GX_DEVELOPER} | Versi: ${GX_CORE_CONFIG.bot.version}` ||
+            `Pengembang: ${VEA_DEVELOPER} | Versi: ${VEA_CORE_CONFIG.bot.version}` ||
             "WhatsApp Bot",
           image: thumbnail,
           previewType: 0,
@@ -926,15 +926,15 @@ async function serialize(sock, msg, store = {}) {
             isForwarded: true,
             forwardingScore: 9,
             forwardedNewsletterMessageInfo: {
-              newsletterJid: GX_CORE_CONFIG.saluran?.id,
-              newsletterName: GX_CORE_CONFIG.saluran?.name || GX_CORE_CONFIG.bot?.name || "GX-AI",
+              newsletterJid: VEA_CORE_CONFIG.saluran?.id,
+              newsletterName: VEA_CORE_CONFIG.saluran?.name || VEA_CORE_CONFIG.bot?.name || "VEA",
               serverMessageId: Math.floor(Math.random() * 1000000),
             },
           },
         },
       );
     } else if (replyVariant === 5) {
-      const thumbnailBuf = srtImage || getAssetBuffer("GX");
+      const thumbnailBuf = srtImage || getAssetBuffer("VEA");
       const fakeOrder = {
         key: {
           participant: "0@s.whatsapp.net",
@@ -947,7 +947,7 @@ async function serialize(sock, msg, store = {}) {
             itemCount: 999,
             status: 1,
             surface: 1,
-            message: GX_CORE_CONFIG.bot?.name || "GX-AI",
+            message: VEA_CORE_CONFIG.bot?.name || "VEA",
             orderTitle: "System Notification",
             sellerJid: "0@s.whatsapp.net",
             token: "ARU1+",
@@ -977,9 +977,9 @@ async function serialize(sock, msg, store = {}) {
             await getCachedThumb(join(process.cwd(), "package.json")) ||
             fsc.readFileSync(join(process.cwd(), "package.json")),
           mimetype: "image/png",
-          fileName: GX_CORE_CONFIG.bot.name,
+          fileName: VEA_CORE_CONFIG.bot.name,
           fileLength: 99999999999999,
-          jpegThumbnail: srtImage ? await sharp(srtImage).resize(300, 300).toBuffer() : await sharp(getAssetBuffer("GX2"))
+          jpegThumbnail: srtImage ? await sharp(srtImage).resize(300, 300).toBuffer() : await sharp(getAssetBuffer("VEA2"))
             .resize(300, 300)
             .toBuffer(),
           caption: text,
@@ -991,7 +991,7 @@ async function serialize(sock, msg, store = {}) {
         },
       );
     } else if (replyVariant === 7) {
-      const thumbnailBuf = srtImage || getAssetBuffer("GX");
+      const thumbnailBuf = srtImage || getAssetBuffer("VEA");
 
       const msg = generateWAMessageFromContent(m.chat, {
         viewOnceMessage: {
@@ -1003,7 +1003,7 @@ async function serialize(sock, msg, store = {}) {
                 locationMessage: {
                   degreesLatitude: 0,
                   degreesLongitude: 0,
-                  name: GX_CORE_CONFIG.bot?.name || "GX-AI",
+                  name: VEA_CORE_CONFIG.bot?.name || "VEA",
                   address: "Bot Wa Multi Device",
                   jpegThumbnail: await sharp(thumbnailBuf).resize(300, 300).toBuffer(),
                 }
@@ -1029,7 +1029,7 @@ async function serialize(sock, msg, store = {}) {
         messageId: msg.key.id,
       });
     } else if (replyVariant === 8) {
-      const thumbnailBuf = srtImage || getAssetBuffer("GX");
+      const thumbnailBuf = srtImage || getAssetBuffer("VEA");
 
       return await sock.relayMessage(m.chat, {
         viewOnceMessage: {
@@ -1078,7 +1078,7 @@ async function serialize(sock, msg, store = {}) {
       }, {
       })
     } else if (replyVariant === 9) {
-      const thumbnailBuf = srtImage || getAssetBuffer("GX");
+      const thumbnailBuf = srtImage || getAssetBuffer("VEA");
 
       return await sock.relayMessage(
         m.chat,
@@ -1134,7 +1134,7 @@ async function serialize(sock, msg, store = {}) {
       const getRandomSrtImage = async () => {
         try {
           if (db?.setting?.('srtEnabled')) {
-            const { getRandomShuffleAssetBuffer } = await import('./GX-asset-manager.js');
+            const { getRandomShuffleAssetBuffer } = await import('./VEA-asset-manager.js');
             return await getRandomShuffleAssetBuffer(config.assets?.shuffleUrls);
           }
         } catch (e) { }
@@ -1142,7 +1142,7 @@ async function serialize(sock, msg, store = {}) {
       };
 
       const randomImg = await getRandomSrtImage();
-      const thumbnailBuf = randomImg || srtImage || await getAssetBuffer("GX");
+      const thumbnailBuf = randomImg || srtImage || await getAssetBuffer("VEA");
       const { prepareWAMessageMedia } = await import("@whiskeysockets/baileys");
 
       const thumbBuf1280 = await sharp(thumbnailBuf).resize(300, 300).jpeg().toBuffer();
@@ -1151,7 +1151,7 @@ async function serialize(sock, msg, store = {}) {
       const uploadMedia = await prepareWAMessageMedia({ image: thumbBuf1280 }, { upload: sock.waUploadToServer, mediaTypeOverride: "thumbnail-link" });
       const uploadFav = await prepareWAMessageMedia({ image: favBuf512 }, { upload: sock.waUploadToServer, mediaTypeOverride: "thumbnail-link" });
 
-      const botName = GX_CORE_CONFIG.bot?.name || "GX-AI";
+      const botName = VEA_CORE_CONFIG.bot?.name || "VEA";
       const senderNum = m.sender.split('@')[0];
 
       const msg = generateWAMessageFromContent(m.chat, {
@@ -1176,8 +1176,8 @@ async function serialize(sock, msg, store = {}) {
             isForwarded: true,
             forwardingScore: 999,
             forwardedNewsletterMessageInfo: {
-              newsletterJid: GX_CORE_CONFIG.saluran?.id,
-              newsletterName: GX_CORE_CONFIG.saluran?.name
+              newsletterJid: VEA_CORE_CONFIG.saluran?.id,
+              newsletterName: VEA_CORE_CONFIG.saluran?.name
             }
           }
         }

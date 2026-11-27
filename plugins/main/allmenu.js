@@ -1,5 +1,5 @@
 /**
- * GX-ID — /allmenu
+ * VEA — /allmenu
  *
  * Shows the commands of a single category, and (without arguments) lists all
  * categories. Uses the same interactive relayMessage mechanism as /menu.
@@ -8,7 +8,7 @@ import { getCasesByCategory } from "../../case/index.js";
 import { getCategories, getCommandsByCategory, getPlugin } from "../../lib/plugins.js";
 import { getImageBuffer } from "../../lib/asset-manager.js";
 import { toSmallCaps } from "../../lib/formatter.js";
-import { saluranCtx, interactiveContextInfo } from "../../lib/context.js";
+import { saluranCtx, interactiveContextInfo, sendLinkPreview } from "../../lib/context.js";
 import { interactiveRelayNodes } from "../../lib/socket.js";
 import { categoryLabel, isCategoryVisible, visibleCategories } from "./category.js";
 
@@ -46,7 +46,7 @@ function box(title, lines) {
 }
 
 async function sendInteractive(sock, m, config, text, extraButtons = []) {
-  const imageBuffer = await getImageBuffer("menu", config.bot?.name || "GX-ID");
+  const imageBuffer = await getImageBuffer("menu", config.bot?.name || "VEA");
   const media = await sock.prepareMedia({ image: imageBuffer });
   await sock.relayMessage(
     m.chat,
@@ -106,11 +106,15 @@ async function handler(m, { sock, config }) {
       if (!cmds.length) continue;
       text += box(toSmallCaps(categoryLabel(cat)), cmds.map((c) => `${prefix}${c}${commandSymbols(c)}`));
     }
+    await sendLinkPreview(sock, m, {
+      text,
+      title: config.bot?.name || "VEA",
+      description: config.channel?.name || "",
+    });
     try {
-      await sendInteractive(sock, m, config, text);
+      await sendInteractive(sock, m, config, "*Select a button below.*");
     } catch {
-      // documentation — super silent mode must still show it in full
-      await m.reply(text, { keep: true });
+      /* card above already carried the full list */
     }
     return;
   }
@@ -135,8 +139,14 @@ async function handler(m, { sock, config }) {
   let text = box(toSmallCaps(categoryLabel(matched)), allCmds.map((c) => `${prefix}${c}${commandSymbols(c)}`));
   text += `Total: \`${allCmds.length}\` commands`;
 
+  await sendLinkPreview(sock, m, {
+    text,
+    title: config.bot?.name || "VEA",
+    description: config.channel?.name || "",
+  });
+
   try {
-    await sendInteractive(sock, m, config, text, [
+    await sendInteractive(sock, m, config, "*Select a button below.*", [
       {
         name: "quick_reply",
         buttonParamsJson: JSON.stringify({
@@ -146,8 +156,7 @@ async function handler(m, { sock, config }) {
       },
     ]);
   } catch {
-    // documentation — super silent mode must still show it in full
-    await m.reply(text, { keep: true });
+    /* card above already carried the list */
   }
 }
 

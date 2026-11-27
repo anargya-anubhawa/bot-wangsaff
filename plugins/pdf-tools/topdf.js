@@ -1,5 +1,5 @@
 /**
- * GX-ID — /pdf
+ * VEA — /pdf
  *
  * Convert a document or image into a tidy PDF, entirely on the bot host, and
  * send the result back to the chat.

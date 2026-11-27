@@ -1,5 +1,5 @@
 /**
- * GX-ID — feedback-message switch test
+ * VEA — feedback-message switch test
  *
  * Exercises `config.messages.enabled` / `onDisabled` through the real message
  * pipeline: with the switch on, gate notices are delivered as text; with it off
@@ -33,7 +33,7 @@ const { sendFeedback, sendFeedbackTo, feedbackEnabled, disabledMode, silentEnabl
 const { setSilentLevel, superSilent } = await import("../lib/reply-transform.js");
 
 /* This suite drives many messages from a few senders in quick succession;
-   GX-ID's anti-spam gate would otherwise swallow legitimate test traffic. */
+   VEA's anti-spam gate would otherwise swallow legitimate test traffic. */
 if (config.features) config.features.antiSpam = false;
 
 const results = [];
@@ -53,7 +53,7 @@ const OWNER = "628000000001@s.whatsapp.net";
 function makeSock() {
   const sent = [];
   const sock = {
-    user: { id: BOT, name: "GX-ID" },
+    user: { id: BOT, name: "VEA" },
     sendMessage: async (jid, content, options) => {
       sent.push({ jid, content, options });
       return { key: { id: `m${sent.length}` } };

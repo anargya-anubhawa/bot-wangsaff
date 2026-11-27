@@ -1,5 +1,5 @@
 /**
- * GX-ID — /bulkdelaystatus (owner)
+ * VEA — /bulkdelaystatus (owner)
  */
 import { getBulkActionDelayRange } from "../../lib/settings.js";
 

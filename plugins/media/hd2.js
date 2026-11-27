@@ -1,10 +1,10 @@
-import { GX_CORE_CONFIG } from "../../GX.js";
+import { VEA_CORE_CONFIG } from "../../VEA.js";
 
 
 import axios from "axios";
 import FormData from "form-data";
 import config from "../../config.js";
-import te from "../../src/lib/GX-error.js";
+import te from "../../src/lib/VEA-error.js";
 import _sharp from 'sharp';
 
 const pluginConfig = {
@@ -77,7 +77,7 @@ async function handler(m, { sock }) {
         image: { url: data.result },
         mimetype: "image/jpeg",
         jpegThumbnail: thumbBuffer,
-        caption: `✨ HD by ${GX_CORE_CONFIG.bot.name}`,
+        caption: `✨ HD by ${VEA_CORE_CONFIG.bot.name}`,
       },
       { quoted: m },
     );

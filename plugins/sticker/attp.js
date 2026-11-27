@@ -1,11 +1,11 @@
 
 
-import { addExifToWebp } from '../../src/lib/GX-exif.js'
+import { addExifToWebp } from '../../src/lib/VEA-exif.js'
 import axios from 'axios'
 import config from '../../config.js'
-import { f } from '../../src/lib/GX-http.js'
-import te from '../../src/lib/GX-error.js'
-const NEOXR_APIKEY = config.APIkey?.neoxr || 'Milik-Bot-GXMD'
+import { f } from '../../src/lib/VEA-http.js'
+import te from '../../src/lib/VEA-error.js'
+const NEOXR_APIKEY = config.APIkey?.neoxr || 'Milik-Bot-VEA'
 const pluginConfig = {
     name: 'attp',
     alias: ['attp2', 'attp3'],

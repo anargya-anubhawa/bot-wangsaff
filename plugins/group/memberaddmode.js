@@ -1,5 +1,5 @@
 /**
- * GX-ID — /memberaddmode (admin, bot-admin)
+ * VEA — /memberaddmode (admin, bot-admin)
  *
  * Controls who may add new members directly: `admin` (admins only) or `all`.
  */

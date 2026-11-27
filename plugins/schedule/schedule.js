@@ -1,5 +1,5 @@
 /**
- * GX-ID — /schedule (admin target / owner / whitelist)
+ * VEA — /schedule (admin target / owner / whitelist)
  *
  * Unified schedule command, merging the former `schedule` (create), `schedules`
  * (list), `unschedule` (delete) and `settimezone` plugins. Every original entry

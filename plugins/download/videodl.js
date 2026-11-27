@@ -1,5 +1,5 @@
 /**
- * GX-ID — /videodl
+ * VEA — /videodl
  *
  * One command that detects the platform from the URL and downloads it:
  *

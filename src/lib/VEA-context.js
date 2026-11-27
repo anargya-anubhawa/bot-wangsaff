@@ -1,4 +1,4 @@
-import { GX_CORE_CONFIG } from "../../GX.js";
+import { VEA_CORE_CONFIG } from "../../VEA.js";
 import fs from "fs";
 import path from "path";
 import config from "../../config.js";
@@ -6,16 +6,16 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 import axios from "axios";
-import { getAssetBuffer } from "./GX-asset-manager.js";
+import { getAssetBuffer } from "./VEA-asset-manager.js";
 
 let gameThumbBuffer = null;
 let rpgThumbBuffer = null;
 let winnerThumbBuffer = null;
 
 const keys = [
-  ["GX-games", (buf) => { gameThumbBuffer = buf; }],
-  ["GX-rpg", (buf) => { rpgThumbBuffer = buf; }],
-  ["GX-winner", (buf) => { winnerThumbBuffer = buf; }],
+  ["VEA-games", (buf) => { gameThumbBuffer = buf; }],
+  ["VEA-rpg", (buf) => { rpgThumbBuffer = buf; }],
+  ["VEA-winner", (buf) => { winnerThumbBuffer = buf; }],
 ];
 for (const [key, setter] of keys) {
   const buf = getAssetBuffer(key);
@@ -49,8 +49,8 @@ function getRandomPraise() {
 }
 
 function _saluranCtx() {
-  const saluranId = GX_CORE_CONFIG.saluran?.id || "120363400911374213@newsletter";
-  const saluranName = GX_CORE_CONFIG.saluran?.name || GX_CORE_CONFIG.bot?.name || "GX-AI";
+  const saluranId = VEA_CORE_CONFIG.saluran?.id || "120363400911374213@newsletter";
+  const saluranName = VEA_CORE_CONFIG.saluran?.name || VEA_CORE_CONFIG.bot?.name || "VEA";
   return {
     forwardingScore: 9,
     isForwarded: true,
@@ -74,9 +74,9 @@ function getRpgContextInfo(title, body) {
   const base = _saluranCtx();
   if (title || body) {
     base.externalAdReply = {
-      title: title || GX_CORE_CONFIG.bot?.name || "GX RPG",
+      title: title || VEA_CORE_CONFIG.bot?.name || "VEA RPG",
       body: body || "",
-      sourceUrl: GX_CORE_CONFIG.saluran?.link || "",
+      sourceUrl: VEA_CORE_CONFIG.saluran?.link || "",
       mediaType: 1,
       renderLargerThumbnail: false,
       thumbnail: rpgThumbBuffer,
@@ -91,7 +91,7 @@ async function sendGamePreview(sock, jid, text, title, body, options) {
     {
       caption: `${config.info.website} ${text}`,
       url: `${config.info.website}`,
-      title: title || "🎮 GX GAMES",
+      title: title || "🎮 VEA GAMES",
       description: body || "Have fun playing!",
       jpegThumbnail: gameThumbBuffer,
       previewType: 0,
@@ -123,7 +123,7 @@ async function sendRpgPreview(sock, jid, text, title, body, options) {
     {
       caption: `${config.info.website} ${text}`,
       url: `${config.info.website}`,
-      title: title || "⚔️ GX RPG",
+      title: title || "⚔️ VEA RPG",
       description: body || "Adventure awaits!",
       jpegThumbnail: rpgThumbBuffer,
       previewType: 0,
@@ -139,7 +139,7 @@ async function sendToolsPreview(sock, jid, text, title, body, options) {
     {
       caption: `${config.info.website} ${text}`,
       url: `${config.info.website}`,
-      title: title || "🛠️ GX TOOLS",
+      title: title || "🛠️ VEA TOOLS",
       description: body || "Utility & tools",
       jpegThumbnail: gameThumbBuffer,
       previewType: 0,
@@ -170,7 +170,7 @@ function checkFastAnswer(session) {
   return { isFast: false, elapsed: elapsed };
 }
 
-function createFakeQuoted(botName = "GX-AI", verified = true) {
+function createFakeQuoted(botName = "VEA", verified = true) {
   return {
     key: {
       fromMe: false,

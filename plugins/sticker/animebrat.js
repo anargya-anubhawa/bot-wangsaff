@@ -2,8 +2,8 @@
 
 import axios from 'axios'
 import config from '../../config.js'
-import { f } from '../../src/lib/GX-http.js'
-import te from '../../src/lib/GX-error.js'
+import { f } from '../../src/lib/VEA-http.js'
+import te from '../../src/lib/VEA-error.js'
 const pluginConfig = {
     name: 'animebrat',
     alias: [],

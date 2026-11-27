@@ -1,8 +1,8 @@
 
 
-import { getDatabase } from "../../src/lib/GX-database.js";
-import { addExpWithLevelCheck } from "../../src/lib/GX-level.js";
-import te from "../../src/lib/GX-error.js";
+import { getDatabase } from "../../src/lib/VEA-database.js";
+import { addExpWithLevelCheck } from "../../src/lib/VEA-level.js";
+import te from "../../src/lib/VEA-error.js";
 
 const pluginConfig = {
     name: "kyubigame",

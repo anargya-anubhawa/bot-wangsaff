@@ -50,7 +50,7 @@ import { downloadContentFromMessage, normalizeMessageContent } from '@whiskeysoc
 import config from '../../config.js';
 import { getDatabase } from '../../lib/database.js';
 import { isOwner } from '../../lib/access.js';
-import { imageToWebpFFmpeg, videoToWebpFFmpeg, addExifToWebp } from '../../src/lib/GX-exif.js';
+import { imageToWebpFFmpeg, videoToWebpFFmpeg, addExifToWebp } from '../../src/lib/VEA-exif.js';
 import { downloadMedia } from '../../lib/media.js';
 import { getVoiceBuffer } from '../../lib/tts.js';
 import {
@@ -150,8 +150,8 @@ function ekstrakAudio(inputPath, label) {
 }
 
 const metaPaket = () => ({
-  packname: config.sticker?.packname || 'GX-ID',
-  author: config.sticker?.author || 'GX-ID',
+  packname: config.sticker?.packname || 'VEA',
+  author: config.sticker?.author || 'VEA',
 });
 
 /**
@@ -484,7 +484,7 @@ const BIAYA_LIMIT = 1;
 
 /**
  * Data user yang perlu dipotong energinya, atau null bila bebas.
- * GX-ID memakai `energi` sebagai "limit" (db.updateEnergi). Owner & premium
+ * VEA memakai `energi` sebagai "limit" (db.updateEnergi). Owner & premium
  * dengan energi -1 tidak pernah dipotong (ditangani db.updateEnergi).
  */
 function userBerlimit(senderLid) {
@@ -506,7 +506,7 @@ async function potongLimit(senderLid) {
 }
 
 async function handle(m, { sock }) {
-  // Di GX-ID `m.type` berbentuk "imageMessage"/"audioMessage"; di sini dipakai
+  // Di VEA `m.type` berbentuk "imageMessage"/"audioMessage"; di sini dipakai
   // jenis pendek ('image'|'video'|'sticker'|'audio') seperti RESBOT.
   const shortType = m.isImage
     ? 'image'

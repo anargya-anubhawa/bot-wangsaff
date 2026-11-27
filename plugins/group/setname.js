@@ -1,5 +1,5 @@
 /**
- * GX-ID — /setname
+ * VEA — /setname
  *
  * Change the group subject.
  */

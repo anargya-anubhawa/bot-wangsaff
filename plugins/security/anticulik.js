@@ -1,7 +1,7 @@
 
 
-import { getDatabase } from "../../src/lib/GX-database.js";
-import { saluranCtx } from "../../src/lib/GX-context.js";
+import { getDatabase } from "../../src/lib/VEA-database.js";
+import { saluranCtx } from "../../src/lib/VEA-context.js";
 
 const pluginConfig = {
   name: "anticulik",

@@ -1,5 +1,5 @@
 /**
- * GX-ID — Document → PDF converter test
+ * VEA — Document → PDF converter test
  *
  * Covers the whole feature without LibreOffice and without a network:
  *   • extension / MIME resolution and format classification

@@ -1,5 +1,5 @@
 /**
- * GX-ID — /registergroup (owner/whitelist)
+ * VEA — /registergroup (owner/whitelist)
  *
  * Registers a group so the bot may use it (and, when `regMode` is
  * "registered", so its members may run normal commands). Three forms:

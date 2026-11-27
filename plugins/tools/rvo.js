@@ -1,5 +1,5 @@
 /**
- * GX-ID — /rvo (read view once)
+ * VEA — /rvo (read view once)
  *
  * Replies with the media of a view-once message so it can be saved.
  *

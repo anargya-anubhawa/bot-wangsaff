@@ -1,5 +1,5 @@
 /**
- * GX-ID — category registry (menu / allmenu customization)
+ * VEA — category registry (menu / allmenu customization)
  *
  * Single source of truth for how command categories are presented by `.menu`
  * and `.allmenu`. Edit this file to customize:

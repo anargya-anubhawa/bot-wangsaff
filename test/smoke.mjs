@@ -1,5 +1,5 @@
 /**
- * GX-ID — smoke test
+ * VEA — smoke test
  *
  * Verifies that all core modules import cleanly, the database initializes,
  * plugins load and register, and the case system is wired up. Run with:

@@ -1,5 +1,5 @@
 /**
- * GX-ID — /help
+ * VEA — /help
  *
  * Metadata-driven help. There is no hardcoded command list: everything is read
  * from the live plugin registry (`lib/help.js`).

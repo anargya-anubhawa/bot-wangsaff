@@ -1,5 +1,5 @@
 /**
- * GX-ID — /leave (owner)
+ * VEA — /leave (owner)
  *
  * Makes the bot leave the current group. Restricted to owner/whitelist so an
  * ordinary user can never force the bot out of a group.

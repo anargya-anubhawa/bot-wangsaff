@@ -1,5 +1,5 @@
 /**
- * GX-ID — /unlink (owner/whitelist)
+ * VEA — /unlink (owner/whitelist)
  *
  * Removes a link. Mirrors `/link`:
  *

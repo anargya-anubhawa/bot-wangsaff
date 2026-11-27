@@ -1,5 +1,5 @@
 /**
- * GX-ID — /animsticker (alias /animstiker)
+ * VEA — /animsticker (alias /animstiker)
  *
  * Converts a short video/GIF into an ANIMATED sticker, honouring the global
  * `animstickeroptions` (duration/fps/emojis).
@@ -39,8 +39,8 @@ async function handler(m, { sock, config }) {
   }
 
   const stored = parseOptions(getAnimStickerOptions());
-  const packname = m.args?.[0] || config.sticker?.packname || "GX-ID";
-  const author = m.args?.[1] || config.sticker?.author || "GX-ID";
+  const packname = m.args?.[0] || config.sticker?.packname || "VEA";
+  const author = m.args?.[1] || config.sticker?.author || "VEA";
 
   await m.react("🕕");
   try {

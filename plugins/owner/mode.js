@@ -1,5 +1,5 @@
 /**
- * GX-ID — /mode (owner only)
+ * VEA — /mode (owner only)
  *
  * Toggle the bot between public, self, private, group and reggroup mode.
  */

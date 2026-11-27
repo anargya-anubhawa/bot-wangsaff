@@ -1,5 +1,5 @@
 /**
- * GX-ID — /link (owner/whitelist)
+ * VEA — /link (owner/whitelist)
  *
  * Links groups together. Three forms:
  *

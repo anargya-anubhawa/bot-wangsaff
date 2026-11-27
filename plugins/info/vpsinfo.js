@@ -1,5 +1,5 @@
 /**
- * GX-ID — /vpsinfo (owner)
+ * VEA — /vpsinfo (owner)
  *
  * A neofetch / fastfetch-style report of the machine the bot runs on: host,
  * OS, kernel, CPU (model, cores, speed, load, temp), memory & swap, disk,
@@ -29,7 +29,7 @@ const pluginConfig = {
 
 async function handler(m, { config }) {
   const prefix = m.prefix || config.command?.prefix || ".";
-  const botName = config.bot?.name || "GX-ID";
+  const botName = config.bot?.name || "VEA";
   const info = collectSystemInfo();
   await m.reply(renderSystemInfo(info, { prefix, botName }));
 }

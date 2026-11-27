@@ -1,5 +1,5 @@
 /**
- * GX-ID — /profile (all)
+ * VEA — /profile (all)
  *
  * Shows a user's profile card: registration, message count and join date.
  */

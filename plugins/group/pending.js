@@ -1,5 +1,5 @@
 /**
- * GX-ID — /pending (admin, bot-admin)
+ * VEA — /pending (admin, bot-admin)
  *
  * Lists members waiting for join approval.
  */

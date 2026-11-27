@@ -11,7 +11,7 @@
  * JANGAN HAPUS/GANTI CREDITS & THANKS TO
  * JANGAN DIJUAL YA MEK
  * 
- * Saluran Resmi GX:
+ * Saluran Resmi VEA:
  * https://whatsapp.com/channel/0029VbB37bgBfxoAmAlsgE0t 
  * 
  */
@@ -44,9 +44,9 @@ function getTempDir() {
 }
 
 const DEFAULT_METADATA = {
-    packname: 'GX-AI',
+    packname: 'VEA',
     author: 'Bot',
-    packId: 'com.GX.sticker',
+    packId: 'com.VEA.sticker',
     emojis: ['🤖']
 };
 
@@ -366,28 +366,28 @@ function cleanTempFiles(maxAge = 3600000) {
 
 const PRESETS = {
     default: {
-        packname: 'GX-AI',
+        packname: 'VEA',
         author: 'Bot',
         emojis: ['🤖']
     },
     meme: {
         packname: 'Meme Pack',
-        author: 'GX-AI',
+        author: 'VEA',
         emojis: ['😂', '🤣']
     },
     love: {
         packname: 'Love Pack',
-        author: 'GX-AI',
+        author: 'VEA',
         emojis: ['❤️', '💕', '💖']
     },
     sad: {
         packname: 'Sad Pack',
-        author: 'GX-AI',
+        author: 'VEA',
         emojis: ['😢', '😭', '💔']
     },
     angry: {
         packname: 'Angry Pack',
-        author: 'GX-AI',
+        author: 'VEA',
         emojis: ['😠', '😡', '💢']
     }
 };

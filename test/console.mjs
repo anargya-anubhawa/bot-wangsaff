@@ -1,5 +1,5 @@
 /**
- * GX-ID — control console test
+ * VEA — control console test
  *
  * Verifies the separate-process control console: the in-bot `ControlServer`
  * (IPC socket) and the `ControlConsole` client that drives it, plus the pre-boot

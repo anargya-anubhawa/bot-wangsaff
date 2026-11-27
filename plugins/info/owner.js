@@ -1,6 +1,8 @@
 /**
- * GX-ID — /owner
+ * VEA — /owner
  */
+import { sendLinkPreview } from "../../lib/context.js";
+
 const pluginConfig = {
   name: "owner",
   alias: ["creator", "pemilik"],
@@ -24,7 +26,12 @@ async function handler(m, { sock, config }) {
   const text = `👑 *Bot Owner*\n\n> Name: *${config.owner?.name || "Owner"}*\n> Number: ${owners.map((n) => `+${n}`).join(", ")}`;
 
   try {
-    await sock.sendMessage(m.chat, { text }, { quoted: m.raw });
+    await sendLinkPreview(sock, m, {
+      text,
+      title: config.bot?.name || "VEA",
+      description: config.channel?.name || "",
+      quoted: m.raw,
+    });
     await sock.sendContact(m.chat, contacts, { quoted: m.raw });
   } catch {
     await m.reply(text);

@@ -10,7 +10,7 @@ function getSharp() {
 import fs from "fs";
 import path from "path";
 import { config } from "../../config.js";
-import te from "../../src/lib/GX-error.js";
+import te from "../../src/lib/VEA-error.js";
 const pluginConfig = {
   name: "smeme",
   alias: ["memesticker", "memes"],
@@ -138,7 +138,7 @@ async function handler(m, { sock }) {
     });
     const buffer = Buffer.from(response.data);
     await sock.sendImageAsSticker(m.chat, buffer, m, {
-      packname: config.sticker?.packname || "GX-AI",
+      packname: config.sticker?.packname || "VEA",
       author: config.sticker?.author || "Bot",
     });
     m.react("✅");

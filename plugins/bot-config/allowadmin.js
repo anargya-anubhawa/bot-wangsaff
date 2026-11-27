@@ -1,5 +1,5 @@
 /**
- * GX-ID — /allowadmin (owner)
+ * VEA — /allowadmin (owner)
  *
  * Toggles whether group admins may use bot commands in this group
  * (default: on). Owner/whitelist always retain access.

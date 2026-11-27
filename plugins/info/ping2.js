@@ -11,7 +11,7 @@ import fs from 'fs'
 import {
     execSync
 } from 'child_process'
-import { AIRich } from '../../src/lib/GX-builder.js'
+import { AIRich } from '../../src/lib/VEA-builder.js'
 
 const BANNER = 'https://c.termai.cc/a199/0Dw0j.jpg'
 

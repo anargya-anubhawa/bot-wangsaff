@@ -1,5 +1,5 @@
 /**
- * GX-ID — /stats (all)
+ * VEA — /stats (all)
  *
  * Shows how often each command has been used, GLOBALLY, since the bot started
  * counting. Counters live in the bot's existing `stats.json` under

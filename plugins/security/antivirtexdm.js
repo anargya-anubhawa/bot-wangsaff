@@ -1,5 +1,5 @@
 /**
- * GX-ID — /antivirtexdm (owner)
+ * VEA — /antivirtexdm (owner)
  *
  * Global toggle: when on, virtex-like private messages are reported to the
  * owner instead of being ignored. Owner/whitelist senders are exempt.

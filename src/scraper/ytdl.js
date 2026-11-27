@@ -1,5 +1,5 @@
 /**
- * GX-ID — YouTube downloader
+ * VEA — YouTube downloader
  *
  * A small, provider-agnostic downloader used by `plugins/download/*`
  * (`.ytmp3`, `.ytmp4`, `.play`, `.playlagu`, `.ytdl`).
@@ -570,7 +570,7 @@ export async function toPlayableVideoBuffer(videoSource, audioSource = null) {
 /* ─────────────────────────── legacy API ─────────────────────────── */
 
 /**
- * GX-ID style resolver kept for backward compatibility with the download
+ * VEA style resolver kept for backward compatibility with the download
  * plugins: `ytdl(url, "mp3" | "mp4")`.
  * @returns {Promise<{status:boolean, dl?:string, title?:string, mess?:string}>}
  */

@@ -1,5 +1,5 @@
 /**
- * GX-ID — /calculator
+ * VEA — /calculator
  *
  * A safe arithmetic evaluator (no eval). Supports + - * / % ^, parentheses and
  * common functions (sqrt, sin, cos, tan, log, ln, abs, round, floor, ceil).

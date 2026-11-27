@@ -1,7 +1,7 @@
-# GX-ID
+# VEA
 
 A modular WhatsApp bot built on [Baileys](https://github.com/Whiskeysockets/Baileys) (Multi-Device).
-GX-ID follows a plugin + case architecture with a group-scoped notes system,
+VEA follows a plugin + case architecture with a group-scoped notes system,
 group management, media/sticker utilities, BMKG earthquake info and an inline
 chess game.
 
@@ -68,8 +68,8 @@ Core mechanics:
 ## Installation
 
 ```bash
-git clone <your-repo-url> GX-ID
-cd GX-ID
+git clone <your-repo-url> VEA
+cd VEA
 npm install
 ```
 
@@ -92,7 +92,7 @@ Key environment variables:
 
 | Variable | Default | Description |
 | --- | --- | --- |
-| `BOT_NAME` | `GX-ID` | Bot display name |
+| `BOT_NAME` | `VEA` | Bot display name |
 | `OWNER_NAME` | `Owner` | Owner display name |
 | `OWNER_NUMBER` | — | Comma-separated owner numbers (digits only) |
 | `USE_PAIRING_CODE` | `true` | `true` = pairing code, `false` = QR |
@@ -100,7 +100,7 @@ Key environment variables:
 | `BOT_MODE` | `public` | `public` or `self` |
 | `PREFIX` | `.` | Default command prefix |
 | `CHANNEL_ID` | — | Newsletter JID for the channel tag (empty = disabled) |
-| `CHANNEL_NAME` | `GX-ID Channel` | Newsletter name |
+| `CHANNEL_NAME` | `VEA Channel` | Newsletter name |
 | `CHANNEL_LINK` | — | Newsletter link |
 | `ASSET_MENU` | `./media/menu.png` | Menu image (path or URL) |
 | `ASSET_THUMB` | `./media/thumb.png` | Thumbnail (path or URL) |
@@ -131,7 +131,7 @@ disables just the feature that depends on it:
 | `TERMAI_CDN_BASE` | image uploader host (default `https://c.termai.cc`) |
 | `TELEGRAM_BOT_TOKEN` | `.telestick` (Telegram sticker download) |
 
-Unused keys that shipped with the original GX-ID core (`google`, `betabotz`,
+Unused keys that shipped with the original VEA core (`google`, `betabotz`,
 `onlym`, `obscura`, `firefly`, `xterm`, plus the `vercel` / `aquaApi` / `alight`
 blocks) were removed from the code; their values are preserved, commented out,
 in `.env.example` for reference.
@@ -248,7 +248,7 @@ await m.reply(renderCommandUsage(cfg, prefix), { keep: true });
 
 ## Authentication
 
-GX-ID supports **two** login methods.
+VEA supports **two** login methods.
 
 ### Pairing code (recommended)
 
@@ -313,17 +313,17 @@ The supervisor stands down automatically when something else already owns the
 lifecycle — `node --watch` (`npm run dev`), **pm2**, **systemd**, **docker** /
 **kubernetes** — so it never fights your own process manager.
 
-A **single-instance lock** (`storage/gx-id.lock`) guarantees only one bot ever
+A **single-instance lock** (`storage/vea.lock`) guarantees only one bot ever
 runs against a session. If you start a second copy, it refuses to run and tells
 you who already holds the lock — this is what prevents the "two bots → 440
 session conflict → corrupted creds" failure.
 
 | Variable | Default | Meaning |
 | --- | --- | --- |
-| `GX_SUPERVISE` | auto (on) | `1` forces the built-in supervisor on; `0` disables it. |
-| `GX_LOCK_FILE` | `storage/gx-id.lock` | Lock path — override to run an isolated copy. |
+| `VEA_SUPERVISE` | auto (on) | `1` forces the built-in supervisor on; `0` disables it. |
+| `VEA_LOCK_FILE` | `storage/vea.lock` | Lock path — override to run an isolated copy. |
 
-With `GX_SUPERVISE=0` and no external supervisor, a restart relaunches a
+With `VEA_SUPERVISE=0` and no external supervisor, a restart relaunches a
 detached process whose output is appended to `storage/logs/bot.out.log` (the path
 is printed), so a backgrounded bot is never invisible again.
 
@@ -703,7 +703,7 @@ Every handler receives `(m, ctx)`:
 | Property | Description |
 | --- | --- |
 | `m` | Serialized message (see below) |
-| `ctx.sock` | Baileys socket (with GX-ID extensions) |
+| `ctx.sock` | Baileys socket (with VEA extensions) |
 | `ctx.args` | Array of arguments |
 | `ctx.text` | Argument text after the command |
 | `ctx.command` | Matched command name |
@@ -836,7 +836,7 @@ All group commands require the bot to be an admin where noted.
 
 ## Database
 
-GX-ID uses [lowdb](https://github.com/typicode/lowdb) with one JSON file per
+VEA uses [lowdb](https://github.com/typicode/lowdb) with one JSON file per
 concern, stored in `DATABASE_PATH` (default `./database/main`):
 
 | File | Contents |
@@ -881,7 +881,7 @@ For `401`/`loggedOut`, delete `./storage/<SESSION_FOLDER>` and log in again.
 **"Bot tidak start" tapi ternyata jalan di background**
 With the built-in supervisor (default) this cannot happen: the parent process
 stays in the foreground and restarts the bot in place. If you disabled it
-(`GX_SUPERVISE=0`) and no supervisor is managing the bot, a restart relaunches a
+(`VEA_SUPERVISE=0`) and no supervisor is managing the bot, a restart relaunches a
 detached process — check `storage/logs/bot.out.log` and the printed pid. Use
 `npm start` (with the supervisor on) or a real process manager (pm2/systemd) so
 the bot always has a visible owner.
@@ -919,7 +919,7 @@ Check with `.botinfo` and `.mode`.
 ## Project Structure
 
 ```
-GX-ID/
+VEA/
 ├── index.js                 # entry point (boot sequence)
 ├── console.js               # control console launcher (separate terminal)
 ├── config.js                # global configuration
@@ -932,7 +932,7 @@ GX-ID/
 ├── case/
 │   └── index.js             # inline case commands
 ├── lib/
-│   ├── logger.js            # [GX-ID][TAG] logger
+│   ├── logger.js            # [VEA][TAG] logger
 │   ├── database.js          # lowdb multi-file store
 │   ├── serialize.js         # message serializer + command parser
 │   ├── plugins.js           # plugin loader & registry

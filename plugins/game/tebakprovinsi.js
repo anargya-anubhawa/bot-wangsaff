@@ -1,6 +1,6 @@
 
 
-import { games } from '../../src/lib/GX-games.js'
+import { games } from '../../src/lib/VEA-games.js'
 
 // 1. REGISTRASI GAME KE ENGINE
 games.register('tebakprovinsi', {

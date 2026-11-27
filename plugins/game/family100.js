@@ -12,9 +12,9 @@ import {
   isSurrender,
   isReplyToGame,
   getRandomReward,
-} from "../../src/lib/GX-game-data.js";
-import { getDatabase } from "../../src/lib/GX-database.js";
-import { addExpWithLevelCheck } from "../../src/lib/GX-level.js";
+} from "../../src/lib/VEA-game-data.js";
+import { getDatabase } from "../../src/lib/VEA-database.js";
+import { addExpWithLevelCheck } from "../../src/lib/VEA-level.js";
 
 const pluginConfig = {
   name: "family100",

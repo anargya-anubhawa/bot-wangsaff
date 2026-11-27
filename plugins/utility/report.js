@@ -1,5 +1,5 @@
 /**
- * GX-ID — /report (all)
+ * VEA — /report (all)
  *
  * Reports the replied-to (or mentioned) message to every management group
  * linked to this chat, with the sender, the preview and the media if any.

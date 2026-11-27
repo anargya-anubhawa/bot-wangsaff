@@ -1,5 +1,5 @@
 /**
- * GX-ID — /animstickeroptions (owner)
+ * VEA — /animstickeroptions (owner)
  *
  * Configures the animated-sticker conversion parameters used by
  * `animsticker` (global setting).

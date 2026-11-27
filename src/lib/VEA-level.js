@@ -1,4 +1,4 @@
-import { GX_CORE_CONFIG } from "../../GX.js";
+import { VEA_CORE_CONFIG } from "../../VEA.js";
 import config from "../../config.js";
 
 const EXP_PER_LEVEL = 10000;
@@ -127,7 +127,7 @@ async function checkAndNotifyLevelUp(sock, m, db, user, oldExp, newExp) {
     ctx.fillText(xpInfo, barX + 15, barY + 21);
     ctx.fillStyle = "rgba(255, 255, 255, 0.4)";
     ctx.font = "12px sans-serif";
-    ctx.fillText(GX_CORE_CONFIG.bot.name, 230, 245);
+    ctx.fillText(VEA_CORE_CONFIG.bot.name, 230, 245);
     return canvas.toBuffer("image/png");
   }
   const oldLevel = calculateLevel(oldExp);
@@ -149,9 +149,9 @@ async function checkAndNotifyLevelUp(sock, m, db, user, oldExp, newExp) {
     }
 
     const role = getRole(newLevel);
-    const botName = GX_CORE_CONFIG.bot?.name || "GX-AI";
-    const saluranId = GX_CORE_CONFIG.saluran?.id || "120363400911374213@newsletter";
-    const saluranName = GX_CORE_CONFIG.saluran?.name || botName;
+    const botName = VEA_CORE_CONFIG.bot?.name || "VEA";
+    const saluranId = VEA_CORE_CONFIG.saluran?.id || "120363400911374213@newsletter";
+    const saluranName = VEA_CORE_CONFIG.saluran?.name || botName;
 
     let ppBuffer = null;
     try {

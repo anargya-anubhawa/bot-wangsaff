@@ -1,18 +1,18 @@
-import { GX_CORE_CONFIG } from "../../GX.js";
+import { VEA_CORE_CONFIG } from "../../VEA.js";
 
 
-import { getDatabase } from "../../src/lib/GX-database.js";
+import { getDatabase } from "../../src/lib/VEA-database.js";
 /**
  * 🐺 WEREWOLF GAME
  * Social deduction game for WhatsApp
  *
  * Based on reference: RTXZY-MD-pro/lib/werewolf.js
- * Enhanced for GXAI
+ * Enhanced for VEAAI
  */
 import config from "../../config.js";
 import fs from "fs";
 import path from "path";
-import te from "../../src/lib/GX-error.js";
+import te from "../../src/lib/VEA-error.js";
 const pluginConfig = {
   name: "werewolf",
   alias: ["ww", "wwgc"],
@@ -38,15 +38,15 @@ let thumbWin = null;
 
 try {
   const assetsPath = path.join(process.cwd(), "assets", "images");
-  if (fs.existsSync(path.join(assetsPath, "GX-games.jpg"))) {
-    thumbWW = fs.readFileSync(path.join(assetsPath, "GX-games.jpg"));
+  if (fs.existsSync(path.join(assetsPath, "VEA-games.jpg"))) {
+    thumbWW = fs.readFileSync(path.join(assetsPath, "VEA-games.jpg"));
   }
-  if (fs.existsSync(path.join(assetsPath, "GX.jpg"))) {
-    thumbNight = fs.readFileSync(path.join(assetsPath, "GX.jpg"));
-    thumbDay = fs.readFileSync(path.join(assetsPath, "GX.jpg"));
+  if (fs.existsSync(path.join(assetsPath, "VEA.jpg"))) {
+    thumbNight = fs.readFileSync(path.join(assetsPath, "VEA.jpg"));
+    thumbDay = fs.readFileSync(path.join(assetsPath, "VEA.jpg"));
   }
-  if (fs.existsSync(path.join(assetsPath, "GX-winner.jpg"))) {
-    thumbWin = fs.readFileSync(path.join(assetsPath, "GX-winner.jpg"));
+  if (fs.existsSync(path.join(assetsPath, "VEA-winner.jpg"))) {
+    thumbWin = fs.readFileSync(path.join(assetsPath, "VEA-winner.jpg"));
   }
 } catch (e) {
   console.log("[WW] Failed to load thumbnails:", e.message);
@@ -94,8 +94,8 @@ const PHASE_DURATION = {
 };
 
 function wwCtx(mentions) {
-  const saluranId = GX_CORE_CONFIG.saluran?.id || "120363400911374213@newsletter";
-  const saluranName = GX_CORE_CONFIG.saluran?.name || GX_CORE_CONFIG.bot?.name || "GX-AI";
+  const saluranId = VEA_CORE_CONFIG.saluran?.id || "120363400911374213@newsletter";
+  const saluranName = VEA_CORE_CONFIG.saluran?.name || VEA_CORE_CONFIG.bot?.name || "VEA";
   return {
     forwardingScore: 9999,
     isForwarded: true,

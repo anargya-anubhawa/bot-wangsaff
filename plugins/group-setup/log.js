@@ -1,5 +1,5 @@
 /**
- * GX-ID — /log (owner) — unified logging control
+ * VEA — /log (owner) — unified logging control
  *
  * Single entry point for every moderation-log setting: where a group's log is
  * forwarded, the deleted-message log scope, and the `.rvo` scope.

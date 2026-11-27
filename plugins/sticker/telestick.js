@@ -1,4 +1,4 @@
-import { GX_DEVELOPER } from "../../GX.js";
+import { VEA_DEVELOPER } from "../../VEA.js";
 
 
 import axios from 'axios';
@@ -45,7 +45,7 @@ async function handler(m, { sock }) {
     return m.reply('❌ Telegram Bot Token belum diisi di config.telegram.botToken.');
   }
   if (typeof sock.sendStickerPack !== 'function') {
-    return m.reply('❌ WhatsApp client GX tidak mendukung pengiriman sticker pack otomatis.');
+    return m.reply('❌ WhatsApp client VEA tidak mendukung pengiriman sticker pack otomatis.');
   }
 
   await m.react('⏳');
@@ -81,8 +81,8 @@ async function handler(m, { sock }) {
     await sock.sendStickerPack(m.chat, buffers, m, {
       name: packName,
       packname: packName,
-      publisher: GX_DEVELOPER || 'GX-ID',
-      author: GX_DEVELOPER || 'GX-ID',
+      publisher: VEA_DEVELOPER || 'VEA',
+      author: VEA_DEVELOPER || 'VEA',
       description: `Telegram sticker pack: ${packName}`,
       emojis: ['❤'],
     });

@@ -1,5 +1,5 @@
 /**
- * GX-ID — /backup (owner only)
+ * VEA — /backup (owner only)
  *
  *   .backup                 → inspect what will be archived (structure + sizes)
  *   .backup start           → build the archive and deliver it per settings
@@ -389,7 +389,7 @@ async function showSettings(m, ctx, note = "") {
   const ok = await sendNativeFlow(ctx.sock, m.chat, {
     headerTitle: "Backup Settings",
     body,
-    footer: "GX-ID • Backup",
+    footer: "VEA • Backup",
     buttons: settingsButtons(),
     messageParamsJson: buildMessageParams({ listTitle: "BACKUP", buttonTitle: "PILIH" }),
     quoted: m.raw,

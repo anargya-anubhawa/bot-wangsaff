@@ -1,5 +1,5 @@
 /**
- * GX-ID — /botinfo
+ * VEA — /botinfo
  *
  * Unified bot information card — merges the former `.sysinfo` and `.runtime`
  * commands. Reports bot identity, connection, runtime/system diagnostics and
@@ -15,6 +15,8 @@ import { getSocket } from "../../core/connection.js";
 import { formatFull } from "../../lib/time.js";
 import { humanBytes, humanUptime, getRuntimeInfo, getDiskInfo, getMemoryInfo, getLoadAvg } from "../../lib/system-info.js";
 
+import { sendLinkPreview } from "../../lib/context.js";
+
 const pluginConfig = {
   name: "botinfo",
   alias: ["info", "about", "bot", "sysinfo", "system", "serverinfo", "runtime"],
@@ -27,7 +29,7 @@ const pluginConfig = {
   isEnabled: true,
 };
 
-async function handler(m, { db, uptime, config }) {
+async function handler(m, { sock, db, uptime, config }) {
   const prefix = m.prefix || config.command?.prefix || ".";
   const rt = getRuntimeInfo();
   const mem = process.memoryUsage();
@@ -39,11 +41,11 @@ async function handler(m, { db, uptime, config }) {
   const totalGroups = Object.keys(db.getAllGroups?.() || {}).length;
 
   const text =
-    `🤖 *${config.bot?.name || "GX-ID"}*\n\n` +
+    `🤖 *${config.bot?.name || "VEA"}*\n\n` +
     `╭┈┈⬡「 ℹ️ *info* 」\n` +
-    `┃ ◦ Name      : *${config.bot?.name || "GX-ID"}*\n` +
+    `┃ ◦ Name      : *${config.bot?.name || "VEA"}*\n` +
     `┃ ◦ Version   : *${config.bot?.version || "1.0.0"}*\n` +
-    `┃ ◦ Developer : *${config.bot?.developer || "GX-ID Developer"}*\n` +
+    `┃ ◦ Developer : *${config.bot?.developer || "VEA Developer"}*\n` +
     `┃ ◦ Owner     : *${config.owner?.name || "GeneticID"}*\n` +
     `┃ ◦ Library   : \`@whiskeysockets/baileys\`\n` +
     `┃ ◦ Mode      : *${(config.mode || "public").toUpperCase()}*\n` +
@@ -72,7 +74,11 @@ async function handler(m, { db, uptime, config }) {
     `> Server detail: \`${prefix}vpsinfo\`\n` +
     `> Menu: \`${prefix}menu\``;
 
-  await m.reply(text);
+  await sendLinkPreview(sock, m, {
+    text,
+    title: config.bot?.name || "VEA",
+    description: config.channel?.name || "",
+  });
 }
 
 export { pluginConfig as config, handler };

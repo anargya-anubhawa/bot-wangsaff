@@ -1,5 +1,5 @@
 /**
- * GX-ID — /fban (admin, bot-admin)
+ * VEA — /fban (admin, bot-admin)
  *
  * Federation ban: removes the target from every group in a federation and
  * records the number on that federation's ban list.

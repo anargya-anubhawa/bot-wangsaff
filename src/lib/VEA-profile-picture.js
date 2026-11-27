@@ -30,7 +30,7 @@ async function getProfilePicture(sock, jid) {
 async function getProfileBuffer(sock, jid) {
     const url = await getProfilePicture(sock, jid)
     try {
-        const { f } = await import('./GX-http.js')
+        const { f } = await import('./VEA-http.js')
         const res = await f(url, 'arrayBuffer')
         return Buffer.from(res.data)
     } catch {

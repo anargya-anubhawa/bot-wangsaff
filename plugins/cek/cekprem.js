@@ -1,7 +1,7 @@
 
 
 import config from '../../config.js'
-import { getDatabase } from '../../src/lib/GX-database.js'
+import { getDatabase } from '../../src/lib/VEA-database.js'
 const pluginConfig = {
     name: 'cekprem',
     alias: ['cekpremium', 'preminfo'],

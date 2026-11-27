@@ -1,5 +1,5 @@
 /**
- * GX-ID — /editsettings (admin, bot-admin)
+ * VEA — /editsettings (admin, bot-admin)
  *
  * Toggles whether non-admin members may edit group settings.
  */

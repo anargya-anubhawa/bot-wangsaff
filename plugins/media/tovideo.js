@@ -1,5 +1,5 @@
 /**
- * GX-ID — /tovideo
+ * VEA — /tovideo
  *
  * Converts an ANIMATED sticker (webp) into an MP4 video.
  */

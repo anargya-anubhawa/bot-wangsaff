@@ -1,5 +1,5 @@
 /**
- * GX-ID — /blacklist (admin target / owner / whitelist)
+ * VEA — /blacklist (admin target / owner / whitelist)
  *
  * Unified blacklist command, merging the former `blacklist` (add), `blacklists`
  * (list) and `unblacklist` (remove) plugins. Every original entry point is

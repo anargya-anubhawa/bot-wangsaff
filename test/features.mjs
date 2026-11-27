@@ -1,5 +1,5 @@
 /**
- * GX-ID — feature test
+ * VEA — feature test
  *
  * Exercises the new group/security/filter/schedule/config/level features
  * through the real message pipeline against a mock socket, across every
@@ -31,7 +31,7 @@ const { extendSocket } = await import("../lib/socket.js");
 const configModule = (await import("../config.js")).default;
 
 /* This suite drives many messages from a few senders in quick succession;
-   GX-ID's anti-spam gate (8 msgs / 5s per sender) would otherwise swallow
+   VEA's anti-spam gate (8 msgs / 5s per sender) would otherwise swallow
    legitimate test traffic, so turn it off for the run only. */
 if (configModule.features) configModule.features.antiSpam = false;
 
@@ -53,7 +53,7 @@ function makeSock() {
   const sent = [];
   const calls = [];
   const sock = {
-    user: { id: BOT, name: "GX-ID" },
+    user: { id: BOT, name: "VEA" },
     sendMessage: async (jid, content, options) => {
       sent.push({ jid, content, options });
       return { key: { id: `m${sent.length}` } };
@@ -1721,7 +1721,7 @@ await test("log panel receives a formatted notice", async () => {
 
   const { sock: s2, sent: sent2 } = makeSock();
   await messageHandler(rawMsg("link https://spam.example.com", { sender: USER, group: chat }), s2);
-  const notice = sent2.find((s) => s.jid === panel && (s.content?.text || "").includes("GX-ID LOG"));
+  const notice = sent2.find((s) => s.jid === panel && (s.content?.text || "").includes("VEA LOG"));
   assert.ok(notice, `panel notice missing: ${JSON.stringify(sent2.map((s) => s.jid))}`);
 });
 
@@ -1820,7 +1820,7 @@ await test(".del deletes the replied message and logs it", async () => {
   const deletes = sent.filter((s) => s.content?.delete);
   assert.ok(deletes.length >= 1, `no delete call: ${JSON.stringify(sent.map((s) => Object.keys(s.content || {})))}`);
   // the panel receives a formatted notice
-  const notice = sent.find((s) => s.jid === panel && (s.content?.text || "").includes("GX-ID LOG"));
+  const notice = sent.find((s) => s.jid === panel && (s.content?.text || "").includes("VEA LOG"));
   assert.ok(notice, "panel notice missing for .del");
 });
 
@@ -1852,7 +1852,7 @@ await test("log scope public forwards non-registered group logs to the default p
     setLogScope("public");
     ({ sock, sent } = makeSock());
     await messageHandler(rawMsg("link https://spam.example.com", { sender: USER, group: chat }), sock);
-    const notice = sent.find((s) => s.jid === panel && (s.content?.text || "").includes("GX-ID LOG"));
+    const notice = sent.find((s) => s.jid === panel && (s.content?.text || "").includes("VEA LOG"));
     assert.ok(notice, `public scope should forward to default panel: ${JSON.stringify(sent.map((s) => s.jid))}`);
   } finally {
     setLogScope(prevScope);

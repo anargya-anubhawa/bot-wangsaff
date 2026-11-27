@@ -1,5 +1,5 @@
 /**
- * GX-ID — /disappear (admin, bot-admin)
+ * VEA — /disappear (admin, bot-admin)
  *
  * Sets the disappearing-message timer (off / 24h / 7d / 90d / custom seconds).
  */

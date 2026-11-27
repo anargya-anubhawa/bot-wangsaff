@@ -1,5 +1,5 @@
 /**
- * GX-ID — /close
+ * VEA — /close
  */
 const pluginConfig = {
   name: "close",

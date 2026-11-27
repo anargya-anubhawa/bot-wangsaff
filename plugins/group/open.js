@@ -1,5 +1,5 @@
 /**
- * GX-ID — /open
+ * VEA — /open
  */
 const pluginConfig = {
   name: "open",

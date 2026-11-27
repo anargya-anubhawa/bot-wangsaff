@@ -1,6 +1,6 @@
 
 
-import { games } from '../../src/lib/GX-games.js'
+import { games } from '../../src/lib/VEA-games.js'
 
 games.register('tebaktebakan', {
     alias: ['tbt', 'tebak2an', 'receh'],

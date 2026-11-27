@@ -1,5 +1,5 @@
 /**
- * GX-ID — /fed (owner)
+ * VEA — /fed (owner)
  *
  * Unified federation command, merging the former `fed` (list/info),
  * `fedcreate`, `fedjoin` and `fedleave` plugins. Every original entry point is

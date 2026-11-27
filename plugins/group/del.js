@@ -1,5 +1,5 @@
 /**
- * GX-ID — /del (owner / whitelist / group admin)
+ * VEA — /del (owner / whitelist / group admin)
  *
  * Deletes the message you reply to, then records the deletion in the event log
  * and forwards it — content AND media (image / video / audio / sticker /

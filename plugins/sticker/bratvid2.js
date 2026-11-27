@@ -2,7 +2,7 @@
 
 import axios from 'axios'
 import config from '../../config.js'
-import te from '../../src/lib/GX-error.js'
+import te from '../../src/lib/VEA-error.js'
 const pluginConfig = {
     name: 'bratvid2',
     alias: ['bratv2'],

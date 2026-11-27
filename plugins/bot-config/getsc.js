@@ -1,5 +1,5 @@
 /**
- * GX-ID — /copy (owner)
+ * VEA — /copy (owner)
  *
  * Creates a zip snapshot of the bot's own source tree and sends it. This is
  * deliberately narrow: it ONLY archives the project directory it runs in,

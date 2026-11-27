@@ -1,5 +1,5 @@
 /**
- * GX-ID — /tagadmin
+ * VEA — /tagadmin
  *
  * Tags only the group admins.
  */

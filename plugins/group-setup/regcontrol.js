@@ -1,5 +1,5 @@
 /**
- * GX-ID — /regcontrol (owner/whitelist)
+ * VEA — /regcontrol (owner/whitelist)
  *
  * Controls the group registration gate and marks the current chat as a
  * management (control-panel) group.

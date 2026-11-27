@@ -1,5 +1,5 @@
 /**
- * GX-ID — /health
+ * VEA — /health
  *
  * Ringkasan kondisi runtime: uptime proses & koneksi, memori, status WhatsApp,
  * ukuran database, jumlah plugin + yang gagal dimuat, serta jumlah cache. Untuk

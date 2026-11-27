@@ -305,7 +305,7 @@ async function extractNumber(jid) {
 
 /**
  * Resolve LID atau LID-converted JID ke JID asli menggunakan group metadata
- * Participant structure dari GX (groups.js):
+ * Participant structure dari VEA (groups.js):
  * - id: phone_number atau jid (tergantung addressingMode)
  * - lid: LID format
  * - admin: type admin

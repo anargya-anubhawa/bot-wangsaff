@@ -1,5 +1,5 @@
 /**
- * GX-ID — /tomp3
+ * VEA — /tomp3
  *
  * Extract audio from a video / voice note and send it as an MP3 document or
  * audio message. Uses the bundled ffmpeg.

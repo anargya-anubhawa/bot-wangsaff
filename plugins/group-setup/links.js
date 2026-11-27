@@ -1,5 +1,5 @@
 /**
- * GX-ID — /links (owner/whitelist)
+ * VEA — /links (owner/whitelist)
  *
  * Shows a group's links as plain text (no interactive flow).
  *

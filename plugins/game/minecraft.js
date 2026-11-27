@@ -1,7 +1,7 @@
-import { GX_CORE_CONFIG } from "../../GX.js";
+import { VEA_CORE_CONFIG } from "../../VEA.js";
 
 
-import { getDatabase } from "../../src/lib/GX-database.js";
+import { getDatabase } from "../../src/lib/VEA-database.js";
 import {
   getOrCreateMCUser,
   getRandomOre,
@@ -19,7 +19,7 @@ import {
   getAvailableMobs,
   healPlayer,
   JACKPOT_POOLS,
-} from "../../src/lib/GX-minecraft.js";
+} from "../../src/lib/VEA-minecraft.js";
 import {
   biomes,
   travelRequirements,
@@ -33,7 +33,7 @@ import {
   GACHA_COST_COINS,
   GACHA_PITY_LIMIT,
   CRAFT_RECIPES,
-} from "../../src/lib/GX-minecraft-data.js";
+} from "../../src/lib/VEA-minecraft-data.js";
 import config from "../../config.js";
 import path from "path";
 import fs from "fs";
@@ -53,13 +53,13 @@ const encCost = (r) =>
 
 let thumbMC = null;
 try {
-  const p = path.join(process.cwd(), "assets", "images", "GX-minecraft.jpg");
+  const p = path.join(process.cwd(), "assets", "images", "VEA-minecraft.jpg");
   if (fs.existsSync(p)) thumbMC = fs.readFileSync(p);
 } catch (e) {}
 
 function ctx() {
-  const sId = GX_CORE_CONFIG.saluran?.id || "120363400911374213@newsletter";
-  const sName = GX_CORE_CONFIG.saluran?.name || GX_CORE_CONFIG.bot?.name || "GX-AI";
+  const sId = VEA_CORE_CONFIG.saluran?.id || "120363400911374213@newsletter";
+  const sName = VEA_CORE_CONFIG.saluran?.name || VEA_CORE_CONFIG.bot?.name || "VEA";
   return {
     forwardingScore: 9999,
     isForwarded: true,

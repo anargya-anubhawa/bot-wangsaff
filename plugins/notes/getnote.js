@@ -1,5 +1,5 @@
 /**
- * GX-ID — /getnote
+ * VEA — /getnote
  *
  * Sends a saved note (text or media). Notes may be shared between linked groups.
  *

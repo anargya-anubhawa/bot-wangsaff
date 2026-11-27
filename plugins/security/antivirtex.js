@@ -1,5 +1,5 @@
 /**
- * GX-ID — /antivirtex (admin target / owner / whitelist)
+ * VEA — /antivirtex (admin target / owner / whitelist)
  *
  * Toggles automatic deletion of "virtex" messages (very long unbroken tokens /
  * heavy combining-mark spam) posted by ordinary members. Supports remote

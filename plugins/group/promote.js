@@ -1,5 +1,5 @@
 /**
- * GX-ID — /promote
+ * VEA — /promote
  */
 import { resolveTarget, findParticipant, numberFromJid } from "../../lib/group-utils.js";
 

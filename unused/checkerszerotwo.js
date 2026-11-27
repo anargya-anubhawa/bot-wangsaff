@@ -4,7 +4,7 @@ const pluginConfig = {
     name: 'checkers',
     alias: ['dam', 'caturdam', 'zerocheckers'],
     category: 'game',
-    description: 'Game catur dam / checkers GX! Makan semua pion lawan untuk menang.',
+    description: 'Game catur dam / checkers VEA! Makan semua pion lawan untuk menang.',
     usage: '.checkers [@lawan]',
     example: '.checkers @user',
     isOwner: false,
@@ -16,7 +16,7 @@ const pluginConfig = {
     isEnabled: true
 }
 
-// ============ GX THEME ============
+// ============ VEA THEME ============
 const THEME = {
     bg: '#0a050f',
     primary: '#ff2a6d',
@@ -208,7 +208,7 @@ async function renderBoard(game, selectedPos = null, validMoves = [], lastMove =
     ctx.textAlign = 'center'
     ctx.shadowColor = THEME.glow
     ctx.shadowBlur = 10
-    ctx.fillText('🦋 GX CHECKERS 🦋', W/2, 45)
+    ctx.fillText('🦋 VEA CHECKERS 🦋', W/2, 45)
     ctx.shadowBlur = 0
 
     ctx.fillStyle = THEME.textSecondary
@@ -284,7 +284,7 @@ async function renderBoard(game, selectedPos = null, validMoves = [], lastMove =
     // Footer
     ctx.fillStyle = `${THEME.primary}80`
     ctx.font = '10px "Segoe UI"'
-    ctx.fillText('❥ GX AI', W - 70, H - 8)
+    ctx.fillText('❥ VEA AI', W - 70, H - 8)
 
     return canvas.toBuffer('image/png')
 }
@@ -335,7 +335,7 @@ async function handler(m, { sock, config: botConfig }) {
             return m.reply(
                 `🏳️ @${senderId.split('@')[0]} menyerah!\n\n` +
                 `🏆 @${winner.split('@')[0]} *MENANG!*\n\n` +
-                `🦋 *GX:* Aduh darling~ lain kali jangan nyerah dong! 💕`
+                `🦋 *VEA:* Aduh darling~ lain kali jangan nyerah dong! 💕`
             )
         }
 
@@ -427,7 +427,7 @@ async function handler(m, { sock, config: botConfig }) {
                     sessions.delete(chatId)
                     return sock.sendMessage(chatId, {
                         image: img,
-                        caption: `🎉 *GAME OVER!* 🎉\n\n🏆 @${winner.split('@')[0]} *MENANG!*\n\n📊 Skor akhir: ${p1Count} vs ${p2Count}\n\n🦋 *GX:* Selamat darling~ ${winner.split('@')[0]} pinter banget! 💕`,
+                        caption: `🎉 *GAME OVER!* 🎉\n\n🏆 @${winner.split('@')[0]} *MENANG!*\n\n📊 Skor akhir: ${p1Count} vs ${p2Count}\n\n🦋 *VEA:* Selamat darling~ ${winner.split('@')[0]} pinter banget! 💕`,
                         mentions: [winner]
                     }, { quoted: m })
                 }
@@ -476,7 +476,7 @@ async function handler(m, { sock, config: botConfig }) {
 
             if (!opponent || opponent === senderId) {
                 return m.reply(
-                    `🎲 *GX CHECKERS* 🎲\n\n` +
+                    `🎲 *VEA CHECKERS* 🎲\n\n` +
                     `🦋 *Cara main:*\n` +
                     `• Pion jalan diagonal ke depan 1 langkah\n` +
                     `• Bisa "makan" pion lawan dengan melompat 2 langkah\n` +
@@ -498,11 +498,11 @@ async function handler(m, { sock, config: botConfig }) {
             
             const sentMsg = await sock.sendMessage(chatId, {
                 image: img,
-                caption: `🎲 *GX CHECKERS DIMULAI!* 🎲\n\n` +
+                caption: `🎲 *VEA CHECKERS DIMULAI!* 🎲\n\n` +
                     `🔴 *Player 1:* @${senderId.split('@')[0]}\n` +
                     `💕 *Player 2:* @${opponent.split('@')[0]}\n\n` +
                     `🎮 *Giliran pertama:* @${firstPlayer.split('@')[0]}\n\n` +
-                    `🦋 *GX:* ${['Ayo main dam, darling~', 'Siapa yang jago strategi nih?', 'Jangan lupa promosi jadi raja ya~'][Math.floor(Math.random() * 3)]} 💕\n\n` +
+                    `🦋 *VEA:* ${['Ayo main dam, darling~', 'Siapa yang jago strategi nih?', 'Jangan lupa promosi jadi raja ya~'][Math.floor(Math.random() * 3)]} 💕\n\n` +
                     `📌 *Cara gerak:* ${prefix}checkers A3 B4`,
                 mentions: [senderId, opponent, firstPlayer]
             }, { quoted: m })

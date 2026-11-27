@@ -1,5 +1,5 @@
 /**
- * GX-ID — /ping
+ * VEA — /ping
  *
  * 4 latency metrics:
  * - Server Ping      : ICMP RTT VPS -> 1.1.1.1 -> VPS

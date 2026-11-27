@@ -1,5 +1,5 @@
 /**
- * GX-ID — /setdesc
+ * VEA — /setdesc
  *
  * Change the group description.
  */

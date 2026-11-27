@@ -1,5 +1,5 @@
 /**
- * GX-ID — extended control command tests
+ * VEA — extended control command tests
  *
  * Exercises the control-ext handlers through the real ControlServer socket, using
  * a fake socket and an in-memory database so no WhatsApp connection is involved.

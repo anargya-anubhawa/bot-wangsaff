@@ -1,5 +1,5 @@
 /**
- * GX-ID — /setgroupalias (owner/whitelist)
+ * VEA — /setgroupalias (owner/whitelist)
  *
  * Gives a registered group a short, human-friendly alias used in place of its
  * long id by every group-targeting command.

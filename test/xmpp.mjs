@@ -1,5 +1,5 @@
 /**
- * GX-ID — XMPP ↔ Minecraft bridge test
+ * VEA — XMPP ↔ Minecraft bridge test
  *
  * Covers the whole feature without touching a network:
  *   • pure helpers (text detection, sanitisation, truncation, formatting, parsing)

@@ -1,10 +1,10 @@
 
 
-import { getDatabase } from "../../src/lib/GX-database.js";
+import { getDatabase } from "../../src/lib/VEA-database.js";
 import {
   findParticipantByNumber,
   getParticipantJid,
-} from "../../src/lib/GX-lid.js";
+} from "../../src/lib/VEA-lid.js";
 import config from "../../config.js";
 const pluginConfig = {
   name: ["antibot", "botdetect"],

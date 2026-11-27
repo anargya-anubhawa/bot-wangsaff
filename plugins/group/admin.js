@@ -1,5 +1,5 @@
 /**
- * GX-ID — /admin (admin, bot-admin)
+ * VEA — /admin (admin, bot-admin)
  *
  * Promotes one or more members to admin. Alias-compatible with `.promote`,
  * but accepts multiple targets and a trailing group id for linked groups.

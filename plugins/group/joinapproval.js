@@ -1,5 +1,5 @@
 /**
- * GX-ID — /joinapproval (admin, bot-admin)
+ * VEA — /joinapproval (admin, bot-admin)
  *
  * Requires admin approval for new members.
  */

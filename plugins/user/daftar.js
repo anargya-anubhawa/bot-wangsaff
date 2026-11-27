@@ -1,5 +1,5 @@
 /**
- * GX-ID — /daftar (all)
+ * VEA — /daftar (all)
  *
  * Registers the sender in the bot's user database (idempotent). Useful as a
  * lightweight "sign up" step and to ensure a profile exists for `.profile`.

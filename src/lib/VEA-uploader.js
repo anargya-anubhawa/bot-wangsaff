@@ -1,16 +1,16 @@
 /**
- * GX-ID — image/media uploader + asset persister.
+ * VEA — image/media uploader + asset persister.
  *
  * `uploadImage()` (aliased for the legacy helper names) POSTs a buffer to the
  * configured CDN and returns the public URL. Credentials come from `config.js`
- * (which in turn reads `GX.js` / `.env`) — never hardcoded here.
+ * (which in turn reads `VEA.js` / `.env`) — never hardcoded here.
  */
 import axios from "axios";
 import FormData from "form-data";
 import fs from "fs";
 import path from "path";
 import config from "../../config.js";
-import { updateAssetAndSave } from "./GX-asset-manager.js";
+import { updateAssetAndSave } from "./VEA-asset-manager.js";
 
 /** Upload a buffer and return its public URL. */
 async function uploadToTermai(buffer, filename = "image.jpg") {

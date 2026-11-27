@@ -1,5 +1,5 @@
 /**
- * GX-ID — /silent (owner only)
+ * VEA — /silent (owner only)
  *
  * Three levels, persisted as the `silentLevel` setting:
  *

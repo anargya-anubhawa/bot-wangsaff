@@ -1,5 +1,5 @@
 /**
- * GX-ID — /approve (admin, bot-admin)
+ * VEA — /approve (admin, bot-admin)
  *
  * Approves pending join requests. `.approve all` approves everyone waiting.
  */

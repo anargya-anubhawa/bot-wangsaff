@@ -1,5 +1,5 @@
 /**
- * GX-ID — /groupinfo
+ * VEA — /groupinfo
  */
 import axios from "axios";
 import { getParticipantJid, resolveAnyLidToJid } from "../../lib/lid.js";

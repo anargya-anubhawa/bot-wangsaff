@@ -3,9 +3,9 @@
 import fs from "fs";
 import path from "path";
 import cekfemboy from "../../src/scraper/lufemboy.js";
-import { queueFFmpeg } from "../../src/lib/GX-ffmpeg.js";
-import { fetchBuffer } from "../../src/lib/GX-utils.js";
-import te from "../../src/lib/GX-error.js";
+import { queueFFmpeg } from "../../src/lib/VEA-ffmpeg.js";
+import { fetchBuffer } from "../../src/lib/VEA-utils.js";
+import te from "../../src/lib/VEA-error.js";
 const pluginConfig = {
   name: "cekfemboy",
   alias: ["femboy"],

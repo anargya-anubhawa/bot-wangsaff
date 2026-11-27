@@ -1,5 +1,5 @@
 /**
- * GX-ID — /cmd (owner / admin)
+ * VEA — /cmd (owner / admin)
  *
  * One command to rule the runtime command-control features that used to live in
  * four separate files (`commandcd`, `cmdaccess`, `disablecmd`, `enablecmd`).

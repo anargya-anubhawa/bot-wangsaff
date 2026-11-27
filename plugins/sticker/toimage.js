@@ -1,5 +1,5 @@
 /**
- * GX-ID — /toimage
+ * VEA — /toimage
  *
  * Convert a sticker into a PNG image.
  */

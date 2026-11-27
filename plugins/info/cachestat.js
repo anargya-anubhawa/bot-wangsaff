@@ -1,5 +1,5 @@
 /**
- * GX-ID — /cachestat
+ * VEA — /cachestat
  *
  * Menampilkan pemakaian cache pesan (recent-messages) beserta batasnya, supaya
  * pemakaian memori untuk revoke/save bisa dipantau. Cache menyimpan pesan

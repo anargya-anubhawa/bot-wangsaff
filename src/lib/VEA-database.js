@@ -1,13 +1,13 @@
 /**
- * GX-ID compatibility shim.
+ * VEA compatibility shim.
  *
- * The game subsystem copied from GX-ID expects its own database module
- * (`src/lib/GX-database.js`). Instead of running a second lowdb instance that
+ * The game subsystem copied from VEA expects its own database module
+ * (`src/lib/VEA-database.js`). Instead of running a second lowdb instance that
  * would clobber the shared `users.json` / `groups.json` / `settings.json` /
- * `stats.json` files, every GX consumer is redirected to GX-ID's single
+ * `stats.json` files, every VEA consumer is redirected to VEA's single
  * database (`lib/database.js`).
  *
- * GX-ID's `Database` class already implements the GX surface used by the game
+ * VEA's `Database` class already implements the VEA surface used by the game
  * closure — `getUser` / `setUser` / `getGroup` / `setGroup` / `save` /
  * `setting` / `incrementStat` / `updateExp` / `markDirty` / `data` — plus the
  * added `updateEnergi` / `updateKoin` / `updateSaldo` / `getTopUsers` /
@@ -16,8 +16,8 @@
 import { getDatabase as getCoreDatabase, Database } from "../../lib/database.js";
 
 /**
- * Return the shared GX-ID database instance. GX-ID's module exposed an
- * `initDatabase(path)` bootstrap; GX-ID initializes its database in `index.js`
+ * Return the shared VEA database instance. VEA's module exposed an
+ * `initDatabase(path)` bootstrap; VEA initializes its database in `index.js`
  * before plugins load, so this is a no-op kept only for API compatibility.
  */
 async function initDatabase() {
@@ -25,7 +25,7 @@ async function initDatabase() {
 }
 
 /**
- * Return the shared GX-ID database. Mirrors GX-ID's throw-on-missing behaviour
+ * Return the shared VEA database. Mirrors VEA's throw-on-missing behaviour
  * so callers still fail loudly if they run before boot.
  */
 function getDatabase() {

@@ -22,22 +22,22 @@ const HTTPS_AGENT = new https.Agent({
 });
 
 /**
- * @typedef {Object} GXApiAuthShape
+ * @typedef {Object} VEAApiAuthShape
  * @property {Object<string, any>} [headers]
  * @property {Object<string, any>} [params]
  */
 
 /**
- * @typedef {Object} GXApiProviderShape
+ * @typedef {Object} VEAApiProviderShape
  * @property {string} baseURL
- * @property {GXApiAuthShape} [auth]
+ * @property {VEAApiAuthShape} [auth]
  * @property {Object<string, string>} [headers]
  * @property {number} [cacheTTL]
  * @property {number} [timeout]
  */
 
 /**
- * @typedef {Object} GXApiRequestOptions
+ * @typedef {Object} VEAApiRequestOptions
  * @property {string} [method]
  * @property {Object<string, any>} [params]
  * @property {any} [data]
@@ -52,7 +52,7 @@ const HTTPS_AGENT = new https.Agent({
  */
 
 /**
- * @typedef {Object} GXApiMultipartFile
+ * @typedef {Object} VEAApiMultipartFile
  * @property {string} [name]
  * @property {Buffer|import('stream').Readable|string} [value]
  * @property {Buffer|import('stream').Readable|string} [buffer]
@@ -64,9 +64,9 @@ const HTTPS_AGENT = new https.Agent({
 /**
  * Client provider untuk pemanggilan API per namespace.
  */
-class GXApiProvider {
+class VEAApiProvider {
   /**
-   * @param {GXApiManager} mgr
+   * @param {VEAApiManager} mgr
    * @param {string} name
    */
   constructor(mgr, name) {
@@ -76,7 +76,7 @@ class GXApiProvider {
 
   /**
    * @param {string} ep
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   request(ep, opt = {}) {
@@ -86,7 +86,7 @@ class GXApiProvider {
   /**
    * @param {string} ep
    * @param {Object<string, any>} [params]
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   get(ep, params = {}, opt = {}) {
@@ -97,7 +97,7 @@ class GXApiProvider {
    * @param {string} ep
    * @param {Object<string, any>} [params]
    * @param {number} [ttl]
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   cache(ep, params = {}, ttl = 15000, opt = {}) {
@@ -107,7 +107,7 @@ class GXApiProvider {
   /**
    * @param {string} ep
    * @param {any} [data]
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   post(ep, data = {}, opt = {}) {
@@ -117,7 +117,7 @@ class GXApiProvider {
   /**
    * @param {string} ep
    * @param {any} [data]
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   put(ep, data = {}, opt = {}) {
@@ -127,7 +127,7 @@ class GXApiProvider {
   /**
    * @param {string} ep
    * @param {Object<string, any>} [params]
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   del(ep, params = {}, opt = {}) {
@@ -137,7 +137,7 @@ class GXApiProvider {
   /**
    * @param {string} ep
    * @param {any} [data]
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   patch(ep, data = {}, opt = {}) {
@@ -147,7 +147,7 @@ class GXApiProvider {
   /**
    * @param {string} ep
    * @param {Object<string, any>} [params]
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   delete(ep, params = {}, opt = {}) {
@@ -157,7 +157,7 @@ class GXApiProvider {
   /**
    * @param {string} ep
    * @param {Object<string, any>} [params]
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   head(ep, params = {}, opt = {}) {
@@ -166,7 +166,7 @@ class GXApiProvider {
 
   /**
    * @param {string} ep
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<string>}
    */
   text(ep, opt = {}) {
@@ -175,7 +175,7 @@ class GXApiProvider {
 
   /**
    * @param {string} ep
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<Buffer>}
    */
   buffer(ep, opt = {}) {
@@ -184,7 +184,7 @@ class GXApiProvider {
 
   /**
    * @param {string} ep
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   stream(ep, opt = {}) {
@@ -194,8 +194,8 @@ class GXApiProvider {
   /**
    * @param {string} ep
    * @param {Object<string, any>} [fields]
-   * @param {GXApiMultipartFile[]|Object<string, any>} [files]
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiMultipartFile[]|Object<string, any>} [files]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   multipart(ep, fields = {}, files = [], opt = {}) {
@@ -233,7 +233,7 @@ class GXApiProvider {
   }
 }
 
-class CovenantApiProvider extends GXApiProvider {
+class CovenantApiProvider extends VEAApiProvider {
   gpt4(input, opt = {}) {
     return this.get("/api/ai/gpt4", this.asParams(input, "question"), opt);
   }
@@ -271,7 +271,7 @@ class CovenantApiProvider extends GXApiProvider {
   }
 }
 
-class NeoxrApiProvider extends GXApiProvider {
+class NeoxrApiProvider extends VEAApiProvider {
   whatMusic(input, opt = {}) {
     return this.get("/api/whatmusic", this.asParams(input, "url"), opt);
   }
@@ -329,7 +329,7 @@ class NeoxrApiProvider extends GXApiProvider {
   }
 }
 
-class CukiApiProvider extends GXApiProvider {
+class CukiApiProvider extends VEAApiProvider {
   tiktokPhoto(params = {}, opt = {}) {
     return this.get("/api/search/tiktokfoto", params, opt);
   }
@@ -363,7 +363,7 @@ class CukiApiProvider extends GXApiProvider {
   }
 }
 
-class ApiFaaProvider extends GXApiProvider {
+class ApiFaaProvider extends VEAApiProvider {
   googleImage(params = {}, opt = {}) {
     return this.get("/faa/google-image", params, opt);
   }
@@ -413,7 +413,7 @@ class ApiFaaProvider extends GXApiProvider {
   }
 }
 
-class GXMainApiProvider extends GXApiProvider {
+class VEAMainApiProvider extends VEAApiProvider {
   ytmp4(input, opt = {}) {
     return this.get("/api/ytmp4", this.asParams(input, "url"), opt);
   }
@@ -447,7 +447,7 @@ class GXMainApiProvider extends GXApiProvider {
   }
 }
 
-class NexrayApiProvider extends GXApiProvider {
+class NexrayApiProvider extends VEAApiProvider {
   geminiTts(input, opt = {}) {
     return this.get("/ai/gemini-tts", this.asParams(input, "text"), opt);
   }
@@ -481,13 +481,13 @@ class NexrayApiProvider extends GXApiProvider {
   }
 }
 
-class YupraApiProvider extends GXApiProvider {
+class YupraApiProvider extends VEAApiProvider {
   brat(input, opt = {}) {
     return this.get("/api/image/brat", this.asParams(input, "text"), opt);
   }
 }
 
-class EmiliabotApiProvider extends GXApiProvider {
+class EmiliabotApiProvider extends VEAApiProvider {
   textToSpeech(input, opt = {}) {
     return this.get("/tools/text-to-speech", this.asParams(input, "text"), opt);
   }
@@ -497,7 +497,7 @@ class EmiliabotApiProvider extends GXApiProvider {
   }
 }
 
-class AzbryApiProvider extends GXApiProvider {
+class AzbryApiProvider extends VEAApiProvider {
   tiktokSearch(input, opt = {}) {
     return this.get("/api/search/ttsearch", this.asParams(input, "q"), opt);
   }
@@ -524,13 +524,13 @@ class AzbryApiProvider extends GXApiProvider {
   }
 }
 
-class YuulabsApiProvider extends GXApiProvider {
+class YuulabsApiProvider extends VEAApiProvider {
   tiktok(input, opt = {}) {
     return this.get("/api/downloader/tiktok", this.asParams(input, "url"), opt);
   }
 }
 
-class ZenzxzApiProvider extends GXApiProvider {
+class ZenzxzApiProvider extends VEAApiProvider {
   youtube(input, opt = {}) {
     return this.get("/download/youtube", this.asParams(input, "url"), opt);
   }
@@ -544,7 +544,7 @@ class ZenzxzApiProvider extends GXApiProvider {
   }
 }
 
-class FgsiApiProvider extends GXApiProvider {
+class FgsiApiProvider extends VEAApiProvider {
   enchantVideo(fields = {}, files = [], opt = {}) {
     return this.multipart("/api/tools/enchantVideo", fields, files, opt);
   }
@@ -562,9 +562,9 @@ class FgsiApiProvider extends GXApiProvider {
 }
 
 /**
- * API manager terpusat untuk provider eksternal GX.
+ * API manager terpusat untuk provider eksternal VEA.
  */
-class GXApiManager {
+class VEAApiManager {
   /**
    * @param {{ timeout?: number, userAgent?: string, cacheMax?: number, httpAgent?: http.Agent, httpsAgent?: https.Agent }} [opt]
    */
@@ -612,7 +612,7 @@ class GXApiManager {
 
   /**
    * @param {string} name
-   * @returns {GXApiProvider}
+   * @returns {VEAApiProvider}
    */
   provider(name) {
     if (!this.hasProvider(name)) {
@@ -623,7 +623,7 @@ class GXApiManager {
 
   /**
    * @param {string} name
-   * @returns {GXApiProviderShape}
+   * @returns {VEAApiProviderShape}
    */
   getProviderConfig(name) {
     const cfg = this.providers[name];
@@ -635,8 +635,8 @@ class GXApiManager {
 
   /**
    * @param {string} name
-   * @param {GXApiProviderShape} cfg
-   * @returns {GXApiProvider}
+   * @param {VEAApiProviderShape} cfg
+   * @returns {VEAApiProvider}
    */
   registerProvider(name, cfg) {
     this.providers[name] = this.mergeProvider(this.providers[name], cfg);
@@ -646,8 +646,8 @@ class GXApiManager {
 
   /**
    * @param {string} name
-   * @param {Partial<GXApiProviderShape>} cfg
-   * @returns {GXApiProvider}
+   * @param {Partial<VEAApiProviderShape>} cfg
+   * @returns {VEAApiProvider}
    */
   extendProvider(name, cfg) {
     return this.registerProvider(name, cfg);
@@ -656,7 +656,7 @@ class GXApiManager {
   /**
    * @param {string} name
    * @param {string} baseURL
-   * @returns {GXApiProvider}
+   * @returns {VEAApiProvider}
    */
   setBaseURL(name, baseURL) {
     return this.extendProvider(name, { baseURL });
@@ -668,7 +668,7 @@ class GXApiManager {
       neoxr: NeoxrApiProvider,
       cuki: CukiApiProvider,
       apiFaa: ApiFaaProvider,
-      GX: GXMainApiProvider,
+      VEA: VEAMainApiProvider,
       nexray: NexrayApiProvider,
       yupra: YupraApiProvider,
       emiliabot: EmiliabotApiProvider,
@@ -695,7 +695,7 @@ class GXApiManager {
   }
 
   makeProviderClient(name) {
-    const ProviderClass = this.providerClasses?.[name] || GXApiProvider;
+    const ProviderClass = this.providerClasses?.[name] || VEAApiProvider;
     return new ProviderClass(this, name);
   }
 
@@ -752,7 +752,7 @@ class GXApiManager {
   /**
    * @param {string} provider
    * @param {string} endpoint
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   async request(provider, endpoint, opt = {}) {
@@ -801,7 +801,7 @@ class GXApiManager {
    * @param {string} provider
    * @param {string} endpoint
    * @param {Object<string, any>} [params]
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   get(provider, endpoint, params = {}, opt = {}) {
@@ -811,7 +811,7 @@ class GXApiManager {
   /**
    * @param {string} provider
    * @param {string} endpoint
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<string>}
    */
   text(provider, endpoint, opt = {}) {
@@ -823,7 +823,7 @@ class GXApiManager {
    * @param {string} endpoint
    * @param {Object<string, any>} [params]
    * @param {number} [ttl]
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   cacheGet(provider, endpoint, params = {}, ttl = 15000, opt = {}) {
@@ -838,7 +838,7 @@ class GXApiManager {
   /**
    * @param {string} provider
    * @param {string} endpoint
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<Buffer>}
    */
   buffer(provider, endpoint, opt = {}) {
@@ -851,7 +851,7 @@ class GXApiManager {
   /**
    * @param {string} provider
    * @param {string} endpoint
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   stream(provider, endpoint, opt = {}) {
@@ -862,7 +862,7 @@ class GXApiManager {
    * @param {string} provider
    * @param {string} endpoint
    * @param {any} [data]
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   post(provider, endpoint, data = {}, opt = {}) {
@@ -873,7 +873,7 @@ class GXApiManager {
    * @param {string} provider
    * @param {string} endpoint
    * @param {any} [data]
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   put(provider, endpoint, data = {}, opt = {}) {
@@ -884,7 +884,7 @@ class GXApiManager {
    * @param {string} provider
    * @param {string} endpoint
    * @param {any} [data]
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   patch(provider, endpoint, data = {}, opt = {}) {
@@ -895,7 +895,7 @@ class GXApiManager {
    * @param {string} provider
    * @param {string} endpoint
    * @param {Object<string, any>} [params]
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   del(provider, endpoint, params = {}, opt = {}) {
@@ -910,7 +910,7 @@ class GXApiManager {
    * @param {string} provider
    * @param {string} endpoint
    * @param {Object<string, any>} [params]
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   head(provider, endpoint, params = {}, opt = {}) {
@@ -925,7 +925,7 @@ class GXApiManager {
    * @param {string} provider
    * @param {string} endpoint
    * @param {Object<string, any>} [params]
-   * @param {GXApiRequestOptions} [opt]
+   * @param {VEAApiRequestOptions} [opt]
    * @returns {Promise<any>}
    */
   delete(provider, endpoint, params = {}, opt = {}) {
@@ -1010,8 +1010,8 @@ class GXApiManager {
       zenzxz: {
         baseURL: "https://api.zenzxz.my.id",
       },
-      GX: {
-        baseURL: "https://api.GX.my.id",
+      VEA: {
+        baseURL: "https://api.VEA.my.id",
       },
     };
   }
@@ -1253,7 +1253,7 @@ class GXApiManager {
   }
 }
 
-const GXApi = new GXApiManager();
+const VEAApi = new VEAApiManager();
 
-export { GXApiManager, GXApiProvider, GXApi };
-export default GXApi;
+export { VEAApiManager, VEAApiProvider, VEAApi };
+export default VEAApi;

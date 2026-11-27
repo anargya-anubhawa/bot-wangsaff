@@ -1,5 +1,5 @@
 /**
- * GX-ID — /presence (owner)
+ * VEA — /presence (owner)
  *
  * Unified control for the outgoing "typing…" presence simulation, merging the
  * former `presencesim`, `presencedelay` and `presencestatus` plugins.

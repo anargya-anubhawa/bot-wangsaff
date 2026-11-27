@@ -1,5 +1,5 @@
 /**
- * GX-ID — /reload (owner only)
+ * VEA — /reload (owner only)
  *
  * Re-imports and re-registers every plugin from disk without restarting the
  * process. The WhatsApp connection, database and scheduler keep running, so a

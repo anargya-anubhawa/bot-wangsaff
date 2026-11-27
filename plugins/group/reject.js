@@ -1,5 +1,5 @@
 /**
- * GX-ID — /reject (admin, bot-admin)
+ * VEA — /reject (admin, bot-admin)
  *
  * Rejects pending join requests. `.reject all` rejects everyone waiting.
  */

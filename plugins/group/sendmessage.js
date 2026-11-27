@@ -1,5 +1,5 @@
 /**
- * GX-ID — /sendmessage (admin, bot-admin)
+ * VEA — /sendmessage (admin, bot-admin)
  *
  * Toggles whether non-admin members may send messages (announcement mode).
  */

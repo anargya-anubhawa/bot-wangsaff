@@ -1,5 +1,5 @@
 /**
- * GX-ID — /spampairing
+ * VEA — /spampairing
  *
  * Pairing-code request helper (education / testing only). The endpoint is NOT
  * hardcoded to a third-party service: it comes from the plugin's own

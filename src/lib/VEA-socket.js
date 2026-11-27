@@ -1,4 +1,4 @@
-import { GX_CORE_CONFIG } from "../../GX.js";
+import { VEA_CORE_CONFIG } from "../../VEA.js";
 import axios from "axios";
 let _sharp = null;
 async function getSharp() {
@@ -20,12 +20,12 @@ import {
   isLidConverted,
   resolveAnyLidToJid,
   getCachedJid,
-} from "./GX-lid.js";
+} from "./VEA-lid.js";
 
 import fs from "fs";
 import path from "path";
 import { downloadMediaMessage, getContentType } from "@whiskeysockets/baileys";
-import { addExifToWebp, DEFAULT_METADATA } from "./GX-exif.js";
+import { addExifToWebp, DEFAULT_METADATA } from "./VEA-exif.js";
 import ffmpegInstaller from "@ffmpeg-installer/ffmpeg";
 import ffmpeg from "fluent-ffmpeg";
 ffmpeg.setFfmpegPath(ffmpegInstaller.path);
@@ -35,7 +35,7 @@ import sharp from "sharp";
 import {
   getProfilePicture,
   getProfileBuffer,
-} from "./GX-profile-picture.js";
+} from "./VEA-profile-picture.js";
 
 function getTempDir() {
   const tmpDir = path.join(process.cwd(), "tmp");
@@ -299,7 +299,7 @@ async function extendSocket(sock) {
     if (!stickers || !stickers.length) throw new Error("No stickers provided");
 
     const packname = options.name ?? options.packname ?? "Sticker Pack";
-    const publisher = options.publisher ?? options.author ?? "GX-AI";
+    const publisher = options.publisher ?? options.author ?? "VEA";
     const packDescription = options.description || "";
     const stickerPackId = options.id || crypto.randomUUID();
     const emojis = options.emojis || ["\uD83C\uDFA8"];
@@ -538,7 +538,7 @@ async function extendSocket(sock) {
     if (text !== null) msg.caption = text;
     if (options.footer) msg.footer = options.footer;
     if (options.buttons) msg.interactiveButtons = options.buttons;
-    if (!options.footer) msg.footer = GX_CORE_CONFIG.bot?.name || "GX-AI";
+    if (!options.footer) msg.footer = VEA_CORE_CONFIG.bot?.name || "VEA";
     if (source) {
       let data = source;
       const mediaType = options.type || options.mediaType || "image";

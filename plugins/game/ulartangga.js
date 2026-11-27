@@ -1,16 +1,16 @@
-import { GX_CORE_CONFIG } from "../../GX.js";
+import { VEA_CORE_CONFIG } from "../../VEA.js";
 
 
-import { getDatabase } from "../../src/lib/GX-database.js";
+import { getDatabase } from "../../src/lib/VEA-database.js";
 import {
   drawBoard,
   getRandomMap,
   DICE_STICKERS,
-} from "../../src/lib/GX-game-ulartangga.js";
+} from "../../src/lib/VEA-game-ulartangga.js";
 import config from "../../config.js";
 import fs from "fs";
 import path from "path";
-import te from "../../src/lib/GX-error.js";
+import te from "../../src/lib/VEA-error.js";
 const pluginConfig = {
   name: "ulartangga",
   alias: ["ut", "snakeladder", "sl"],
@@ -44,7 +44,7 @@ try {
     process.cwd(),
     "assets",
     "image",
-    "GX-games.jpg",
+    "VEA-games.jpg",
   );
   if (fs.existsSync(thumbPath)) {
     thumbUT = fs.readFileSync(thumbPath);
@@ -52,8 +52,8 @@ try {
 } catch (e) { }
 
 function utCtx(mentions) {
-  const saluranId = GX_CORE_CONFIG.saluran?.id || "120363400911374213@newsletter";
-  const saluranName = GX_CORE_CONFIG.saluran?.name || GX_CORE_CONFIG.bot?.name || "GX-AI";
+  const saluranId = VEA_CORE_CONFIG.saluran?.id || "120363400911374213@newsletter";
+  const saluranName = VEA_CORE_CONFIG.saluran?.name || VEA_CORE_CONFIG.bot?.name || "VEA";
   const normalizedMentions = uniqueMentions(mentions);
   return {
     forwardingScore: 9999,

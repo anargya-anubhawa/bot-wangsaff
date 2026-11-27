@@ -1,5 +1,5 @@
 /**
- * GX-ID — /update & /checkupdate (owner only)
+ * VEA — /update & /checkupdate (owner only)
  *
  * Self-update straight from the repository configured in `.env`
  * (`GITHUB_REPO` / `GITHUB_BRANCH` / `GITHUB_TOKEN`). One merged, parameter
@@ -95,7 +95,7 @@ function renderCommitBlock(commit, index) {
 
 function renderCheck(report, prefix) {
   const L = [];
-  L.push(`🔎 *CEK UPDATE · GX-ID*`);
+  L.push(`🔎 *CEK UPDATE · VEA*`);
   L.push("");
   L.push(`╭─〔 📦 *REPOSITORI* 〕`);
   L.push(`┃ Repo   : \`${report.repo}\``);
@@ -136,7 +136,7 @@ function renderCheck(report, prefix) {
 
 function renderApply(report, prefix) {
   const L = [];
-  L.push(`✅ *UPDATE SELESAI · GX-ID*`);
+  L.push(`✅ *UPDATE SELESAI · VEA*`);
   L.push("");
   L.push(`╭─〔 📦 *HASIL* 〕`);
   L.push(`┃ Repo   : \`${report.repo}\``);

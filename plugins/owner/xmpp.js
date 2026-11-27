@@ -1,5 +1,5 @@
 /**
- * GX-ID — `.xmpp` (Minecraft bridge control)
+ * VEA — `.xmpp` (Minecraft bridge control)
  *
  * Manages the WhatsApp ↔ Minecraft bridge created in `lib/xmpp/`:
  *

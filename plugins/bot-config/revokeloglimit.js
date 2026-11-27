@@ -1,5 +1,5 @@
 /**
- * GX-ID — /revokelimit (owner)
+ * VEA — /revokelimit (owner)
  *
  * Merges the former `revokelimit` (set) and `revokelimitstatus` (show) plugins.
  * Controls the media size cap used by revoke ("delete for everyone") recovery.

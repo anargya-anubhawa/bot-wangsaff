@@ -1,5 +1,5 @@
 /**
- * GX-ID — /banwa
+ * VEA — /banwa
  *
  * Mass-report helper (education / testing only). The report endpoint is NOT
  * hardcoded to a third-party service: it is read from the plugin's own

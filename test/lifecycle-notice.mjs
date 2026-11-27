@@ -1,5 +1,5 @@
 /**
- * GX-ID — lifecycle notices (bot aktif / shutting down)
+ * VEA — lifecycle notices (bot aktif / shutting down)
  *
  * The bot announces itself on the owner's MANAGEMENT PANEL — the global default
  * log panel (`.log default`) — when it becomes ready and when it stops.
@@ -90,7 +90,7 @@ await test("online: one notice to the panel, saying the bot is active", async ()
   const text = sock.sent[0].content.text;
   assert.match(text, /BOT AKTIF/i, `got: ${text}`);
   assert.match(text, /Online/, `got: ${text}`);
-  assert.ok(text.includes(config.bot?.name || "GX-ID"), "the bot name must be shown");
+  assert.ok(text.includes(config.bot?.name || "VEA"), "the bot name must be shown");
   reset();
 });
 

@@ -1,5 +1,5 @@
 /**
- * GX-ID — supervisor / single-instance lock / runtime-mode test
+ * VEA — supervisor / single-instance lock / runtime-mode test
  *
  * Verifies the mechanism that fixes "the bot looks stopped but is actually
  * running in the background":
@@ -91,14 +91,18 @@ const mode = await import("../lib/runtime-mode.js");
 await test("shouldSupervise defaults on, and stands down for watch/supervisors", () => {
   const saved = { ...process.env };
   try {
-    for (const k of ["GX_SUPERVISED", "GX_SUPERVISE", "pm_id", "PM2_HOME", "INVOCATION_ID", "KUBERNETES_SERVICE_HOST", "container"]) {
+    for (const k of ["VEA_SUPERVISED", "VEA_SUPERVISE", "pm_id", "PM2_HOME", "INVOCATION_ID", "JOURNAL_STREAM", "NOTIFY_SOCKET", "KUBERNETES_SERVICE_HOST", "container", "DOCKER_CONTAINER"]) {
       delete process.env[k];
     }
-    assert.equal(mode.shouldSupervise(), true, "default should supervise");
+    /* When the host itself already provides a supervisor (systemd here, or the
+       Docker restart policy via /.dockerenv) the built-in one correctly stands
+       down. Only the bare-host case expects the default-on behaviour. */
+    const externallySupervised = mode.detectSupervisor() !== null;
+    assert.equal(mode.shouldSupervise(), !externallySupervised, "default should supervise on a bare host, stand down under an external supervisor");
 
-    process.env.GX_SUPERVISE = "0";
-    assert.equal(mode.shouldSupervise(), false, "GX_SUPERVISE=0 disables");
-    delete process.env.GX_SUPERVISE;
+    process.env.VEA_SUPERVISE = "0";
+    assert.equal(mode.shouldSupervise(), false, "VEA_SUPERVISE=0 disables");
+    delete process.env.VEA_SUPERVISE;
 
     process.env.pm_id = "0";
     assert.equal(mode.detectSupervisor(), "pm2");
@@ -109,10 +113,10 @@ await test("shouldSupervise defaults on, and stands down for watch/supervisors",
     assert.equal(mode.detectSupervisor(), "systemd");
     delete process.env.INVOCATION_ID;
 
-    process.env.GX_SUPERVISE = "1";
+    process.env.VEA_SUPERVISE = "1";
     process.env.pm_id = "0";
-    assert.equal(mode.shouldSupervise(), true, "GX_SUPERVISE=1 forces it on");
-    delete process.env.GX_SUPERVISE;
+    assert.equal(mode.shouldSupervise(), true, "VEA_SUPERVISE=1 forces it on");
+    delete process.env.VEA_SUPERVISE;
     delete process.env.pm_id;
   } finally {
     for (const k of Object.keys(process.env)) if (!(k in saved)) delete process.env[k];

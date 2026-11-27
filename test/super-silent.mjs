@@ -1,5 +1,5 @@
 /**
- * GX-ID — super silent mode (`.silent super`)
+ * VEA — super silent mode (`.silent super`)
  *
  * Super silent mode minimises a command's output: instead of answering in text,
  * the bot reacts once — 🟢 when the command reported success, 🔴 when it
@@ -57,7 +57,7 @@ const OWNER = "628000000001@s.whatsapp.net";
 function makeSock() {
   const sent = [];
   const sock = {
-    user: { id: BOT, name: "GX-ID" },
+    user: { id: BOT, name: "VEA" },
     sendMessage: async (jid, content, options) => {
       sent.push({ jid, content, options });
       return { key: { id: `m${sent.length}` } };

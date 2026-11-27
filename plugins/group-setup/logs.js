@@ -1,5 +1,5 @@
 /**
- * GX-ID — /logs (owner/whitelist)
+ * VEA — /logs (owner/whitelist)
  *
  * Shows recent moderation/message events from the persistent event log, with
  * the configured retention. Optional filters:

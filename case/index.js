@@ -1,5 +1,5 @@
 /**
- * GX-ID — case system
+ * VEA — case system
  *
  * A lightweight complement to the plugin system: commands that are simpler to
  * implement inline (no separate file) live here. Handled before plugin

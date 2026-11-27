@@ -1,5 +1,5 @@
 /**
- * GX-ID — /quotelimit (owner)
+ * VEA — /quotelimit (owner)
  *
  * Max text length accepted by the quote card feature.
  */

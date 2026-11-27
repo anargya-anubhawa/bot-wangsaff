@@ -1,5 +1,5 @@
 /**
- * GX-ID — /restart (owner only)
+ * VEA — /restart (owner only)
  *
  * Restarts the whole bot process. Everything is flushed first (database, socket
  * presence) and the process is then relaunched — either by the active supervisor

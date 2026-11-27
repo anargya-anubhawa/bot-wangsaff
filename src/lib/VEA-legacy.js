@@ -1,4 +1,4 @@
-import { GX_CORE_CONFIG, GX_DEVELOPER } from "../../GX.js";
+import { VEA_CORE_CONFIG, VEA_DEVELOPER } from "../../VEA.js";
 import fs from "fs";
 import path from "path";
 
@@ -306,16 +306,16 @@ export function makeGlobals(sock, db, config) {
   global.nomorown = ownerNums[0] || "";
   global.nomorbot = String(sock.user?.id || "").split(":")[0].split("@")[0];
   global.nameown = config.owner?.name || "Owner";
-  global.namebot = GX_CORE_CONFIG.bot?.name || "GX";
-  global.wm = GX_CORE_CONFIG.bot?.name || "GX";
-  global.author = GX_DEVELOPER || config.owner?.name || "GX";
-  global.wait = config.messages?.wait || "🕕 GX Tempest sedang bekerja… tunggu sebentar. 💙";
-  global.eror = config.messages?.error || "☢ Hmph… GX sedang mengalami masalah. Coba lagi nanti. 💙";
-  global.success = config.messages?.success || "💙 Berhasil… GX sudah menyelesaikannya untukmu.";
+  global.namebot = VEA_CORE_CONFIG.bot?.name || "VEA";
+  global.wm = VEA_CORE_CONFIG.bot?.name || "VEA";
+  global.author = VEA_DEVELOPER || config.owner?.name || "VEA";
+  global.wait = config.messages?.wait || "🕕 VEA Tempest sedang bekerja… tunggu sebentar. 💙";
+  global.eror = config.messages?.error || "☢ Hmph… VEA sedang mengalami masalah. Coba lagi nanti. 💙";
+  global.success = config.messages?.success || "💙 Berhasil… VEA sudah menyelesaikannya untukmu.";
   global.sukses = global.success;
-  global.linkch = GX_CORE_CONFIG.saluran?.link || "";
-  global.chId = GX_CORE_CONFIG.saluran?.id || "";
-  global.newsletterName = GX_CORE_CONFIG.saluran?.name || global.namebot;
+  global.linkch = VEA_CORE_CONFIG.saluran?.link || "";
+  global.chId = VEA_CORE_CONFIG.saluran?.id || "";
+  global.newsletterName = VEA_CORE_CONFIG.saluran?.name || global.namebot;
   global.domain = config.pterodactyl?.server1?.domain || "";
   global.apikey = config.pterodactyl?.server1?.apikey || "";
   global.capikey = config.pterodactyl?.server1?.capikey || "";

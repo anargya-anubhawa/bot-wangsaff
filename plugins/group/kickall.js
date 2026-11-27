@@ -1,5 +1,5 @@
 /**
- * GX-ID — /kickall (admin, bot-admin)
+ * VEA — /kickall (admin, bot-admin)
  *
  * Removes every non-admin member from the group. This is DESTRUCTIVE and
  * irreversible, so it requires a two-stage confirmation:

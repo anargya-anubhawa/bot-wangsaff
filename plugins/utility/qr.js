@@ -1,5 +1,5 @@
 /**
- * GX-ID — /qr
+ * VEA — /qr
  *
  * Generate a QR code image from text.
  */

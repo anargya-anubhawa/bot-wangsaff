@@ -1,5 +1,5 @@
 /**
- * GX-ID — pipeline test
+ * VEA — pipeline test
  *
  * Drives a raw message through serialize + messageHandler against a mock
  * socket to verify command dispatch, note lookup, permission gates and
@@ -32,7 +32,7 @@ if (configModule.messages) configModule.messages.transformEnabled = false;
 function makeSock() {
   const sent = [];
   const sock = {
-    user: { id: "628999:1@s.whatsapp.net", name: "GX-ID" },
+    user: { id: "628999:1@s.whatsapp.net", name: "VEA" },
     sendMessage: async (jid, content) => {
       sent.push({ jid, content });
       return { key: { id: `m${sent.length}` } };

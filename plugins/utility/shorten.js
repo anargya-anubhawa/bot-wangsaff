@@ -1,5 +1,5 @@
 /**
- * GX-ID — /shorten
+ * VEA — /shorten
  *
  * Shorten a URL using the TinyURL API (no key required).
  */

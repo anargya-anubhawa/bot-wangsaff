@@ -1,5 +1,5 @@
 /**
- * GX-ID — /revoke
+ * VEA — /revoke
  *
  * Revokes (resets) the group invite link.
  */

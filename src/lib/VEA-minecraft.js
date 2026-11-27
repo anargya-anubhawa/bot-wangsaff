@@ -9,7 +9,7 @@ import {
   SMELT_RECIPES,
   CRAFT_RECIPES,
   JACKPOT_POOLS,
-} from "./GX-minecraft-data.js";
+} from "./VEA-minecraft-data.js";
 
 function formatMoney(n) {
   if (n == null || isNaN(n)) return "0";

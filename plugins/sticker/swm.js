@@ -1,8 +1,8 @@
 
 
 import config from '../../config.js'
-import te from '../../src/lib/GX-error.js'
-import { addExifToWebp, isAnimatedWebp, DEFAULT_METADATA } from '../../src/lib/GX-exif.js'
+import te from '../../src/lib/VEA-error.js'
+import { addExifToWebp, isAnimatedWebp, DEFAULT_METADATA } from '../../src/lib/VEA-exif.js'
 
 const pluginConfig = {
     name: 'swm',
@@ -29,8 +29,8 @@ async function handler(m, { sock, config: botConfig }) {
             `> Reply sticker dengan caption:\n` +
             `> \`${m.prefix}swm packname\`\n\n` +
             `*ᴄᴏɴᴛᴏʜ:*\n` +
-            `> \`${m.prefix}swm GX-AI\`\n` +
-            `> \`${m.prefix}swm GX-AI|LuckyArchz\` _(packname + author)_`
+            `> \`${m.prefix}swm VEA\`\n` +
+            `> \`${m.prefix}swm VEA|LuckyArchz\` _(packname + author)_`
         )
     }
     
@@ -45,8 +45,8 @@ async function handler(m, { sock, config: botConfig }) {
             `❌ *ɢᴀɢᴀʟ*\n\n` +
             `> Masukkan packname\n\n` +
             `*ᴄᴏɴᴛᴏʜ:*\n` +
-            `> \`${m.prefix}swm GX-AI\`\n` +
-            `> \`${m.prefix}swm GX-AI|LuckyArchz\` _(+ author)_`
+            `> \`${m.prefix}swm VEA\`\n` +
+            `> \`${m.prefix}swm VEA|LuckyArchz\` _(+ author)_`
         )
     }
     

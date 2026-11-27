@@ -1,5 +1,5 @@
 /**
- * GX-ID — /unregistergroup (owner/whitelist)
+ * VEA — /unregistergroup (owner/whitelist)
  *
  * Inverse of `registergroup`: deactivates a group and removes every management
  * link pointing at it. Without an argument it acts on the current group; with

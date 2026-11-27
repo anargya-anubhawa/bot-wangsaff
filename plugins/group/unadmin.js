@@ -1,5 +1,5 @@
 /**
- * GX-ID — /unadmin (admin, bot-admin)
+ * VEA — /unadmin (admin, bot-admin)
  *
  * Demotes one or more admins back to member. Alias-compatible with `.demote`.
  */

@@ -1,12 +1,12 @@
 import fs from "fs";
 import path from "path";
 import config from "../../config.js";
-import { getDatabase } from "../../src/lib/GX-database.js";
-import { serialize } from "../../src/lib/GX-serialize.js";
-import te from "../../src/lib/GX-error.js";
+import { getDatabase } from "../../src/lib/VEA-database.js";
+import { serialize } from "../../src/lib/VEA-serialize.js";
+import te from "../../src/lib/VEA-error.js";
 
 /**
- * /quotely — Quotly-style quote sticker (GX-ID)
+ * /quotely — Quotly-style quote sticker (VEA)
  *
  * Mengubah pesan yang direply menjadi sticker kartu kutipan.
  *   /quotely     → 1 bubble  (pesan yang direply)
@@ -14,14 +14,14 @@ import te from "../../src/lib/GX-error.js";
  *   /quotely 3   → pesan direply + 2 pesan berikutnya
  *   /quotely 4   → pesan direply + 3 pesan berikutnya
  *
- * Pesan berikutnya diambil dari message store GX-ID (sock.store.messages)
+ * Pesan berikutnya diambil dari message store VEA (sock.store.messages)
  * yang sudah tersedia — tidak membuat store/history baru.
  *
- * Renderer memakai @napi-rs/canvas (dependency GX-ID yang sudah ada).
- * Konversi ke sticker memakai sock.sendImageAsSticker() (GX-socket).
+ * Renderer memakai @napi-rs/canvas (dependency VEA yang sudah ada).
+ * Konversi ke sticker memakai sock.sendImageAsSticker() (VEA-socket).
  *
  * Catatan: command utama dinamai `quotely` (bukan `quote`) karena `quote`
- * sudah dipakai sebagai alias plugin lain (katakata) di GX-ID.
+ * sudah dipakai sebagai alias plugin lain (katakata) di VEA.
  */
 
 const MAX_BUBBLES = 4;
@@ -183,7 +183,7 @@ function ensureFont(GlobalFonts) {
   try {
     const candidates = [
       path.join(process.cwd(), "assets", "fonts", "arialnarrow.ttf"),
-      path.join(process.cwd(), "assets", "GX-font.ttf"),
+      path.join(process.cwd(), "assets", "VEA-font.ttf"),
     ];
     for (const f of candidates) {
       if (fs.existsSync(f)) {
@@ -528,7 +528,7 @@ async function handler(m, { sock, db }) {
     // ── Render ───────────────────────────────────────────────────────
     const png = await renderQuoteCard(bubbles, sock);
 
-    // ── Kirim sebagai sticker (EXIF dari config GX-ID) ───────────────
+    // ── Kirim sebagai sticker (EXIF dari config VEA) ───────────────
     await sock.sendImageAsSticker(m.chat, png, m, {
       packname: config.sticker?.packname,
       author: config.sticker?.author,
@@ -543,7 +543,7 @@ async function handler(m, { sock, db }) {
       );
     }
   } catch (error) {
-    console.error("[GX-ID][QUOTE][ERROR]", error?.message || error);
+    console.error("[VEA][QUOTE][ERROR]", error?.message || error);
     try {
       if (m.react) await m.react("☢");
       await m.reply(te(m.prefix, m.command, m.pushName));

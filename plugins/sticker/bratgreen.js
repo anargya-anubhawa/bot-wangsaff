@@ -1,8 +1,8 @@
 
 
 import config from "../../config.js";
-import te from "../../src/lib/GX-error.js";
-import { drawBrat } from "../../src/lib/GX-brat.js";
+import te from "../../src/lib/VEA-error.js";
+import { drawBrat } from "../../src/lib/VEA-brat.js";
 
 const pluginConfig = {
   name: "bratgreen",

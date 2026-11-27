@@ -1,5 +1,5 @@
 /**
- * GX-ID — /bulkdelay (owner)
+ * VEA — /bulkdelay (owner)
  *
  * Global jittered delay between consecutive bulk group actions (kickall/add/
  * fban). Not per-group: it governs how this account's automation looks overall.

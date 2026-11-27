@@ -1,5 +1,5 @@
 /**
- * GX-ID — PDF → format converter test
+ * VEA — PDF → format converter test
  *
  * Covers the inverse of `/pdf` end-to-end, without LibreOffice and without a
  * network:
@@ -318,7 +318,7 @@ function makeCtx({ quoted = null, self = {} } = {}) {
     },
     ...self,
   };
-  return { m, sock, sent, relayed, replies, reactions, config: { command: { prefix: "." }, bot: { name: "GX-ID" } } };
+  return { m, sock, sent, relayed, replies, reactions, config: { command: { prefix: "." }, bot: { name: "VEA" } } };
 }
 
 /** The flow buttons relayed in this context, flattened to their row list. */

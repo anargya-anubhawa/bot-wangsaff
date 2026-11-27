@@ -1,5 +1,5 @@
 /**
- * GX-ID — /pdfto
+ * VEA — /pdfto
  *
  * The inverse of `/pdf`: take a PDF and turn it into an editable file — DOCX,
  * TXT, MD, HTML, RTF (built-in, no external tool) or PNG/JPG (via LibreOffice,
@@ -69,7 +69,7 @@ function targetRows(token) {
 /** Show the interactive format picker for an already-downloaded PDF. */
 async function sendPicker(m, ctx, job) {
   const { sock, config: cfg } = ctx;
-  const botName = cfg?.bot?.name || config.bot?.name || "GX-ID";
+  const botName = cfg?.bot?.name || config.bot?.name || "VEA";
 
   const image = await getImageBuffer("menu", botName).catch(() => null);
   const body =

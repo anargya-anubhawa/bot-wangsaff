@@ -128,7 +128,7 @@ async function handler(m, { sock }) {
                 .on('error', (err) => reject(err))
         })
 
-        const stickerConfig = config.sticker || { packname: 'GX-AI', author: 'Bot' }
+        const stickerConfig = config.sticker || { packname: 'VEA', author: 'Bot' }
 
         await sock.sendVideoAsSticker(m.chat, outputVideo, m, {
             packname: stickerConfig.packname,

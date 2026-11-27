@@ -1,5 +1,5 @@
 /**
- * GX-ID — /search
+ * VEA — /search
  *
  * Search the web via DuckDuckGo's instant-answer API (no key required).
  */

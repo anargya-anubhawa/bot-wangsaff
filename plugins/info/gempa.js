@@ -1,5 +1,5 @@
 /**
- * GX-ID — /gempa
+ * VEA — /gempa
  *
  * Latest earthquake info from BMKG (Indonesian Meteorology agency), with the
  * shakemap image when available.

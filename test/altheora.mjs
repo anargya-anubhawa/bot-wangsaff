@@ -1,5 +1,5 @@
 /**
- * GX-ID — Altheora + Native Flow acceptance tests
+ * VEA — Altheora + Native Flow acceptance tests
  *
  * Drives real messages through the full pipeline (serialize → messageHandler)
  * against a mock socket, then mutates the `assets/altheora` tree on disk to
@@ -67,7 +67,7 @@ resetSandbox();
 function makeSock() {
   const sent = [];
   const sock = {
-    user: { id: "628999:1@s.whatsapp.net", name: "GX-ID" },
+    user: { id: "628999:1@s.whatsapp.net", name: "VEA" },
     sendMessage: async (jid, content, options) => {
       sent.push({ jid, content, options });
       return { key: { id: `m${sent.length}` } };

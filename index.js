@@ -1,5 +1,5 @@
 /**
- * GX-ID — entry point
+ * VEA — entry point
  *
  * Boot sequence:
  *   1. anti-crash hooks + console noise filter
@@ -84,7 +84,7 @@ let hotReload = null;
 
 /**
  * Watch `plugins/**` for edits (soft reload, no downtime) and `config.js` /
- * `GX.js` / `.env` for changes (full restart). Best-effort: a filesystem that
+ * `VEA.js` / `.env` for changes (full restart). Best-effort: a filesystem that
  * cannot be watched simply logs a warning.
  *
  * A plugin *entry* file can be re-imported in place, but a shared helper module
@@ -143,7 +143,7 @@ async function boot({ showBanner = true } = {}) {
 
   if (showBanner) {
     banner({
-      name: config.bot?.name || "GX-ID",
+      name: config.bot?.name || "VEA",
       version: config.bot?.version || "1.0.0",
       mode: config.mode || "public",
       owner: config.owner?.name || "Owner",
@@ -263,21 +263,21 @@ let isSupervisorProcess = false;
  * @returns {boolean} `true` when we own the lifecycle (or chose to continue).
  */
 function takeInstanceLock({ tolerate = false } = {}) {
-  const result = acquireInstanceLock({ label: config.bot?.name || "GX-ID" });
+  const result = acquireInstanceLock({ label: config.bot?.name || "VEA" });
   if (result.ok) {
     instanceLock = result.lock;
     return true;
   }
   if (tolerate) {
     logger.warn(
-      `another ${config.bot?.name || "GX-ID"} instance seems to be running (${describeHolder(result.holder)}) — continuing without the lock`,
+      `another ${config.bot?.name || "VEA"} instance seems to be running (${describeHolder(result.holder)}) — continuing without the lock`,
     );
     return true;
   }
   logger.error(
-    `another ${config.bot?.name || "GX-ID"} instance is already running (${describeHolder(result.holder)})`,
+    `another ${config.bot?.name || "VEA"} instance is already running (${describeHolder(result.holder)})`,
   );
-  logger.error("stop it first, or set GX_LOCK_FILE to run an isolated copy.");
+  logger.error("stop it first, or set VEA_LOCK_FILE to run an isolated copy.");
   return false;
 }
 
@@ -311,7 +311,7 @@ async function main() {
     if (!takeInstanceLock()) process.exit(1);
 
     // The operator interacts with the menu ONCE, here in the supervisor. The
-    // worker then boots straight into the bot (the supervisor sets GX_RELAUNCHED),
+    // worker then boots straight into the bot (the supervisor sets VEA_RELAUNCHED),
     // so a restart never reopens the menu.
     const action = await runBootInterface();
     if (action === "exit") {
@@ -327,7 +327,7 @@ async function main() {
     return;
   }
 
-  /* ── top-level, not supervised (node --watch / pm2 / systemd / GX_SUPERVISE=0) ── */
+  /* ── top-level, not supervised (node --watch / pm2 / systemd / VEA_SUPERVISE=0) ── */
   const watch = isWatchMode();
   if (!takeInstanceLock({ tolerate: watch })) process.exit(1);
 

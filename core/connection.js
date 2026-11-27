@@ -1,10 +1,10 @@
 /**
- * GX-ID — connection layer
+ * VEA — connection layer
  *
  * Creates the Baileys socket, handles pairing-code / QR authentication,
  * reconnect logic, a liveness watchdog, group-event queueing and the
  * anti-call feature. Mirrors the reference architecture's handler while
- * staying focused on GX-ID's feature set.
+ * staying focused on VEA's feature set.
  */
 import {
   makeWASocket,

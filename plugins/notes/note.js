@@ -1,5 +1,5 @@
 /**
- * GX-ID — /note
+ * VEA — /note
  *
  * Unified note command, merging the former `addnote`, `delnote`, `notes` and
  * `allowsavenote` plugins. Every original entry point is preserved as an alias,

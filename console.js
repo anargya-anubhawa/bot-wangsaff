@@ -1,5 +1,5 @@
 /**
- * GX-ID — control console launcher
+ * VEA — control console launcher
  *
  * Connects to a running bot over its local control socket and opens the
  * interactive UI in this terminal. Run it with `npm run console` while the bot

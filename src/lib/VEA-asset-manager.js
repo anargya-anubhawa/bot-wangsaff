@@ -1,8 +1,8 @@
 /**
- * GX-ID compatibility shim — asset helpers.
+ * VEA compatibility shim — asset helpers.
  *
  * The canonical implementation lives in `lib/asset-manager.js`. This module
- * simply re-exports it so the GX game subsystem (`GX-games.js`, `GX-context.js`)
+ * simply re-exports it so the VEA game subsystem (`VEA-games.js`, `VEA-context.js`)
  * shares a single asset cache with the rest of the bot instead of preloading
  * the same files twice during boot.
  */
@@ -17,7 +17,7 @@ import {
 
 /**
  * Persist a freshly downloaded asset buffer to disk and drop it into the shared
- * cache. Used by `GX-uploader.js` after it writes an asset back into config.js.
+ * cache. Used by `VEA-uploader.js` after it writes an asset back into config.js.
  * The canonical cache lives in `lib/asset-manager.js`, which has no write API,
  * so the buffer is written straight to the resolved path and re-read lazily on
  * next `getAssetBuffer()`.

@@ -1,5 +1,5 @@
 /**
- * GX-ID — message pipeline
+ * VEA — message pipeline
  *
  * Turns a raw Baileys message into a serialized `m`, runs the mode / ban /
  * anti-spam / cooldown gates, handles the `#note` lookup, then dispatches to
@@ -13,7 +13,7 @@ import { getDatabase } from "../lib/database.js";
 import { handleCommand as handleCaseCommand } from "../case/index.js";
 import { logCommand, logger } from "../lib/logger.js";
 import { getUptime } from "./connection.js";
-import { makeGlobals, runLegacyHook } from "../src/lib/GX-legacy.js";
+import { makeGlobals, runLegacyHook } from "../src/lib/VEA-legacy.js";
 import { handleFlowAction } from "../lib/flow-router.js";
 import { runModeration, runDirectVirtexCheck } from "../lib/moderation.js";
 import { runFilters } from "../lib/filters.js";
@@ -144,8 +144,8 @@ function findSuggestion(command) {
 /* ─────────────────────────── game answer loop ─────────────────────────── */
 
 /**
- * Dispatch free-text replies to active GX game sessions. Two families exist:
- *   1. GX-ID answer handlers (`answerHandler`, `dungeonAnswerHandler`, …) that
+ * Dispatch free-text replies to active VEA game sessions. Two families exist:
+ *   1. VEA answer handlers (`answerHandler`, `dungeonAnswerHandler`, …) that
  *      take `(m, sock)` or `(m, { sock, db })` — we pass a socket augmented with
  *      `.sock`/`.db` so both destructuring styles work.
  *   2. Legacy Megami `handler.before` / `handler.all` loops (bom, kuis, maths,

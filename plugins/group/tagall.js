@@ -1,5 +1,5 @@
 /**
- * GX-ID — /tagall
+ * VEA — /tagall
  */
 import { getParticipantJid, getParticipantJids } from "../../lib/lid.js";
 

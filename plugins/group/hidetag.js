@@ -1,5 +1,5 @@
 /**
- * GX-ID — /hidetag
+ * VEA — /hidetag
  *
  * Sends a message that mentions everyone but shows no visible mention text.
  */

@@ -1,5 +1,5 @@
 /**
- * GX-ID — /getvo (all)
+ * VEA — /getvo (all)
  *
  * Re-sends the most recent view-once media seen in this chat (or the media the
  * sender of the replied view-once message sent). Requires the pipeline to have

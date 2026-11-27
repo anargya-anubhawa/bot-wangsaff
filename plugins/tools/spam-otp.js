@@ -1,5 +1,5 @@
 /**
- * GX-ID — /spamotp
+ * VEA — /spamotp
  *
  * OTP-request helper (education / testing only). The send endpoints are NOT
  * hardcoded third-party services: they come from the plugin's own

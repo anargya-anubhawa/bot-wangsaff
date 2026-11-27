@@ -1,6 +1,6 @@
 import chalk from "chalk";
-import * as timeHelper from "./GX-time.js";
-import { getCachedJid, isLidConverted } from "./GX-lid.js";
+import * as timeHelper from "./VEA-time.js";
+import { getCachedJid, isLidConverted } from "./VEA-lid.js";
 
 // Mock gradient-string if any other file imports it from here
 const gradientMock = (text) => text;
@@ -66,7 +66,7 @@ function writeLog(kind, label, detail = "") {
   };
   const tag = tags[kind] || SYM.info;
 
-  // Format: [  OK  ] Started GX AI
+  // Format: [  OK  ] Started VEA AI
   const msg = `${tag} ${chalk.cyanBright(label)}${detail ? " " + cWhite(detail) : ""}`;
   console.log(msg);
 }
@@ -131,7 +131,7 @@ async function runLoader(text = "memuat", options = {}) {
 }
 
 async function playBootSequence(info = {}) {
-  const { name = "GX", version = "3.3", mode = "public" } = info;
+  const { name = "VEA", version = "3.3", mode = "public" } = info;
   console.log("");
   console.log(chalk.cyan(`
           ██████╗ ██╗   ██╗██████╗ ██╗███╗   ██╗
@@ -141,7 +141,7 @@ async function playBootSequence(info = {}) {
          ╚██████╔╝╚██████╔╝██║  ██║██║██║ ╚████║
           ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚═╝╚═╝  ╚═══╝
 `));
-  console.log(`         ${chalk.magenta.bold("►")} ${chalk.white("GX MULTI-DEVICE BOT")} ${chalk.gray(`v${version}`)}`);
+  console.log(`         ${chalk.magenta.bold("►")} ${chalk.white("VEA MULTI-DEVICE BOT")} ${chalk.gray(`v${version}`)}`);
   console.log(`         ${chalk.magenta("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")}`);
   console.log("");
   console.log(`${makeTag("BOOT", true)} ${cWhite(`Memulai Sistem Utama...`)}`);

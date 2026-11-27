@@ -1,5 +1,5 @@
 /**
- * GX-ID — /unban (owner only)
+ * VEA — /unban (owner only)
  */
 const pluginConfig = {
   name: "unban",

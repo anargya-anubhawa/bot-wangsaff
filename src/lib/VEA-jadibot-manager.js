@@ -1,17 +1,17 @@
 import QRCode from "qrcode";
 import path from "path";
 import fs from "fs";
-import { saluranCtx } from "./GX-context.js";
+import { saluranCtx } from "./VEA-context.js";
 import {
   delay,
   DisconnectReason,
   jidNormalizedUser,
   useMultiFileAuthState,
 } from "@whiskeysockets/baileys";
-import { logger } from "./GX-logger.js";
-import { addJadibotOwner } from "./GX-jadibot-database.js";
-import { extendSocket } from "./GX-socket.js";
-import { getAssetBuffer } from "./GX-asset-manager.js";
+import { logger } from "./VEA-logger.js";
+import { addJadibotOwner } from "./VEA-jadibot-database.js";
+import { extendSocket } from "./VEA-socket.js";
+import { getAssetBuffer } from "./VEA-asset-manager.js";
 const JADIBOT_AUTH_FOLDER = path.join(process.cwd(), "session", "jadibot");
 const jadibotSessions = new Map();
 const reconnectAttempts = new Map();
@@ -657,8 +657,8 @@ async function startJadibot(sock, m, userJid, usePairing = true) {
       if (m && m.chat) {
         let thumbnail = null;
         try {
-          if (!!getAssetBuffer("GX2")) {
-            thumbnail = getAssetBuffer("GX2");
+          if (!!getAssetBuffer("VEA2")) {
+            thumbnail = getAssetBuffer("VEA2");
           }
         } catch { }
 

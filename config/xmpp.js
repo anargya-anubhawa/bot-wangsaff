@@ -1,5 +1,5 @@
 /**
- * GX-ID — XMPP bridge configuration (SINGLE SOURCE OF TRUTH)
+ * VEA — XMPP bridge configuration (SINGLE SOURCE OF TRUTH)
  *
  * Everything the Minecraft ↔ WhatsApp bridge needs is defined here and read
  * from `.env` (see `.env.example`). Credentials are NEVER hardcoded anywhere
@@ -53,7 +53,7 @@ const xmppConfig = {
   domain: env("XMPP_DOMAIN", "") || env("XMPP_HOST", ""),
   username: env("XMPP_USERNAME", "minecraft"),
   password: env("XMPP_PASSWORD", ""),
-  resource: env("XMPP_RESOURCE", "gx-id"),
+  resource: env("XMPP_RESOURCE", "vea"),
 
   /**
    * When `false` the client connects with plain TCP (`xmpp://`) and upgrades

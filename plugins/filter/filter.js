@@ -1,5 +1,5 @@
 /**
- * GX-ID — /filter (admin target / owner / whitelist)
+ * VEA — /filter (admin target / owner / whitelist)
  *
  * Unified filter command, merging the former `addfilter`, `delfilter`,
  * `filters` and `filtercd` plugins. Every original entry point is preserved as

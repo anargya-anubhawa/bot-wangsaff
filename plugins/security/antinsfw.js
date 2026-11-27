@@ -1,5 +1,5 @@
 /**
- * GX-ID — /antinsfw (admin target / owner / whitelist)
+ * VEA — /antinsfw (admin target / owner / whitelist)
  *
  * Toggles NSFW media moderation (images + video/GIF/animated stickers). The
  * classifier is on-device by default (`nsfwjs` + TensorFlow.js, offline); set

@@ -1,5 +1,5 @@
 /**
- * GX-ID — /altheora  (alias: /al)
+ * VEA — /altheora  (alias: /al)
  *
  * Serves the documents under `assets/altheora` as a single *native flow*
  * interactive message. Every folder is a category and every file is a row —
@@ -202,14 +202,14 @@ async function renderFlow(m, ctx, state = {}) {
     `∝ ${toSmallCaps("Dokumen")}  : *${totalDocs}*\n\n` +
     `> ${toSmallCaps("Pilih dokumen dari flow di bawah untuk langsung dikirim.")}`;
 
-  const imageBuffer = await getImageBuffer("menu", cfg?.bot?.name || "GX-ID").catch(() => null);
+  const imageBuffer = await getImageBuffer("menu", cfg?.bot?.name || "VEA").catch(() => null);
   const messageParamsJson = buildMessageParams({ listTitle: "DOKUMEN", buttonTitle: "BUKA" });
 
   const ok = await sendNativeFlow(sock, m.chat, {
     image: imageBuffer,
-    headerTitle: cfg?.bot?.name || "GX-ID",
+    headerTitle: cfg?.bot?.name || "VEA",
     body,
-    footer: `${cfg?.bot?.name || "GX-ID"} • Altheora`,
+    footer: `${cfg?.bot?.name || "VEA"} • Altheora`,
     buttons,
     messageParamsJson,
     quoted: m.raw,
@@ -265,7 +265,7 @@ async function sendDocument(m, ctx, catKey, nodeKey) {
         document: buffer,
         fileName: node.fileName,
         mimetype: node.mime || "application/octet-stream",
-        caption: `${icon(node.ext)} *${node.name}*\n\n> ${cfg?.bot?.name || "GX-ID"} • Altheora`,
+        caption: `${icon(node.ext)} *${node.name}*\n\n> ${cfg?.bot?.name || "VEA"} • Altheora`,
       },
       { quoted: m.raw },
     );

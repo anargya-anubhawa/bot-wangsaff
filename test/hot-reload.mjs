@@ -1,5 +1,5 @@
 /**
- * GX-ID — hot reload test
+ * VEA — hot reload test
  *
  * Verifies the plugin hot-reload path (cache-busted re-import) picks up on-disk
  * edits, and that the `.reload` / `.restart` owner commands are registered.

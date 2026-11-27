@@ -1,7 +1,7 @@
 
 
 import { nightActionHandler } from './werewolf.js'
-import te from '../../src/lib/GX-error.js'
+import te from '../../src/lib/VEA-error.js'
 const pluginConfig = {
     name: 'wwkill',
     alias: ['wolfkill', 'wk'],

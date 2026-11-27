@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { findContextInfo, parseWebpExif, toJsonSafe } from "../plugins/utility/parse.js";
 
-const metadata = { "sticker-pack-name": "GX-ID", audio: "sample" };
+const metadata = { "sticker-pack-name": "VEA", audio: "sample" };
 const payload = Buffer.from(JSON.stringify(metadata));
 const chunk = Buffer.alloc(8 + payload.length + (payload.length & 1));
 chunk.write("EXIF", 0, "ascii");

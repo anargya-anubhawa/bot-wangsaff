@@ -1,5 +1,5 @@
 /**
- * GX-ID — /whitelist (owner)
+ * VEA — /whitelist (owner)
  *
  * Manages the global whitelist of trusted numbers. A whitelisted number is
  * trusted ONLY in private chat (PC): inside a group it is an ordinary member —

@@ -1,5 +1,5 @@
 /**
- * GX-ID — /play
+ * VEA — /play
  *
  * Search YouTube for a song name and send the resulting MP3 straight to the
  * chat.

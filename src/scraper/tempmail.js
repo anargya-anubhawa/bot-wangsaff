@@ -1,5 +1,5 @@
 /**
- * GX-ID — temporary mail (mail.tm)
+ * VEA — temporary mail (mail.tm)
  *
  * Creates disposable inboxes and reads their messages. Used by
  * `plugins/tools/tempmail.js`.
@@ -18,7 +18,7 @@
 import axios from "axios";
 
 const BASE = "https://api.mail.tm";
-const UA = "GX-ID-TempMail/1.0";
+const UA = "VEA-TempMail/1.0";
 
 function client(token) {
   return axios.create({

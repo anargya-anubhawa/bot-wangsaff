@@ -2,8 +2,8 @@
 
 import axios from 'axios';
 import config from '../../config.js';
-import te from '../../src/lib/GX-error.js';
-import { uploadImage } from '../../src/lib/GX-uploader.js';
+import te from '../../src/lib/VEA-error.js';
+import { uploadImage } from '../../src/lib/VEA-uploader.js';
 import { downloadMediaMessage, getContentType } from '@whiskeysockets/baileys';
 
 const pluginConfig = {

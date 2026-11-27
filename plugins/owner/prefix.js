@@ -1,5 +1,5 @@
 /**
- * GX-ID — /prefix (owner only)
+ * VEA — /prefix (owner only)
  *
  * View or add custom prefixes. The config prefix is always active; extra
  * prefixes are stored in the database and merged by the serializer.

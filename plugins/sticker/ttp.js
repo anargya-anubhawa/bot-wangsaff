@@ -1,7 +1,7 @@
 
 
 import axios from "axios";
-import te from "../../src/lib/GX-error.js";
+import te from "../../src/lib/VEA-error.js";
 import config from "../../config.js";
 
 const pluginConfig = {

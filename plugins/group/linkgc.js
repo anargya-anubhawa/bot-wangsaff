@@ -1,5 +1,5 @@
 /**
- * GX-ID — /linkgc
+ * VEA — /linkgc
  */
 const pluginConfig = {
   name: "linkgc",

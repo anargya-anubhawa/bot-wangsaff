@@ -1,5 +1,5 @@
 /**
- * GX-ID — /purge (admin, bot-admin)
+ * VEA — /purge (admin, bot-admin)
  *
  * Deletes the bot's OWN recent messages in this chat. WhatsApp only lets a
  * client revoke messages it authored, so this revokes up to `count` of the ids

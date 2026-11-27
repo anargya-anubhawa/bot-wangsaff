@@ -13,21 +13,21 @@ import {
   isReplyToGame,
   getRandomReward,
   getProgressiveHint,
-} from "./GX-game-data.js";
-import { getDatabase } from "./GX-database.js";
-import { addExpWithLevelCheck } from "./GX-level.js";
+} from "./VEA-game-data.js";
+import { getDatabase } from "./VEA-database.js";
+import { addExpWithLevelCheck } from "./VEA-level.js";
 import {
   getGameContextInfo,
   sendGamePreview,
   checkFastAnswer,
-} from "./GX-context.js";
+} from "./VEA-context.js";
 import config from "../../config.js";
-import { getAssetBuffer } from "./GX-asset-manager.js";
+import { getAssetBuffer } from "./VEA-asset-manager.js";
 import fs from "fs";
 import sharp from "sharp";
 let fetchBuffer;
 try {
-  fetchBuffer = (await import("./GX-utils.js")).fetchBuffer;
+  fetchBuffer = (await import("./VEA-utils.js")).fetchBuffer;
 } catch { }
 
 const WIN_MESSAGES = [
@@ -55,7 +55,7 @@ function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
 }
 
-class GXGames {
+class VEAGames {
   constructor() {
     this.registry = new Map();
   }
@@ -108,7 +108,7 @@ class GXGames {
               url: `${config.info.website}`,
               title: cfg.title,
               description: cfg.description,
-              jpegThumbnail: await sharp(getAssetBuffer("GX2", config.assets)).resize(300, 300).toBuffer(),
+              jpegThumbnail: await sharp(getAssetBuffer("VEA2", config.assets)).resize(300, 300).toBuffer(),
               previewType: 0,
             },
           );
@@ -328,6 +328,6 @@ class GXGames {
   }
 }
 
-const games = new GXGames();
+const games = new VEAGames();
 
-export { GXGames, games };
+export { VEAGames, games };

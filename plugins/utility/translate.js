@@ -1,5 +1,5 @@
 /**
- * GX-ID — /translate
+ * VEA — /translate
  *
  * Translate text using the public Google Translate endpoint.
  */
