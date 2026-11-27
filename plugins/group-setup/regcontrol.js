@@ -15,7 +15,6 @@ const pluginConfig = {
   description: "Atur mode registrasi grup & jadikan chat ini grup manajemen",
   usage: ".regcontrol <open|registered|panel>",
   examples: [".regcontrol registered", ".regcontrol panel"],
-  helpOnEmpty: false,
   permission: "owner",
   cooldown: 3,
   isEnabled: true,

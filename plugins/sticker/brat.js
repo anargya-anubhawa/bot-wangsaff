@@ -12,7 +12,6 @@ const pluginConfig = {
   description: "Menu variant brat dan generator sticker brat",
   usage: ".brat | .bratimg <text>",
   example: ".bratimg Hai semua",
-  helpOnEmpty: false,
   isOwner: false,
   isPremium: false,
   isGroup: false,

@@ -13,7 +13,6 @@ const pluginConfig = {
   description: "Izinkan/larang anggota non-admin mengubah pengaturan grup",
   usage: ".editsettings <on|off>",
   examples: [".editsettings off"],
-  helpOnEmpty: false,
   permission: "admin",
   isBotAdmin: true,
   cooldown: 10,

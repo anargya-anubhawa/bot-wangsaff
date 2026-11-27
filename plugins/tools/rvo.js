@@ -50,7 +50,6 @@ const pluginConfig = {
   cooldown: 5,
   energi: 1,
   // A bare `.rvo` must OPEN the media, not print a usage card.
-  helpOnEmpty: false,
   isEnabled: true,
 };
 

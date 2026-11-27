@@ -19,7 +19,6 @@ const pluginConfig = {
   description: "Show commands in a category",
   usage: ".allmenu <category>",
   example: ".allmenu group",
-  helpOnEmpty: false,
   isOwner: false,
   isGroup: false,
   isPrivate: false,

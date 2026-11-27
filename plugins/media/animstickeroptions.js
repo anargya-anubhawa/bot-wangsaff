@@ -15,7 +15,6 @@ const pluginConfig = {
   description: "Atur parameter konversi stiker animasi (global)",
   usage: ".animstickeroptions <duration=N,fps=N,emojis=...>",
   examples: [".animstickeroptions duration=6,fps=15", ".animstickeroptions reset"],
-  helpOnEmpty: false,
   permission: "owner",
   cooldown: 3,
   isEnabled: true,

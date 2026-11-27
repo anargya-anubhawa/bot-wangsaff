@@ -13,7 +13,6 @@ const pluginConfig = {
   description: "Deteksi dan kick bot WhatsApp (baileys) dari grup",
   usage: ".antibot <on/off>",
   example: ".antibot on",
-  helpOnEmpty: false,
   isOwner: false,
   isPremium: false,
   isGroup: true,

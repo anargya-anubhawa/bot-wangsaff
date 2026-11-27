@@ -54,7 +54,6 @@ const pluginConfig = {
     ".log reset kelas-a",
     ".log default",
   ],
-  helpOnEmpty: false,
   permission: "owner",
   cooldown: 3,
   isEnabled: true,

@@ -11,7 +11,6 @@ const pluginConfig = {
   description: "Laporkan pesan virtex di chat pribadi ke owner",
   usage: ".antivirtexdm <on|off>",
   examples: [".antivirtexdm on"],
-  helpOnEmpty: false,
   permission: "owner",
   cooldown: 5,
   isEnabled: true,

@@ -19,7 +19,6 @@ const pluginConfig = {
   description: "Tampilkan riwayat log moderasi terbaru",
   usage: ".logs [grup|jumlah]  |  .logs retention <hari>",
   examples: [".logs", ".logs 20", ".logs kelas-a", ".logs retention 30"],
-  helpOnEmpty: false,
   permission: "owner",
   cooldown: 3,
   isEnabled: true,

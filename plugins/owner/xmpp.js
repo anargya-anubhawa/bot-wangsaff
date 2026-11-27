@@ -34,7 +34,6 @@ const pluginConfig = {
   description: "Kelola bridge WhatsApp ↔ Minecraft (XMPP)",
   usage: ".xmpp [status|groups|on|off|setgroup|unsetgroup]",
   examples: [".xmpp", ".xmpp status", ".xmpp on", ".xmpp setgroup"],
-  helpOnEmpty: false,
   permission: "all",
   cooldown: 3,
   isEnabled: true,

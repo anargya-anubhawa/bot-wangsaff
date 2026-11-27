@@ -43,7 +43,6 @@ const pluginConfig = {
     { name: "help", description: "Tampilkan kartu usage + parameter" },
     { name: "<ref>", description: "Terapkan dari branch/tag/commit tertentu (default: branch repo)" },
   ],
-  helpOnEmpty: false,
   permission: "owner",
   cooldown: 3,
   isEnabled: true,

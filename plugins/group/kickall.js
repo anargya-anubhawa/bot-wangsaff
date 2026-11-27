@@ -23,7 +23,6 @@ const pluginConfig = {
   description: "Keluarkan semua anggota non-admin (butuh konfirmasi 2 tahap)",
   usage: ".kickall  |  .kickall confirm <token>  |  .kickall cancel",
   examples: [".kickall", ".kickall confirm <token>"],
-  helpOnEmpty: false,
   permission: "admin",
   isBotAdmin: true,
   // No command-level cooldown: stage 1 and stage 2 must be run back-to-back,

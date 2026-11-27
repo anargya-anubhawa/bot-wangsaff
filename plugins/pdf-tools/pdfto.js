@@ -36,7 +36,6 @@ const pluginConfig = {
   isPrivate: false,
   cooldown: 15,
   isEnabled: true,
-  helpOnEmpty: false,
 };
 
 /* ─────────────────────────────── helpers ─────────────────────────────── */

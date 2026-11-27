@@ -15,7 +15,6 @@ const pluginConfig = {
   description: "Hapus otomatis pesan yang diduga teks perusak (virtex)",
   usage: ".antivirtex [grup] <on|off>",
   examples: [".antivirtex on", ".antivirtex kelas-a on"],
-  helpOnEmpty: false,
   permission: "all",
   cooldown: 5,
   isEnabled: true,

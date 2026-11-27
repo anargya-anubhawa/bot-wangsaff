@@ -29,7 +29,6 @@ const pluginConfig = {
   description: "Atur mode silent: off (normal), on (sembunyikan teks gate, tetap reaction), super (balas reaction saja)",
   usage: ".silent <off|on|super>",
   examples: [".silent off", ".silent on", ".silent super", ".silent"],
-  helpOnEmpty: false,
   isOwner: true,
   cooldown: 3,
   isEnabled: true,

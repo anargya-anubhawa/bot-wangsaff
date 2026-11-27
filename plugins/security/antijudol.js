@@ -9,7 +9,6 @@ const pluginConfig = {
     description: 'Deteksi konten judol di grup',
     usage: '.antijudol <on/off/metode> [kick/remove]',
     example: '.antijudol on',
-    helpOnEmpty: false,
     isOwner: false,
     isPremium: false,
     isGroup: true,

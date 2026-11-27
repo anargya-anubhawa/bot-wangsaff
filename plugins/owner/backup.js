@@ -42,7 +42,6 @@ const pluginConfig = {
   description: "Backup proyek bot (full / source) ke WhatsApp atau hosting gratis",
   usage: ".backup [start|setting]",
   examples: [".backup", ".backup start", ".backup setting"],
-  helpOnEmpty: false,
   permission: "owner",
   cooldown: 60,
   notes: "Default full backup termasuk .env/session/database. Hanya owner.",

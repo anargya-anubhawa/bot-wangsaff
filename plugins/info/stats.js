@@ -29,9 +29,11 @@ const pluginConfig = {
     { name: "reset", description: "Hapus semua statistik command (khusus owner)" },
     { name: "help", description: "Tampilkan kartu usage" },
   ],
-  helpOnEmpty: false,
   permission: "all",
   cooldown: 5,
+  /* .stats ran bare (top-10) before the uniform usage card existed; it opts
+     back in so a bare call stays a stat view, not a help card. */
+  helpOnEmpty: false,
   isEnabled: true,
 };
 

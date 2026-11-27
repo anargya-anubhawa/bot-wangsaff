@@ -20,7 +20,6 @@ const pluginConfig = {
   usage: ".reload [status]",
   examples: [".reload", ".reload status"],
   parameters: [{ name: "status", description: "Tampilkan jumlah plugin tanpa memuat ulang" }],
-  helpOnEmpty: false,
   permission: "owner",
   cooldown: 3,
   isEnabled: true,

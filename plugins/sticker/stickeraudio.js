@@ -691,8 +691,6 @@ const pluginConfig = {
   // .sa mengurus limitnya sendiri (cek sebelum proses, potong setelah berhasil),
   // jadi baris limit bawaan tidak boleh dipotong di depan. Lihat potongLimit.
   limit: 0,
-  // `sa` tanpa argumen valid (mode dua langkah), jadi jangan tampilkan usage card.
-  runsBare: true,
   isEnabled: true,
 };
 

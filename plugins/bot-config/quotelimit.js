@@ -12,7 +12,6 @@ const pluginConfig = {
   description: "Atur panjang teks maksimum untuk fitur quote",
   usage: ".quotelimit <jumlah>",
   examples: [".quotelimit 100"],
-  helpOnEmpty: false,
   permission: "owner",
   cooldown: 3,
   isEnabled: true,

@@ -12,7 +12,6 @@ const pluginConfig = {
   description: "Tag all group admins",
   usage: ".tagadmin <message>",
   example: ".tagadmin Meeting at 8pm",
-  helpOnEmpty: false,
   isGroup: true,
   isAdmin: true,
   cooldown: 15,

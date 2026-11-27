@@ -13,7 +13,6 @@ const pluginConfig = {
   description: "Mention everyone without showing the mentions",
   usage: ".hidetag <message>",
   example: ".hidetag (Good morning)",
-  helpOnEmpty: false,
   isGroup: true,
   isAdmin: true,
   cooldown: 15,

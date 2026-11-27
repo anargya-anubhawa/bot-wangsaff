@@ -20,7 +20,6 @@ const pluginConfig = {
   description: "Hapus otomatis media tidak pantas (gambar/video/GIF)",
   usage: ".antinsfw [grup] <on|off>",
   examples: [".antinsfw on", ".antinsfw kelas-a on"],
-  helpOnEmpty: false,
   permission: "all",
   cooldown: 5,
   isEnabled: true,

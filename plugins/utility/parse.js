@@ -7,7 +7,6 @@ const pluginConfig = {
   examples: [".parse"],
   permission: "all",
   cooldown: 3,
-  helpOnEmpty: false,
   isEnabled: true,
 };
 

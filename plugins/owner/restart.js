@@ -25,7 +25,6 @@ const pluginConfig = {
   usage: ".restart [status]",
   examples: [".restart", ".restart status"],
   parameters: [{ name: "status", description: "Tampilkan mode restart tanpa menjalankan" }],
-  helpOnEmpty: false,
   permission: "owner",
   cooldown: 0,
   isEnabled: true,

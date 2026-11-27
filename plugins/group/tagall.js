@@ -10,7 +10,6 @@ const pluginConfig = {
   description: "Tag every member in the group",
   usage: ".tagall <message>",
   example: ".tagall Hello everyone!",
-  helpOnEmpty: false,
   isGroup: true,
   isAdmin: true,
   cooldown: 30,

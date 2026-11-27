@@ -11,7 +11,6 @@ const pluginConfig = {
   description: "Izinkan/larang admin grup memakai perintah bot di grup ini",
   usage: ".allowadmin <on|off>",
   examples: [".allowadmin off", ".allowadmin on"],
-  helpOnEmpty: false,
   permission: "owner",
   isGroup: true,
   cooldown: 3,

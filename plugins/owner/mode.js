@@ -12,7 +12,6 @@ const pluginConfig = {
   description: "Set the bot mode (public/self/private/group/reggroup)",
   usage: ".mode <public|self|private|group|reggroup>",
   example: ".mode group",
-  helpOnEmpty: false,
   isOwner: true,
   cooldown: 3,
   isEnabled: true,

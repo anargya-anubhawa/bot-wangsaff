@@ -28,7 +28,6 @@ const pluginConfig = {
     ".whitelist on",
     ".whitelist off",
   ],
-  helpOnEmpty: false,
   permission: "owner",
   cooldown: 3,
   isEnabled: true,

@@ -20,7 +20,6 @@ const pluginConfig = {
   description: "Hapus otomatis link dari anggota non-admin/non-whitelist",
   usage: ".antilink [grup] <on|off>",
   examples: [".antilink on", ".antilink kelas-a on"],
-  helpOnEmpty: false,
   permission: "all",
   cooldown: 5,
   isEnabled: true,

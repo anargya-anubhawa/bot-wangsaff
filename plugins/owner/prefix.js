@@ -13,7 +13,6 @@ const pluginConfig = {
   description: "View or set command prefixes",
   usage: ".prefix [add|del] <char>",
   example: ".prefix add !",
-  helpOnEmpty: false,
   isOwner: true,
   cooldown: 3,
   isEnabled: true,

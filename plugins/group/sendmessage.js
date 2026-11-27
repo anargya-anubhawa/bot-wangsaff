@@ -13,7 +13,6 @@ const pluginConfig = {
   description: "Izinkan/larang anggota non-admin mengirim pesan",
   usage: ".sendmessage <on|off>",
   examples: [".sendmessage off", ".sendmessage on"],
-  helpOnEmpty: false,
   permission: "admin",
   isBotAdmin: true,
   cooldown: 10,

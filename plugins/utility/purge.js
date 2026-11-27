@@ -22,7 +22,6 @@ const pluginConfig = {
   description: "Hapus pesan-pesan terakhir dari bot di chat ini",
   usage: ".purge <jumlah|all>",
   examples: [".purge 10", ".purge all"],
-  helpOnEmpty: false,
   permission: "admin",
   isGroup: true,
   isBotAdmin: true,
