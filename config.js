@@ -26,7 +26,7 @@ const config = {
   bot: {
     name: env("BOT_NAME", "VEA"),
     shortName: "VEA",
-    version: "1.0.0",
+    version: env("BOT_VERSION", "2.0.0"),
     developer: env("BOT_DEVELOPER", "GeneticID"),
     number: env("BOT_NUMBER", ""),
     support: env("BOT_SUPPORT", ""),
